@@ -40,7 +40,7 @@ final class ApplicationWorkflow {
 
     public static function assignReviewer(int $id, array $actor, ?int $reviewerId): void {
         if ($actor['role'] !== 'msw_head') { throw new DomainException('Only the MSW Head may assign applications.'); }
-        $pdo = \\db();
+        $pdo = \db();
         $pdo->beginTransaction();
         try {
             $application = self::locked($pdo, $id);
@@ -54,9 +54,9 @@ final class ApplicationWorkflow {
             }
             $q = $pdo->prepare('UPDATE membership_applications SET assigned_to = ? WHERE id = ?');
             $q->execute([$reviewerId, $id]);
-            \\audit((int)$actor['id'], 'application.reassigned', 'membership_application', $id);
+            \audit((int)$actor['id'], 'application.reassigned', 'membership_application', $id);
             $pdo->commit();
-        } catch (\\Throwable $e) {
+        } catch (\Throwable $e) {
             $pdo->rollBack();
             throw $e;
         }
