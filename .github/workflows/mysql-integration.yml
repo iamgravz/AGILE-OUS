@@ -140,5 +140,6 @@ jobs:
       - name: Assert cross-module data integrity and draft policy safeguards
         run: |
           php tests/acceptance_integrity.php
+          php tests/acceptance_gate_negative.php
           php scripts/acceptance_audit.php
 
