@@ -62,6 +62,8 @@ jobs:
         run: php tests/extended_integration.php
       - name: Independent identity and email-recovery integration
         run: php tests/security_identity_mail_integration.php
+      - name: Test Phase 7 provisional academic screening and appeals
+        run: php tests/academic_casework_integration.php
       - name: Test encrypted database backup and isolated restore
         shell: bash
         run: |
