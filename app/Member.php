@@ -61,7 +61,10 @@ final class Member {
         $q->execute([(int)$user['id']]);return $q->fetch()?:null;
     }
     public static function setPublicVerification(array $actor,bool $enabled): void {
-        if ($actor['role']!=='member') throw new DomainException('Only members can set their card visibility.');
+        if (!in_array($actor['role'],['member','msw_head','msw_member','committee_head',
+            'deputy_head','executive_officer','source_editor','president'],true)) {
+            throw new DomainException('Only linked members can set card privacy preferences.');
+        }
         $q=\db()->prepare('UPDATE members SET public_verification_enabled=? WHERE user_id=?');
         $q->execute([(int)$enabled,(int)$actor['id']]);
         if ($q->rowCount()<1) throw new DomainException('Member account unavailable.');
