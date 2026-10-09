@@ -67,7 +67,10 @@ code="$(curl -sS -o "$BODY" -w '%{http_code}' -b "$COOKIE" -c "$COOKIE" "$BASE/m
 expect_status 200 "$code" 'Authenticated linked-member academic view'
 grep -q 'No academic verification cycles are linked' "$BODY"
 echo 'PASS staff account with no member association cannot see other students'
-
+# The member page has no form for an unlinked account: obtain a fresh logout
+# CSRF token from the authenticated staff dashboard before signing out.
+code="$(curl -sS -o "$BODY" -w '%{http_code}' -b "$COOKIE" -c "$COOKIE" "$BASE/dashboard")"
+expect_status 200 "$code" 'Refresh staff dashboard before secure logout'
 TOKEN="$(extract_csrf)"
 code="$(curl -sS -o "$BODY" -w '%{http_code}' -b "$COOKIE" -c "$COOKIE" \
   --data-urlencode "_csrf=$TOKEN" "$BASE/logout")"
