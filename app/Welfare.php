@@ -36,7 +36,12 @@ final class Welfare {
             (reference_code,tracking_hash,reporter_name,reporter_email,category,summary,details)
              VALUES(?,?,?,?,?,?,?)');
             $q->execute([$ref,hash('sha256',$token),$name,$email,$category,$summary,$details]);
-            \audit(null,'welfare.submitted','welfare_case',(int)$pdo->lastInsertId());
+            $caseId=(int)$pdo->lastInsertId();
+            if(isset($fields['_attachment'])&&is_array($fields['_attachment'])&&
+               ($fields['_attachment']['error']??UPLOAD_ERR_NO_FILE)!==UPLOAD_ERR_NO_FILE){
+                Attachments::store($fields['_attachment'],'welfare_case',$caseId);
+            }
+            \audit(null,'welfare.submitted','welfare_case',$caseId);
             $pdo->commit();
         }catch(\Throwable $e){$pdo->rollBack();throw $e;}
         return ['reference'=>$ref,'tracking_token'=>$token];
