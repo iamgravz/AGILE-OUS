@@ -1,0 +1,115 @@
+name: Staging Package Validation
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: stage-package-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  validate-staging-runtime:
+    name: Synthetic HTTPS staging container smoke
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    env:
+      STAGING_URL: https://staging.example.invalid
+      STAGING_BIND_IP: 127.0.0.1
+      STAGING_HTTPS_PORT: "8443"
+      COMPOSE_PROJECT_NAME: agile-ous-ci-${{ github.run_id }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Create protected synthetic container secrets
+        shell: bash
+        run: |
+          set -euo pipefail
+          dir="$RUNNER_TEMP/phase12-secret-fixtures"
+          mkdir -m 700 -p "$dir" "$RUNNER_TEMP/clamav-test-definitions"
+          echo "AGILE_STAGING_SECRET_DIR=$dir" >> "$GITHUB_ENV"
+          echo "AGILE_CLAMAV_DB_DIR=$RUNNER_TEMP/clamav-test-definitions" >> "$GITHUB_ENV"
+          umask 077
+          printf '%s' 'synthetic-mysql-application-password-2026' > "$dir/mysql_app_password"
+          printf '%s' 'synthetic-mysql-root-password-2026' > "$dir/mysql_root_password"
+          for name in mfa_key_b64 db_backup_key_b64 file_backup_key_b64; do
+            php -r 'echo base64_encode(random_bytes(32));' > "$dir/$name"
+          done
+          openssl req -x509 -newkey rsa:2048 -sha256 -days 1 -nodes \
+            -keyout "$dir/tls.key" -out "$dir/tls.crt" \
+            -subj '/CN=staging.example.invalid' \
+            -addext 'subjectAltName=DNS:staging.example.invalid' >/dev/null 2>&1
+          chmod 600 "$dir"/*
+          # Docker Compose file-backed secrets preserve host ownership/mode.
+          # Model the authorized server: protected 0600 files owned by root.
+          # The certificate is public; only the TLS private key is restricted.
+          sudo chown root:root "$dir"/mysql_app_password "$dir"/mysql_root_password \
+            "$dir"/mfa_key_b64 "$dir"/db_backup_key_b64 "$dir"/file_backup_key_b64 "$dir"/tls.key
+          chmod 644 "$dir/tls.crt"
+      - name: Validate Docker topology and Nginx configuration
+        shell: bash
+        run: bash tests/staging_manifest.sh
+      - name: Build isolated PHP-FPM with required scanning and crypto tools
+        shell: bash
+        run: docker compose -f deploy/staging/compose.yaml build app
+      - name: Check PHP-FPM pool configuration before launching
+        shell: bash
+        run: docker run --rm --entrypoint php-fpm agile-ous-staging-app:local -t
+      - name: Boot database and apply manually gated staging migrations
+        shell: bash
+        run: |
+          set -euo pipefail
+          docker compose -f deploy/staging/compose.yaml up -d database
+          docker compose -f deploy/staging/compose.yaml --profile admin run --rm migrate
+      - name: Start internal PHP and TLS-only Nginx
+        shell: bash
+        run: docker compose -f deploy/staging/compose.yaml up -d app web
+      - name: Verify TLS, protected routes and technical NO-GO handoff
+        shell: bash
+        run: |
+          set -euo pipefail
+          endpoint='https://staging.example.invalid:8443'
+          flags=(--silent --show-error --cacert "$AGILE_STAGING_SECRET_DIR/tls.crt" \
+             --resolve 'staging.example.invalid:8443:127.0.0.1')
+          for i in $(seq 1 30); do
+            if curl "${flags[@]}" --fail "$endpoint/" >/dev/null; then break; fi
+            sleep 2
+          done
+          curl "${flags[@]}" --fail "$endpoint/" | grep -q 'AGILE OUS'
+          curl "${flags[@]}" --fail "$endpoint/privacy" | grep -q 'synthetic demonstration data'
+          # These two public endpoints query MySQL *through the nonroot FPM
+          # worker* and verify the tmpfs secret handoff really works.
+          curl "${flags[@]}" --fail "$endpoint/vacancies" >/dev/null
+          curl "${flags[@]}" --fail "$endpoint/updates" >/dev/null
+          code="$(curl "${flags[@]}" -o /dev/null -w '%{http_code}' "$endpoint/staff/academic")"
+          test "$code" = 303
+          code="$(curl "${flags[@]}" -o /dev/null -w '%{http_code}' "$endpoint/app/bootstrap.php")"
+          test "$code" = 404
+          code="$(curl "${flags[@]}" -o /dev/null -w '%{http_code}' "$endpoint/router.php")"
+          test "$code" = 404
+          docker compose -f deploy/staging/compose.yaml exec -T app \
+            php scripts/staging_readiness_handoff.php > "$RUNNER_TEMP/staging-readiness.json"
+          jq -e '.technical_checks_passed == true and .production_release_authorized == false and .production_release_decision == "NO_GO_UNTIL_SEPARATE_HUMAN_APPROVAL"' \
+            "$RUNNER_TEMP/staging-readiness.json"
+          echo 'PASS: isolated HTTPS staging, protected source routes, and production NO-GO controls'
+      - name: Show bounded diagnostics on failure
+        if: failure()
+        shell: bash
+        run: |
+          docker compose -f deploy/staging/compose.yaml ps || true
+          # Operational status only; do not print application logs that might
+          # eventually include private information or credentials.
+          docker compose -f deploy/staging/compose.yaml config --quiet || true
+          # Only this disposable synthetic CI environment is allowed to
+          # print bounded startup logs. Never enable this on real student data.
+          docker compose -f deploy/staging/compose.yaml logs --no-color --tail=20 app web || true
+      - name: Destroy all synthetic CI containers and volumes
+        if: always()
+        shell: bash
+        run: |
+          docker compose -f deploy/staging/compose.yaml down --volumes --remove-orphans || true
+          rm -rf "$RUNNER_TEMP/phase12-secret-fixtures" "$RUNNER_TEMP/clamav-test-definitions"

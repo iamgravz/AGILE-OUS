@@ -1,0 +1,27 @@
+# No Git history, local configuration, credentials, or runtime student data
+# may be copied into staging images.
+.git
+.github
+.env
+.env.*
+*.pem
+*.key
+*.p12
+*.pfx
+credentials.json
+client_secret*.json
+oauth-token*.json
+storage
+vendor
+node_modules
+tmp
+temp
+backups
+*.log
+*.sql.gz
+*.dump
+*.bak
+deploy/staging/.staging.env
+deploy/staging/secrets
+deploy/staging/*.crt
+deploy/staging/*.key
