@@ -76,6 +76,13 @@ try {
     echo "Workflow integration tests passed. Synthetic-only records.\n";
 } finally {
     if ($appId !== null) {
+        $q=$pdo->prepare('SELECT id FROM members WHERE application_id=?');
+        $q->execute([$appId]);$memberId=$q->fetchColumn();
+        if($memberId){
+            $pdo->prepare("DELETE FROM audit_logs WHERE entity_type='member' AND entity_id=?")->execute([(int)$memberId]);
+            $pdo->prepare('DELETE FROM role_assignments WHERE member_id=?')->execute([(int)$memberId]);
+            $pdo->prepare('DELETE FROM members WHERE id=?')->execute([(int)$memberId]);
+        }
         $pdo->prepare("DELETE FROM audit_logs WHERE entity_type='membership_application' AND entity_id = ?")->execute([$appId]);
         $pdo->prepare('DELETE FROM application_verification_history WHERE application_id = ?')->execute([$appId]);
         $pdo->prepare('DELETE FROM application_status_history WHERE application_id = ?')->execute([$appId]);
