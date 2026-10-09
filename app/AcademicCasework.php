@@ -186,11 +186,11 @@ final class AcademicCasework {
             WHERE r.id=?');
         $q->execute([$requestId]);$request=$q->fetch();
         if(!$request) throw new DomainException('Academic review request unavailable.');
-        if(($actor['role']??'')==='msw_head') return $request;
-        self::linkedMember((int)$request['member_id'],$actor);
         if($write && !in_array($request['status'],['submitted','in_review'],true)) {
             throw new DomainException('Evidence cannot be added after this review is closed.');
         }
+        if(($actor['role']??'')==='msw_head') return $request;
+        self::linkedMember((int)$request['member_id'],$actor);
         return $request;
     }
 
