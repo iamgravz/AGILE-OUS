@@ -73,14 +73,11 @@ $wB=Welfare::submit([
 $q=$pdo->prepare('SELECT id FROM welfare_cases WHERE reference_code=?');
 $q->execute([$wA['reference']]);$caseA=(int)$q->fetchColumn();
 $q->execute([$wB['reference']]);$caseB=(int)$q->fetchColumn();
-Welfare::assign($caseA,['role'=>'msw_head','id'=>$actors['assigned']['id']],
-    (int)$actors['assigned']['id'],'normal');
-// Use a synthetic MSW Head ID for the audit actor, not a mismatched reviewer.
 $headRow=$pdo->query("SELECT id FROM users WHERE role='msw_head' AND is_active=1 ORDER BY id LIMIT 1")->fetch();
-if(!$headRow)throw new RuntimeException('Existing seeded synthetic MSW Head fixture missing.');
-$pdo->prepare('UPDATE welfare_cases SET assigned_to=? WHERE id=?')->execute([
-    (int)$actors['unassigned']['id'],$caseB
-]);
+if(!$headRow) throw new RuntimeException('Synthetic MSW Head fixture missing.');
+$reviewer=['role'=>'msw_head','id'=>(int)$headRow['id']];
+Welfare::assign($caseA,$reviewer,(int)$actors['assigned']['id'],'normal');
+Welfare::assign($caseB,$reviewer,(int)$actors['unassigned']['id'],'high');
 
 $postId=Content::draft($actors['editor'],[
     'title'=>'Phase10 Editorial Draft Review',
