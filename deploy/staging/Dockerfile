@@ -13,7 +13,6 @@ COPY --chown=www-data:www-data . /srv/agile
 RUN mkdir -p /srv/agile/storage/private /srv/agile/storage/backups \
     && chown -R www-data:www-data /srv/agile/storage \
     && chmod 0700 /srv/agile/storage/private /srv/agile/storage/backups \
-    && printf '%s\n' 'clear_env = no' > /usr/local/etc/php-fpm.d/zz-agile-environment.conf \
     && php -r 'foreach(["pdo_mysql","mbstring","fileinfo","sodium"] as $e){if(!extension_loaded($e)){fwrite(STDERR,"Missing PHP extension: $e\n");exit(1);}}'
 
 # Root executes only the short-lived secret handoff, then drops permanently
