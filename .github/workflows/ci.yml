@@ -51,6 +51,8 @@ jobs:
           if [[ -f tests/cli_smoke.php ]]; then php tests/cli_smoke.php
           elif [[ -f vendor/bin/phpunit ]]; then vendor/bin/phpunit
           else echo 'No executable PHP test suite yet. Tests will be required for the functional modules.'; fi
+      - name: Test RFC 6238 authenticator vectors
+        run: php tests/mfa_totp.php
       - name: Validate provisional draft bylaws policy (synthetic cases)
         shell: bash
         run: php tests/draft_bylaws_preview.php
