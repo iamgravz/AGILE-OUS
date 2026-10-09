@@ -8,6 +8,7 @@ use Agile\ApplicationForm;
 use Agile\ApplicationAdminPage;
 use Agile\ApplicationWorkflow;
 use Agile\Attachments;
+use Agile\Mfa;
 
 startSession();
 header('Referrer-Policy: no-referrer');
@@ -28,6 +29,16 @@ function formToken(): string { return '<input type="hidden" name="_csrf" value="
 function errorHtml(array $errors): string { return $errors ? '<p class="error">'.escape(implode(' ', $errors)).'</p>' : ''; }
 
 try {
+    // Enforce MFA before dispatching ANY existing privileged or member-facing
+    // route, not only routes that explicitly use Auth::requireRole().
+    $loggedIn = Auth::user();
+    if ($loggedIn && Mfa::required($loggedIn)
+        && !in_array($path,['/mfa/setup','/mfa/enroll','/mfa/confirm',
+                            '/mfa/challenge','/mfa/verify','/logout'],true)
+        && !Mfa::sessionVerified($loggedIn)) {
+        redirect(Mfa::enrolled((int)$loggedIn['id'])?'/mfa/challenge':'/mfa/setup');
+    }
+    require dirname(__DIR__).'/app/routes/mfa.php';
     if ($path === '/' && $method === 'GET') {
         page('Welcome to AGILE OUS', '<p>Membership and Student Welfare Management System.</p><p>Apply for AGILE membership through the secure registration form.</p><a href="/apply">Start membership application</a>');
     }
