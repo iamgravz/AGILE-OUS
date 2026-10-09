@@ -129,3 +129,11 @@ jobs:
             tail -n 120 /tmp/agile-http.log || true
             exit 1
           fi
+      - name: Seed Phase 10 synthetic multi-role fixtures
+        shell: bash
+        run: |
+          echo "PHASE10_FIXTURE=$RUNNER_TEMP/phase10_acceptance.json" >> "$GITHUB_ENV"
+          PHASE10_FIXTURE="$RUNNER_TEMP/phase10_acceptance.json" php tests/seed_phase10_acceptance.php
+      - name: Phase 10 role-based HTTP staging acceptance
+        shell: bash
+        run: bash tests/phase10_http_acceptance.sh
