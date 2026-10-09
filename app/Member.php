@@ -53,16 +53,24 @@ final class Member {
     }
     public static function own(array $user): ?array {
         if ($user['role']!=='member')throw new DomainException('Member dashboard only.');
-        $q=\db()->prepare('SELECT id,full_name,email,membership_status,membership_type,valid_until,verification_token_hash
+        $q=\db()->prepare('SELECT id,full_name,email,membership_status,membership_type,valid_until,verification_token_hash,public_verification_enabled
               FROM members WHERE user_id=?');
         $q->execute([(int)$user['id']]);return $q->fetch()?:null;
     }
+    public static function setPublicVerification(array $actor,bool $enabled): void {
+        if ($actor['role']!=='member') throw new DomainException('Only members can set their card visibility.');
+        $q=\db()->prepare('UPDATE members SET public_verification_enabled=? WHERE user_id=?');
+        $q->execute([(int)$enabled,(int)$actor['id']]);
+        if ($q->rowCount()<1) throw new DomainException('Member account unavailable.');
+        \audit((int)$actor['id'],'member.verification_visibility_changed','member',(int)$actor['id']);
+    }
+
     public static function publicVerification(string $code): ?array {
         if (!preg_match('/^[a-f0-9]{64}$/',$code))return null;
-        $q=\db()->prepare('SELECT full_name,membership_status,membership_type,valid_until
+        $q=\db()->prepare('SELECT full_name,membership_status,membership_type,valid_until,public_verification_enabled
             FROM members WHERE verification_token_hash=?');
         $q->execute([$code]);$m=$q->fetch();
-        if (!$m)return null;
+        if (!$m || !(bool)$m['public_verification_enabled'])return null;
         $valid=$m['membership_status']==='active'&&($m['valid_until']===null||$m['valid_until']>=date('Y-m-d'));
         return ['full_name'=>$m['full_name'],'membership_type'=>$m['membership_type'],'valid'=>$valid];
     }
