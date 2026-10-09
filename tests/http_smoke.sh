@@ -35,7 +35,9 @@ code="$(curl -sS -o "$BODY" -w '%{http_code}' -b "$COOKIE" -c "$COOKIE" \
   --data-urlencode "student_number=TEST-HTTP-2026" \
   --data-urlencode "desired_role=Committee Member" \
   --data-urlencode "motivation=This is synthetic test data for end-to-end registration." \
-  --data-urlencode "privacy_consent=yes" "$BASE/apply")"
+  --data-urlencode "privacy_consent=yes" \
+  --data-urlencode "answers[preferred_committee]=Membership and Student Welfare" \
+  --data-urlencode "answers[relevant_skills]=Synthetic experience in student outreach" "$BASE/apply")"
 expect_status 200 "$code" 'Application POST persisted'
 grep -q 'Application Submitted' "$BODY"
 grep -q 'AG-[A-F0-9]' "$BODY"

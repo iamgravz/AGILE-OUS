@@ -55,6 +55,8 @@ jobs:
           php scripts/migrate.php
       - name: Run real MySQL integration tests
         run: php tests/mysql_integration.php
+      - name: Test role-specific applications and reviewer permissions
+        run: php tests/workflow_integration.php
       - name: Seed synthetic HTTP staff account
         run: php tests/seed_http_user.php
       - name: Start local PHP application
