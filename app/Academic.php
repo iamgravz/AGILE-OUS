@@ -13,7 +13,8 @@ final class Academic {
         $pdo=\db();$created=0;
         $q=$pdo->query("SELECT DISTINCT m.id FROM members m
             JOIN role_assignments r ON r.member_id=m.id AND r.ends_at IS NULL
-            WHERE m.membership_status='active'");
+            WHERE m.membership_status='active' AND m.membership_type='appointed'
+              AND r.role_category IN ('Committee Member','Deputy Committee Head','Committee Head','Executive Officer','The Source Code')");
         $ins=$pdo->prepare('INSERT IGNORE INTO academic_verifications(term_id,member_id) VALUES (?,?)');
         foreach ($q->fetchAll() as $row) {
             $ins->execute([$termId,(int)$row['id']]);$created+=$ins->rowCount();
@@ -69,10 +70,16 @@ final class Academic {
     /** A separate authorized step; never triggered automatically by a grade flag. */
     public static function transitionToGeneral(int $verificationId,array $actor,string $reason): void {
         if ($actor['role']!=='msw_head') throw new DomainException('Only MSW Head may initiate an approved role transition.');
+        if (\envValue('ACADEMIC_ROLE_TRANSITIONS_ENABLED','false')!=='true') {
+            throw new DomainException('Academic role changes are disabled until the final bylaws and authorization are approved.');
+        }
         if (mb_strlen(trim($reason))<25||mb_strlen($reason)>1000)throw new DomainException('Document the organizational decision and due process.');
         $pdo=\db();$pdo->beginTransaction();
         try{
-            $q=$pdo->prepare('SELECT member_id,verified_result FROM academic_verifications WHERE id=? FOR UPDATE');
+            $q=$pdo->prepare('SELECT v.member_id,v.verified_result,m.user_id
+                FROM academic_verifications v
+                JOIN members m ON m.id=v.member_id
+                WHERE v.id=? FOR UPDATE');
             $q->execute([$verificationId]);$row=$q->fetch();
             if (!$row||$row['verified_result']!=='ineligible')throw new DomainException('Human-confirmed ineligibility is required.');
             $q=$pdo->prepare('SELECT * FROM role_assignments WHERE member_id=? AND ends_at IS NULL FOR UPDATE');
@@ -86,6 +93,14 @@ final class Academic {
                 }
             }
             $pdo->prepare("UPDATE members SET membership_type='general' WHERE id=?")->execute([(int)$row['member_id']]);
+            // Invalidate organizational privileges for the explicitly linked member account
+            // inside the same transaction. Auth::user reloads the role on each request.
+            if ($row['user_id']!==null) {
+                $pdo->prepare("UPDATE users SET role='member'
+                   WHERE id=? AND role IN ('msw_head','msw_member','committee_head',
+                     'deputy_head','executive_officer','source_editor','president')")
+                  ->execute([(int)$row['user_id']]);
+            }
             \audit((int)$actor['id'],'academic.role_to_general','member',(int)$row['member_id']);
             $pdo->commit();
         }catch(\Throwable $e){$pdo->rollBack();throw $e;}
