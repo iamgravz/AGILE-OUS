@@ -67,6 +67,7 @@ $operation=$argv[1]??'';
 if (!in_array($operation,['backup','verify','restore'],true)) backupHelp();
 $credentials=null;
 $key=null;
+$partialBackup=null;
 try {
     $key=BackupCipher::keyFromEnvironment();
     if ($operation==='verify') {
@@ -82,6 +83,7 @@ try {
         $file=$dir.'/agile-'.gmdate('Ymd-His').'-'.bin2hex(random_bytes(5)).'.abk';
         $output=fopen($file,'x+b');
         if ($output===false)throw new RuntimeException('Unable to create private backup.');
+        $partialBackup=$file;
         chmod($file,0600);
         try {
             $credentials=temporaryMySqlCredentials();
@@ -110,6 +112,7 @@ try {
         try {$verified=ensureHealthyBackup($file,$key);}
         catch(\Throwable $e){@unlink($file);throw $e;}
         if ($verified!==$bytes) {@unlink($file);throw new RuntimeException('Backup integrity verification mismatch.');}
+        $partialBackup=null;
         echo "Encrypted backup created and verified: $file\n";
         echo "Encrypted backup covers the MySQL database only; private attachments require a separate encrypted storage backup.\n";
         exit(0);
@@ -125,6 +128,18 @@ try {
         throw new RuntimeException('Restore requires an existing isolated agile_restore_* DB and explicit AGILE_ALLOW_ISOLATED_RESTORE=true.');
     }
     $bytes=ensureHealthyBackup($file,$key); // verify before modifying target
+    $restoreCheck=new PDO(
+        'mysql:host='.envValue('DB_HOST','127.0.0.1').';port='.(int)envValue('DB_PORT','3306')
+          .';dbname='. $target .';charset=utf8mb4',
+        envValue('DB_USER','agile_app'),envValue('DB_PASSWORD'),
+        [PDO::ATTR_ERRMODE=>PDO::ERRMODE_EXCEPTION]
+    );
+    $q=$restoreCheck->prepare("SELECT COUNT(*) FROM information_schema.tables WHERE table_schema=?");
+    $q->execute([$target]);
+    if ((int)$q->fetchColumn()>0) {
+        throw new RuntimeException('Isolated restore database must be empty to avoid destructive replacement.');
+    }
+    $restoreCheck=null;
     $credentials=temporaryMySqlCredentials();
     $proc=process(['mysql','--defaults-extra-file='.$credentials,'--default-character-set=utf8mb4',$target],$pipes);
     fclose($pipes[1]);
@@ -144,6 +159,7 @@ try {
     echo "Encrypted backup restored to isolated test database: $target\n";
     exit(0);
 }catch(\Throwable $e){
+    if ($partialBackup!==null && is_file($partialBackup)) @unlink($partialBackup);
     fwrite(STDERR,"Backup/restore operation failed: ".$e->getMessage()."\n");
     exit(1);
 }finally{
