@@ -93,8 +93,7 @@ jobs:
           test "$code" = 404
           docker compose -f deploy/staging/compose.yaml exec -T app \
             php scripts/staging_readiness_handoff.php > "$RUNNER_TEMP/staging-readiness.json"
-          jq -e '.technical_checks_passed == true and .production_release_authorized == false \
-            and .production_release_decision == "NO_GO_UNTIL_SEPARATE_HUMAN_APPROVAL"' \
+          jq -e '.technical_checks_passed == true and .production_release_authorized == false and .production_release_decision == "NO_GO_UNTIL_SEPARATE_HUMAN_APPROVAL"' \
             "$RUNNER_TEMP/staging-readiness.json"
           echo 'PASS: isolated HTTPS staging, protected source routes, and production NO-GO controls'
       - name: Show bounded diagnostics on failure
