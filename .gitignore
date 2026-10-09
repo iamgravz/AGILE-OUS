@@ -1,0 +1,46 @@
+# Secrets and local configuration
+.env
+.env.*
+!.env.example
+config.php
+/config/local.php
+*.pem
+*.key
+*.p12
+*.pfx
+credentials.json
+client_secret*.json
+oauth-token*.json
+
+# Dependencies and tools
+/vendor/
+/node_modules/
+/.phpunit.cache/
+/coverage/
+/.idea/
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.example.json
+
+# Generated/runtime files — keep placeholder files when needed
+/storage/*
+!/storage/.gitkeep
+/public/uploads/
+/uploads/
+/tmp/
+/temp/
+*.log
+
+# OS/editor
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+
+# Backups / dumps containing possibly personal information
+*.sql.gz
+*.dump
+*.bak
+*.backup
+backup/
+backups/
