@@ -54,6 +54,10 @@ jobs:
         run: |
           php scripts/migrate.php
           php scripts/migrate.php
+      - name: Set disposable CI MFA encryption secret
+        run: echo "MFA_KEY_B64=$(php -r 'echo base64_encode(random_bytes(32));')" >> "$GITHUB_ENV"
+      - name: Test privileged MFA enrollment and challenge lifecycle
+        run: php tests/mfa_integration.php
       - name: Run real MySQL integration tests
         run: php tests/mysql_integration.php
       - name: Test role-specific applications and reviewer permissions
