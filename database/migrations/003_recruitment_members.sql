@@ -85,6 +85,7 @@ CREATE TABLE IF NOT EXISTS members (
 CREATE TABLE IF NOT EXISTS role_assignments (
  id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
  member_id BIGINT UNSIGNED NOT NULL,
+ vacancy_id BIGINT UNSIGNED NULL,
  role_category VARCHAR(80) NOT NULL,
  position_title VARCHAR(140) NOT NULL,
  starts_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -92,6 +93,7 @@ CREATE TABLE IF NOT EXISTS role_assignments (
  reason VARCHAR(1000) NULL,
  recorded_by BIGINT UNSIGNED NOT NULL,
  FOREIGN KEY (member_id) REFERENCES members(id),
+ FOREIGN KEY (vacancy_id) REFERENCES vacancies(id),
  FOREIGN KEY (recorded_by) REFERENCES users(id),
  INDEX idx_active_role (member_id,ends_at)
 ) ENGINE=InnoDB;
