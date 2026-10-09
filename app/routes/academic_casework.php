@@ -131,6 +131,23 @@ if ($path==='/member/academic' && $method==='GET') {
                 $html.='<p>MSW response: '.nl2br(escape($req['resolution_note'])).'</p>';
             }
         }
+        foreach($requests as $req) {
+            if(in_array($req['status'],['submitted','in_review'],true)){
+                $html.='<form method="post" enctype="multipart/form-data" action="/member/academic/evidence">'
+                    .formToken()
+                    .'<input type="hidden" name="request_id" value="'.(int)$req['id'].'">'
+                    .'<label>Additional supporting evidence (PDF, JPG or PNG; max 5 MB)'
+                    .'<input type="file" name="attachment" accept=".pdf,.png,.jpg,.jpeg" required></label>'
+                    .'<button>Upload Confidential Evidence</button></form>';
+            }
+            $files=\db()->prepare("SELECT id,original_name FROM private_attachments
+                WHERE owner_type='academic_review_request' AND owner_id=? ORDER BY id DESC");
+            $files->execute([(int)$req['id']]);
+            foreach($files->fetchAll() as $file){
+                $html.='<p><a href="/staff/attachment?id='.(int)$file['id'].'">'
+                    .'Download own evidence: '.escape($file['original_name']).'</a></p>';
+            }
+        }
         $html.='<form method="post" action="/member/academic/request">'.formToken()
             .'<input type="hidden" name="verification_id" value="'.(int)$row['id'].'">'
             .'<label>Request type<select name="request_type">'
@@ -169,6 +186,13 @@ if ($path==='/staff/academic/appeals' && $method==='GET') {
             .' · '.escape($req['request_type']).' · '.escape($req['status']).'</p>'
             .'<p>'.nl2br(escape($req['request_text'])).'</p>'
             .'<p><a href="/staff/academic/check?id='.(int)$req['verification_id'].'">Verification details</a></p>';
+        $attachments=\db()->prepare("SELECT id,original_name FROM private_attachments
+            WHERE owner_type='academic_review_request' AND owner_id=? ORDER BY id DESC");
+        $attachments->execute([(int)$req['id']]);
+        foreach($attachments->fetchAll() as $attachment){
+            $html.='<p><a href="/staff/attachment?id='.(int)$attachment['id'].'">'
+               .'Confidential evidence: '.escape($attachment['original_name']).'</a></p>';
+        }
         if (in_array($req['status'],['submitted','in_review'],true)) {
             $html.='<form method="post" action="/staff/academic/appeals/update">'.formToken()
                .'<input type="hidden" name="request_id" value="'.(int)$req['id'].'">'
@@ -202,5 +226,21 @@ if ($path==='/staff/academic/appeals/update' && $method==='POST') {
     } catch (DomainException $e) {
         http_response_code(422);
         page('Academic Appeal Review Not Accepted','<p class="error">'.escape($e->getMessage()).'</p>');
+    }
+}
+
+if ($path==='/member/academic/evidence' && $method==='POST') {
+    $actor=Auth::requireRole(['member','msw_head','msw_member','committee_head',
+        'deputy_head','executive_officer','source_editor','president']);
+    verifyCsrf();
+    $id=filter_var($_POST['request_id']??null,FILTER_VALIDATE_INT,['options'=>['min_range'=>1]]);
+    if (!$id) {http_response_code(400);page('Invalid Evidence Request','<p>Review request ID required.</p>');}
+    try {
+        \Agile\AcademicCasework::authorizeEvidence((int)$id,$actor,true);
+        \Agile\Attachments::store($_FILES['attachment']??[],'academic_review_request',(int)$id,$actor);
+        redirect('/member/academic');
+    } catch(DomainException $e) {
+        http_response_code(422);
+        page('Evidence Upload Not Accepted','<p class="error">'.escape($e->getMessage()).'</p>');
     }
 }
