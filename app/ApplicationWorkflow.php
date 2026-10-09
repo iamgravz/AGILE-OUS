@@ -116,6 +116,9 @@ final class ApplicationWorkflow {
             $q = $pdo->prepare('UPDATE membership_applications SET status = ?, reviewed_by = ?, reviewed_at = NOW() WHERE id = ? AND status = ?');
             $q->execute([$newStatus,(int)$actor['id'],$id,$oldStatus]);
             if ($q->rowCount() !== 1) { throw new RuntimeException('Application changed during review.'); }
+            if ($newStatus === 'approved') {
+                Recruitment::finalizeApprovedMembership($pdo,$row,$actor);
+            }
             $q = $pdo->prepare('INSERT INTO application_status_history (application_id, actor_user_id, old_status, new_status, note) VALUES (?, ?, ?, ?, ?)');
             $q->execute([$id,(int)$actor['id'],$oldStatus,$newStatus,$note]);
             \audit((int)$actor['id'], 'application.status_changed', 'membership_application', $id);

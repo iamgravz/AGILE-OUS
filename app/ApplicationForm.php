@@ -5,13 +5,19 @@ namespace Agile;
 final class ApplicationForm {
     public static function render(): string {
         $html = '<p>Apply for AGILE OUS membership using synthetic or authorized information only.</p>'
-            . '<form method="post" action="/apply">' . \formToken()
+            . '<form method="post" action="/apply" enctype="multipart/form-data">' . \formToken()
             . '<label>Full name<input required maxlength="150" name="full_name" autocomplete="name"></label>'
             . '<label>Email<input required type="email" maxlength="190" name="email" autocomplete="email"></label>'
             . '<label>Student number<input required maxlength="32" name="student_number"></label>'
             . '<label>Application category<select id="desired-role" name="desired_role" required>';
         foreach (Membership::ROLES as $role) {
             $html .= '<option value="' . \escape($role) . '">' . \escape($role) . '</option>';
+        }
+        $html .= '</select></label><label>Open recruitment position (optional)<select name="vacancy_id" id="vacancy-id"><option value="">General membership / not applying to a listed vacancy</option>';
+        foreach (Recruitment::openVacancies() as $v) {
+            $html .= '<option data-role="' . \escape($v['role_category']) . '" value="' . (int)$v['id'] . '">'
+                . \escape($v['committee_name'] . ' — ' . $v['position_title'])
+                . ' (' . ((int)$v['capacity']-(int)$v['filled']) . ' open)</option>';
         }
         $html .= '</select></label>'
             . '<label>Why would you like to join?<textarea required minlength="10" maxlength="2000" name="motivation"></textarea></label>';
@@ -40,6 +46,7 @@ final class ApplicationForm {
             }
             $html .= '</fieldset>';
         }
+        $html .= '<label>Optional supporting document (PDF/JPG/PNG, max 5 MB)<input type="file" name="attachment" accept=".pdf,.jpg,.jpeg,.png"></label>';
         $html .= '<label><input style="display:inline;width:auto" type="checkbox" name="privacy_consent" value="yes" required>'
             . ' I have read the <a href="/privacy" target="_blank" rel="noopener">privacy information</a> and agree to the collection of my application details for screening.</label>'
             . '<button type="submit">Submit Application</button></form>';
@@ -48,7 +55,13 @@ final class ApplicationForm {
 (function() {
  const role = document.getElementById('desired-role');
  const groups = Array.from(document.querySelectorAll('.role-fields'));
+ const vacancy = document.getElementById('vacancy-id');
  function refresh() {
+   for (const option of vacancy.querySelectorAll('option[data-role]')) {
+     option.hidden = option.dataset.role !== role.value;
+     option.disabled = option.hidden;
+   }
+   if (vacancy.selectedOptions[0]?.disabled) vacancy.value = '';
    for (const fieldset of groups) {
      const active = fieldset.dataset.role === role.value;
      fieldset.hidden = !active;

@@ -17,6 +17,15 @@ final class Membership {
         if (!in_array($role, self::ROLES, true)) $errors[] = 'Choose a valid role.';
         if (mb_strlen($reason) < 10 || mb_strlen($reason) > 2000) $errors[] = 'Motivation must be 10–2000 characters.';
         if (($input['privacy_consent'] ?? '') !== 'yes') $errors[] = 'Privacy consent is required.';
+        if (!empty($input['vacancy_id'])) {
+            $vacancy = filter_var($input['vacancy_id'], FILTER_VALIDATE_INT, ['options'=>['min_range'=>1]]);
+            if (!$vacancy) $errors[] = 'Invalid vacancy selection.';
+            else {
+                $q = \db()->prepare("SELECT role_category FROM vacancies WHERE id=? AND status='published' AND filled<capacity");
+                $q->execute([(int)$vacancy]);
+                if ($q->fetchColumn() !== $role) $errors[] = 'Selected vacancy does not match the requested role or is full.';
+            }
+        }
         if (in_array($role, self::ROLES, true)) {
             $errors = array_merge($errors, ApplicationQuestions::validate($role, $input['answers'] ?? []));
         }
@@ -29,12 +38,16 @@ final class Membership {
         $reference = 'AG-' . strtoupper(bin2hex(random_bytes(7)));
         $pdo->beginTransaction();
         try {
-            $q = $pdo->prepare('INSERT INTO membership_applications (reference_code, full_name, email, student_number, desired_role, motivation, status, consent_at) VALUES (?, ?, ?, ?, ?, ?, ?, NOW())');
-            $q->execute([$reference,trim($input['full_name']),strtolower(trim($input['email'])),trim($input['student_number']),$input['desired_role'],trim($input['motivation']),'submitted']);
+            $q = $pdo->prepare('INSERT INTO membership_applications (reference_code, full_name, email, student_number, desired_role, motivation, status, consent_at, vacancy_id) VALUES (?, ?, ?, ?, ?, ?, ?, NOW(), ?)');
+            $q->execute([$reference,trim($input['full_name']),strtolower(trim($input['email'])),trim($input['student_number']),$input['desired_role'],trim($input['motivation']),'submitted', !empty($input['vacancy_id'])?(int)$input['vacancy_id']:null]);
             $applicationId = (int)$pdo->lastInsertId();
             $answers = ApplicationQuestions::normalize($input['desired_role'], $input['answers'] ?? []);
             $qa = $pdo->prepare('INSERT INTO application_answers (application_id, question_key, answer_text) VALUES (?, ?, ?)');
             foreach ($answers as $key => $answer) { $qa->execute([$applicationId, $key, $answer]); }
+            if (isset($input['_attachment']) && is_array($input['_attachment']) &&
+                ($input['_attachment']['error'] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_NO_FILE) {
+                Attachments::store($input['_attachment'],'membership_application',$applicationId);
+            }
             \audit(null,'application.submitted','membership_application',$applicationId);
             $pdo->commit();
         } catch (\Throwable $e) { $pdo->rollBack(); throw $e; }

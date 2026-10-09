@@ -41,6 +41,7 @@ jobs:
       DB_PASSWORD: synthetic_app_test_only
       SESSION_SECURE: 'false'
       RUN_E2E_TESTS: 'yes'
+      ACADEMIC_ROLE_TRANSITIONS_ENABLED: 'true' # Disposable, synthetic CI data only
       HTTP_TEST_PASSWORD: 'SyntheticHTTPPassword!2026'
     steps:
       - uses: actions/checkout@v4
@@ -57,6 +58,8 @@ jobs:
         run: php tests/mysql_integration.php
       - name: Test role-specific applications and reviewer permissions
         run: php tests/workflow_integration.php
+      - name: Extended system and automation integration tests
+        run: php tests/extended_integration.php
       - name: Seed synthetic HTTP staff account
         run: php tests/seed_http_user.php
       - name: Start local PHP application
