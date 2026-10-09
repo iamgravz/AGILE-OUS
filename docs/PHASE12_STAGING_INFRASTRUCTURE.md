@@ -72,7 +72,7 @@ docker compose --env-file deploy/staging/.staging.env \
 
 - Application front end is bound to loopback by default and has no database port forwarding.
 - The database and PHP application communicate solely over an isolated private Docker network.
-- The PHP container's root filesystem is read-only; only named private-data and encrypted-backup volumes are writable, with a limited tmpfs for PHP sessions. The app runs as nonroot `www-data`, drops Linux capabilities and cannot run a Docker daemon.
+- The PHP container's root filesystem is read-only; only named private-data and encrypted-backup volumes are writable, with a limited tmpfs for PHP sessions. The **PHP-FPM request workers and CLI jobs run as unprivileged `www-data`**. Only the conventional FPM master remains root (restricted to CHOWN/SETUID/SETGID and no-new-privileges), so it can open Docker stderr and manage its worker pool. The container cannot run a Docker daemon.
 - The separate `migrate` service is under an **admin profile** and is never part of automatic `up`; the scanner is under the optional **tools profile**.
 - Secrets are mounted as runtime files. The Docker image excludes `.env`, credentials, Git history and `storage/`.
 - Staging defaults: Gmail disabled, external AI disabled, academic role transitions disabled, scheduled automation disabled, file-scanning set to ClamAV, full HTTPS secure sessions.
