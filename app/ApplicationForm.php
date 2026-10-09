@@ -5,7 +5,7 @@ namespace Agile;
 final class ApplicationForm {
     public static function render(): string {
         $html = '<p>Apply for AGILE OUS membership using synthetic or authorized information only.</p>'
-            . '<form method="post" action="/apply">' . \formToken()
+            . '<form method="post" action="/apply" enctype="multipart/form-data">' . \formToken()
             . '<label>Full name<input required maxlength="150" name="full_name" autocomplete="name"></label>'
             . '<label>Email<input required type="email" maxlength="190" name="email" autocomplete="email"></label>'
             . '<label>Student number<input required maxlength="32" name="student_number"></label>'
@@ -46,6 +46,7 @@ final class ApplicationForm {
             }
             $html .= '</fieldset>';
         }
+        $html .= '<label>Optional supporting document (PDF/JPG/PNG, max 5 MB)<input type="file" name="attachment" accept=".pdf,.jpg,.jpeg,.png"></label>';
         $html .= '<label><input style="display:inline;width:auto" type="checkbox" name="privacy_consent" value="yes" required>'
             . ' I have read the <a href="/privacy" target="_blank" rel="noopener">privacy information</a> and agree to the collection of my application details for screening.</label>'
             . '<button type="submit">Submit Application</button></form>';
