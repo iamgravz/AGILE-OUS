@@ -17,6 +17,9 @@ final class Membership {
         if (!in_array($role, self::ROLES, true)) $errors[] = 'Choose a valid role.';
         if (mb_strlen($reason) < 10 || mb_strlen($reason) > 2000) $errors[] = 'Motivation must be 10–2000 characters.';
         if (($input['privacy_consent'] ?? '') !== 'yes') $errors[] = 'Privacy consent is required.';
+        if (in_array($role, self::ROLES, true)) {
+            $errors = array_merge($errors, ApplicationQuestions::validate($role, $input['answers'] ?? []));
+        }
         return $errors;
     }
     public static function submit(array $input): string {
@@ -28,7 +31,11 @@ final class Membership {
         try {
             $q = $pdo->prepare('INSERT INTO membership_applications (reference_code, full_name, email, student_number, desired_role, motivation, status, consent_at) VALUES (?, ?, ?, ?, ?, ?, ?, NOW())');
             $q->execute([$reference,trim($input['full_name']),strtolower(trim($input['email'])),trim($input['student_number']),$input['desired_role'],trim($input['motivation']),'submitted']);
-            \audit(null,'application.submitted','membership_application',(int)$pdo->lastInsertId());
+            $applicationId = (int)$pdo->lastInsertId();
+            $answers = ApplicationQuestions::normalize($input['desired_role'], $input['answers'] ?? []);
+            $qa = $pdo->prepare('INSERT INTO application_answers (application_id, question_key, answer_text) VALUES (?, ?, ?)');
+            foreach ($answers as $key => $answer) { $qa->execute([$applicationId, $key, $answer]); }
+            \audit(null,'application.submitted','membership_application',$applicationId);
             $pdo->commit();
         } catch (\Throwable $e) { $pdo->rollBack(); throw $e; }
         return $reference;
