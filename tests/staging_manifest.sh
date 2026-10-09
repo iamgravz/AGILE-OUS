@@ -23,28 +23,34 @@ chmod 0600 "$scratch"/*
 
 docker compose -f deploy/staging/compose.yaml config --quiet
 docker compose -f deploy/staging/compose.yaml config --format json > "$scratch/manifest.json"
-jq -e '
-  .name == "agile-ous-staging"
-  and (.services.database.ports == null)
-  and (.services.app.ports == null)
-  and (.services.web.ports | length == 1)
-  and (.services.web.ports[0].host_ip == "127.0.0.1")
-  and (.services.web.ports[0].target == 443)
-  and (.services.app.environment.APP_ENV == "staging")
-  and (.services.app.environment.SESSION_SECURE == "true")
-  and (.services.app.environment.DB_PASSWORD_FILE == "/run/secrets/mysql_app_password")
-  and (.services.app.environment.MFA_KEY_B64_FILE == "/run/secrets/mfa_key_b64")
-  and (.services.app.environment.MAIL_TRANSPORT == "disabled")
-  and (.services.app.environment.AI_EXTERNAL_PROCESSING_APPROVED == "false")
-  and (.services.app.environment.ACADEMIC_ROLE_TRANSITIONS_ENABLED == "false")
-  and (.services.app.environment.AGILE_ALLOW_ISOLATED_RESTORE == "false")
-  and ((.services.migrate.profiles // []) | index("admin") != null)
-  and ((.services.scanner.profiles // []) | index("tools") != null)
-  and (.networks.private.internal == true)
-  and (.volumes.private_data != null)
-  and (.volumes.encrypted_backups != null)
-  and (.secrets.tls_key != null)
-' "$scratch/manifest.json" >/dev/null
+assert_json() {
+  local label="$1" expression="$2"
+  if ! jq -e "$expression" "$scratch/manifest.json" >/dev/null; then
+    echo "FAIL: protected Compose manifest violated: $label" >&2
+    exit 1
+  fi
+}
+assert_json 'project namespace' '.name == "agile-ous-staging"'
+assert_json 'database host port must not exist' '.services.database.ports == null'
+assert_json 'PHP host port must not exist' '.services.app.ports == null'
+assert_json 'single HTTPS ingress port' '(.services.web.ports | length) == 1'
+assert_json 'loopback-only ingress' '.services.web.ports[0].host_ip == "127.0.0.1"'
+assert_json 'HTTPS service port' '.services.web.ports[0].target == 443'
+assert_json 'staging environment' '.services.app.environment.APP_ENV == "staging"'
+assert_json 'secure session cookies' '.services.app.environment.SESSION_SECURE == "true"'
+assert_json 'file-backed database credentials' '.services.app.environment.DB_PASSWORD_FILE == "/run/secrets/mysql_app_password"'
+assert_json 'file-backed MFA key' '.services.app.environment.MFA_KEY_B64_FILE == "/run/secrets/mfa_key_b64"'
+assert_json 'disabled outbound email' '.services.app.environment.MAIL_TRANSPORT == "disabled"'
+assert_json 'disabled external AI' '.services.app.environment.AI_EXTERNAL_PROCESSING_APPROVED == "false"'
+assert_json 'disabled academic role transition' '.services.app.environment.ACADEMIC_ROLE_TRANSITIONS_ENABLED == "false"'
+assert_json 'disabled isolated restore on web' '.services.app.environment.AGILE_ALLOW_ISOLATED_RESTORE == "false"'
+assert_json 'migration service admin profile' '(.services.migrate.profiles // [] | index("admin")) != null'
+assert_json 'scanner service tools profile' '(.services.scanner.profiles // [] | index("tools")) != null'
+assert_json 'private internal Docker network' '.networks.private.internal == true'
+assert_json 'private-file volume' '.volumes.private_data != null'
+assert_json 'encrypted-backups volume' '.volumes.encrypted_backups != null'
+assert_json 'TLS private-key secret mount' '.secrets.tls_key != null'
+
 
 # Nginx must serve only public/ and deny execution of arbitrary PHP scripts.
 test -f deploy/staging/nginx.container.conf
