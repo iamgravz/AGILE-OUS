@@ -36,5 +36,13 @@ done
 chmod 0700 "$dir"
 chown www-data:www-data "$dir"
 
-# gosu switches both UID/GID; no application code executes as root.
+# Standard PHP-FPM runs a tightly capability-restricted root master only
+# to open container stderr and manage the pool; individual HTTP/grade/Welfare
+# requests execute in the www-data pool. Running the FPM *master* as
+# www-data prevents the official /proc/self/fd/2 error log from being opened.
+if [ "${1:-}" = 'php-fpm' ]; then
+    exec "$@"
+fi
+
+# Maintenance, malware-scan and migration PHP code runs as www-data.
 exec gosu www-data "$@"
