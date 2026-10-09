@@ -44,3 +44,9 @@ Thumbs.db
 *.backup
 backup/
 backups/
+
+# Staging host runtime environment and secret material
+/deploy/staging/.staging.env
+/deploy/staging/secrets/
+/deploy/staging/*.crt
+/deploy/staging/*.key
