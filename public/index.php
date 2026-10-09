@@ -74,8 +74,29 @@ try {
         $user = Auth::requireRole(['msw_head','msw_member']);
         $id = filter_var($_GET['id'] ?? null, FILTER_VALIDATE_INT, ['options'=>['min_range'=>1]]);
         if (!$id) { http_response_code(400); page('Invalid Application', '<p>Invalid application ID.</p>'); }
-        if (!ApplicationWorkflow::find((int)$id)) { http_response_code(404); page('Not Found','<p>Application not found.</p>'); }
+        try {
+            if (!ApplicationWorkflow::findForActor((int)$id, $user)) {
+                http_response_code(404); page('Not Found','<p>Application not found.</p>');
+            }
+        } catch (DomainException $e) {
+            http_response_code(403); page('Access Denied','<p>Application is not assigned to your account.</p>');
+        }
         page('Application Review', ApplicationAdminPage::render((int)$id, $user));
+    }
+    if ($path === '/application/assign' && $method === 'POST') {
+        $user = Auth::requireRole(['msw_head']);
+        verifyCsrf();
+        $id = filter_var($_POST['id'] ?? null, FILTER_VALIDATE_INT, ['options'=>['min_range'=>1]]);
+        if (!$id) { http_response_code(400); page('Invalid Application','<p>Invalid application ID.</p>'); }
+        $rawReviewer = $_POST['reviewer_id'] ?? '';
+        $reviewerId = $rawReviewer === '' ? null : filter_var($rawReviewer, FILTER_VALIDATE_INT, ['options'=>['min_range'=>1]]);
+        if ($rawReviewer !== '' && !$reviewerId) { http_response_code(400); page('Invalid Reviewer','<p>Invalid reviewer.</p>'); }
+        try {
+            ApplicationWorkflow::assignReviewer((int)$id, $user, $reviewerId === null ? null : (int)$reviewerId);
+            redirect('/application?id='.(int)$id);
+        } catch (DomainException $e) {
+            http_response_code(422); page('Assignment Not Accepted', '<p class="error">'.escape($e->getMessage()).'</p>');
+        }
     }
     if ($path === '/application/status' && $method === 'POST') {
         $user = Auth::requireRole(['msw_head','msw_member']);
@@ -115,7 +136,13 @@ try {
             foreach ($stats as $stat) { $html .= '<tr><td>'.escape($stat['status']).'</td><td>'.(int)$stat['total'].'</td></tr>'; }
             page('Read-only Overview', $html.'</table>');
         }
-        $rows = db()->query('SELECT id, reference_code, full_name, desired_role, status, created_at FROM membership_applications ORDER BY created_at DESC LIMIT 30')->fetchAll();
+        if ($user['role'] === 'msw_member') {
+            $q = db()->prepare('SELECT id, reference_code, full_name, desired_role, status, created_at FROM membership_applications WHERE assigned_to = ? ORDER BY created_at DESC LIMIT 30');
+            $q->execute([(int)$user['id']]);
+            $rows = $q->fetchAll();
+        } else {
+            $rows = db()->query('SELECT id, reference_code, full_name, desired_role, status, created_at FROM membership_applications ORDER BY created_at DESC LIMIT 30')->fetchAll();
+        }
         $html = '<p>Signed in as '.escape($user['display_name']).' ('.escape($user['role']).')</p><form method="post" action="/logout">'.formToken().'<button>Sign Out</button></form><h2>Recent applications</h2><table><tr><th>Reference</th><th>Applicant</th><th>Role</th><th>Status</th></tr>';
         foreach($rows as $r) {
             $html .= '<tr><td><a href="/application?id='.(int)$r['id'].'">'.escape($r['reference_code']).'</a></td><td>'.escape($r['full_name']).'</td><td>'.escape($r['desired_role']).'</td><td>'.escape($r['status']).'</td></tr>';
