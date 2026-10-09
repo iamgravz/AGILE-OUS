@@ -173,7 +173,10 @@ try {
         page('Staff Dashboard', $html.'</table><p>Further permission-restricted workflows will be added in subsequent phases.</p>');
     }
     if ($path==='/staff/attachment' && $method==='GET') {
-        $actor=Auth::requireRole(['msw_head','msw_member']);
+        $actor=Auth::requireRole([
+            'msw_head','msw_member','committee_head','deputy_head',
+            'executive_officer','source_editor','president','member'
+        ]);
         Attachments::retrieve((int)($_GET['id']??0),$actor);
     }
     if ($path==='/staff/attachment/upload' && $method==='POST') {
