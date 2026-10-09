@@ -80,7 +80,7 @@ services:
     # FPM master runs with only CHOWN/SETUID/SETGID; HTTP workers and CLI jobs run as www-data.
     cap_add: ["CHOWN", "SETUID", "SETGID"]
     healthcheck:
-      test: ["CMD", "php", "scripts/staging_container_health.php"]
+      test: ["CMD", "agile-healthcheck"]
       interval: 30s
       timeout: 10s
       retries: 3
