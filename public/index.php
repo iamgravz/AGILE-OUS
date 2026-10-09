@@ -4,6 +4,9 @@ require dirname(__DIR__) . '/app/bootstrap.php';
 
 use Agile\Auth;
 use Agile\Membership;
+use Agile\ApplicationForm;
+use Agile\ApplicationAdminPage;
+use Agile\ApplicationWorkflow;
 
 startSession();
 $path = parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH) ?: '/';
@@ -23,8 +26,14 @@ try {
     if ($path === '/' && $method === 'GET') {
         page('Welcome to AGILE OUS', '<p>Membership and Student Welfare Management System.</p><p>Apply for AGILE membership through the secure registration form.</p><a href="/apply">Start membership application</a>');
     }
+    if ($path === '/privacy' && $method === 'GET') {
+        page('Application Privacy Information', '<p><strong>Purpose:</strong> AGILE OUS membership screening and recruitment administration.</p>'
+            . '<p><strong>Information collected:</strong> name, email, student number, role preference, motivation and position-specific answers.</p>'
+            . '<p><strong>Access:</strong> designated Membership and Student Welfare staff; other roles see summaries only.</p>'
+            . '<p><strong>Important:</strong> This development version is restricted to synthetic demonstration data. The organization must approve the final privacy notice, retention period, lawful basis, and contact details before real student submissions.</p>');
+    }
     if ($path === '/apply' && $method === 'GET') {
-        page('Membership Application', '<form method="post" action="/apply">'.formToken().'<label>Full name<input required maxlength="150" name="full_name"></label><label>Email<input required type="email" maxlength="190" name="email"></label><label>Student number<input required maxlength="32" name="student_number"></label><label>Desired role<select name="desired_role">'.implode('',array_map(fn($r)=>'<option>'.escape($r).'</option>',Membership::ROLES)).'</select></label><label>Why would you like to join?<textarea required minlength="10" maxlength="2000" name="motivation"></textarea></label><label><input style="display:inline;width:auto" required type="checkbox" name="privacy_consent" value="yes"> I consent to the processing of my submitted information for this application, subject to the published privacy notice.</label><button>Submit Application</button></form>');
+        page('Membership Application', ApplicationForm::render());
     }
     if ($path === '/apply' && $method === 'POST') {
         verifyCsrf();
@@ -61,6 +70,43 @@ try {
     if ($path === '/logout' && $method === 'POST') {
         verifyCsrf(); Auth::logout(); redirect('/');
     }
+    if ($path === '/application' && $method === 'GET') {
+        $user = Auth::requireRole(['msw_head','msw_member']);
+        $id = filter_var($_GET['id'] ?? null, FILTER_VALIDATE_INT, ['options'=>['min_range'=>1]]);
+        if (!$id) { http_response_code(400); page('Invalid Application', '<p>Invalid application ID.</p>'); }
+        if (!ApplicationWorkflow::find((int)$id)) { http_response_code(404); page('Not Found','<p>Application not found.</p>'); }
+        page('Application Review', ApplicationAdminPage::render((int)$id, $user));
+    }
+    if ($path === '/application/status' && $method === 'POST') {
+        $user = Auth::requireRole(['msw_head','msw_member']);
+        verifyCsrf();
+        $id = filter_var($_POST['id'] ?? null, FILTER_VALIDATE_INT, ['options'=>['min_range'=>1]]);
+        if (!$id) { http_response_code(400); page('Invalid Application','<p>Invalid application ID.</p>'); }
+        try {
+            ApplicationWorkflow::changeStatus((int)$id, $user,
+                (string)($_POST['new_status'] ?? ''), (string)($_POST['note'] ?? ''));
+            redirect('/application?id=' . (int)$id);
+        } catch (DomainException $e) {
+            http_response_code(422);
+            page('Review Not Accepted','<p class="error">'.escape($e->getMessage()).'</p><p><a href="/application?id='.(int)$id.'">Return to application</a></p>');
+        }
+    }
+    if ($path === '/application/verification' && $method === 'POST') {
+        $user = Auth::requireRole(['msw_head']);
+        verifyCsrf();
+        $id = filter_var($_POST['id'] ?? null, FILTER_VALIDATE_INT, ['options'=>['min_range'=>1]]);
+        if (!$id) { http_response_code(400); page('Invalid Application','<p>Invalid application ID.</p>'); }
+        try {
+            ApplicationWorkflow::updateVerification((int)$id, $user,
+                ($_POST['interview_completed'] ?? '') === 'yes',
+                ($_POST['documents_verified'] ?? '') === 'yes',
+                (string)($_POST['note'] ?? ''));
+            redirect('/application?id=' . (int)$id);
+        } catch (DomainException $e) {
+            http_response_code(422);
+            page('Verification Not Accepted','<p class="error">'.escape($e->getMessage()).'</p><p><a href="/application?id='.(int)$id.'">Return to application</a></p>');
+        }
+    }
     if ($path === '/dashboard' && $method === 'GET') {
         $user = Auth::requireRole(['msw_head','msw_member','president','admin']);
         if ($user['role'] === 'president' || $user['role'] === 'admin') {
@@ -72,7 +118,7 @@ try {
         $rows = db()->query('SELECT id, reference_code, full_name, desired_role, status, created_at FROM membership_applications ORDER BY created_at DESC LIMIT 30')->fetchAll();
         $html = '<p>Signed in as '.escape($user['display_name']).' ('.escape($user['role']).')</p><form method="post" action="/logout">'.formToken().'<button>Sign Out</button></form><h2>Recent applications</h2><table><tr><th>Reference</th><th>Applicant</th><th>Role</th><th>Status</th></tr>';
         foreach($rows as $r) {
-            $html .= '<tr><td>'.escape($r['reference_code']).'</td><td>'.escape($r['full_name']).'</td><td>'.escape($r['desired_role']).'</td><td>'.escape($r['status']).'</td></tr>';
+            $html .= '<tr><td><a href="/application?id='.(int)$r['id'].'">'.escape($r['reference_code']).'</a></td><td>'.escape($r['full_name']).'</td><td>'.escape($r['desired_role']).'</td><td>'.escape($r['status']).'</td></tr>';
         }
         page('Staff Dashboard', $html.'</table><p>Further permission-restricted workflows will be added in subsequent phases.</p>');
     }
