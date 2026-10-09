@@ -1,6 +1,9 @@
 ALTER TABLE membership_applications
   ADD COLUMN interview_completed TINYINT(1) NOT NULL DEFAULT 0,
-  ADD COLUMN documents_verified TINYINT(1) NOT NULL DEFAULT 0;
+  ADD COLUMN documents_verified TINYINT(1) NOT NULL DEFAULT 0,
+  ADD COLUMN assigned_to BIGINT UNSIGNED NULL,
+  ADD CONSTRAINT fk_application_assignee FOREIGN KEY (assigned_to) REFERENCES users(id),
+  ADD INDEX idx_application_assignee_status (assigned_to, status);
 
 CREATE TABLE IF NOT EXISTS application_answers (
   id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
