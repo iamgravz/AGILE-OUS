@@ -126,8 +126,7 @@ present 'Phase10 Editorial Draft Review' 'Editor sees unpublished editorial revi
 visit '/staff/welfare' 403 'Source Code Editor denied Welfare'
 visit '/staff/email' 403 'Source Code Editor denied MSW mail'
 visit '/staff/academic/casework' 403 'Source Code Editor denied restricted academic dashboard'
-csrf="$(token)"
-# The current page with a 403 lacks a token; refresh authenticated content screen.
+# A 403 response has no form; fetch an authenticated form before reading CSRF.
 visit '/staff/content' 200 'Refresh editor CSRF form'
 csrf="$(token)"
 post '/staff/content/status' 422 'Editorial draft cannot be self-published' \
