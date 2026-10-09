@@ -12,6 +12,16 @@ function check(bool $condition, string $message): void {
 
 $pdo = db();
 check($pdo->getAttribute(PDO::ATTR_DRIVER_NAME) === 'mysql', 'Connected to real MySQL');
+
+$q = $pdo->prepare('SELECT is_approved, JSON_UNQUOTE(JSON_EXTRACT(criteria_json, \'$.grade_history_lookback\')) AS lookback
+    FROM eligibility_policies WHERE policy_version = ? LIMIT 1');
+$q->execute([\Agile\DraftBylawsPolicy::VERSION]);
+$draft = $q->fetch();
+check((bool)$draft && (int)$draft['is_approved'] === 0,
+    'Source-derived draft policy is seeded but remains explicitly unapproved');
+check($draft['lookback'] === 'during_entire_stay_in_institution',
+    'Provisional Article VI grade history scope is not reduced to one semester');
+
 foreach (['users','membership_applications','audit_logs','login_attempts','schema_migrations'] as $table) {
     $name = $pdo->quote($table);
     check((int)$pdo->query("SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = DATABASE() AND table_name = $name")->fetchColumn() === 1,
