@@ -65,8 +65,15 @@ function csrfToken(): string {
 }
 function verifyCsrf(): void {
     startSession();
-    if (!hash_equals((string)($_SESSION['csrf'] ?? ''), (string)($_POST['_csrf'] ?? ''))) {
-        http_response_code(419); exit('Invalid request token.');
+    $expected = $_SESSION['csrf'] ?? null;
+    $provided = $_POST['_csrf'] ?? null;
+    // Missing + missing must NEVER compare equal: public POST endpoints may
+    // be the first request in a browser session.
+    if (!is_string($expected) || !preg_match('/^[a-f0-9]{64}$/D', $expected) ||
+        !is_string($provided) || !preg_match('/^[a-f0-9]{64}$/D', $provided) ||
+        !hash_equals($expected, $provided)) {
+        http_response_code(419);
+        exit('Invalid request token.');
     }
 }
 function escape(string $s): string { return htmlspecialchars($s, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); }

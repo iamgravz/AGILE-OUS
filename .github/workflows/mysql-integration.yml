@@ -129,3 +129,17 @@ jobs:
             tail -n 120 /tmp/agile-http.log || true
             exit 1
           fi
+      - name: Create private synthetic UAT role fixtures
+        env:
+          UAT_CREDENTIALS_FILE: ${{ runner.temp }}/agile-uat-credentials.txt
+        run: php tests/seed_uat_accounts.php
+      - name: Exercise role-based acceptance and CSRF matrix
+        env:
+          UAT_CREDENTIALS_FILE: ${{ runner.temp }}/agile-uat-credentials.txt
+        run: bash tests/role_matrix_http.sh
+      - name: Assert cross-module data integrity and draft policy safeguards
+        run: |
+          php tests/acceptance_integrity.php
+          php tests/acceptance_gate_negative.php
+          php scripts/acceptance_audit.php
+
