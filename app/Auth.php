@@ -16,6 +16,9 @@ final class Auth {
         $user = self::user();
         if (!$user) { \redirect('/login'); }
         if (!in_array($user['role'], $roles, true)) { http_response_code(403); exit('Access denied.'); }
+        if (Mfa::required($user) && !Mfa::sessionVerified($user)) {
+            \redirect(Mfa::enrolled((int)$user['id']) ? '/mfa/challenge' : '/mfa/setup');
+        }
         return $user;
     }
     public static function login(string $email, string $password): bool {
