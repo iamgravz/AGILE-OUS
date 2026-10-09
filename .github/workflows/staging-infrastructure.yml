@@ -44,6 +44,12 @@ jobs:
             -subj '/CN=staging.example.invalid' \
             -addext 'subjectAltName=DNS:staging.example.invalid' >/dev/null 2>&1
           chmod 600 "$dir"/*
+          # Docker Compose file-backed secrets preserve host ownership/mode.
+          # Model the authorized server: protected 0600 files owned by root.
+          # The certificate is public; only the TLS private key is restricted.
+          sudo chown root:root "$dir"/mysql_app_password "$dir"/mysql_root_password \
+            "$dir"/mfa_key_b64 "$dir"/db_backup_key_b64 "$dir"/file_backup_key_b64 "$dir"/tls.key
+          chmod 644 "$dir/tls.crt"
       - name: Validate Docker topology and Nginx configuration
         shell: bash
         run: bash tests/staging_manifest.sh
