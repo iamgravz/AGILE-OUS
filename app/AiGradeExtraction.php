@@ -20,13 +20,13 @@ final class AiGradeExtraction {
         if (!$apiKey || !preg_match('/^[A-Za-z0-9._-]{3,80}$/',$model) || !extension_loaded('curl')) {
             throw new RuntimeException('AI provider configuration is incomplete.');
         }
-        $q=\db()->prepare("SELECT * FROM private_attachments WHERE id=? AND owner_type='academic_verification'");
-        $q->execute([$attachmentId]);$f=$q->fetch();
-        if (!$f || !preg_match('/^[a-f0-9]{40}$/',$f['storage_key'])) throw new DomainException('Academic document unavailable.');
-        $ext=['application/pdf'=>'pdf','image/jpeg'=>'jpg','image/png'=>'png'][$f['mime_type']]??null;
-        if (!$ext) throw new DomainException('Unsupported format.');
-        $path=dirname(__DIR__).'/storage/private/'.$f['storage_key'].'.'.$ext;
-        if (!is_file($path) || filesize($path)>5*1024*1024) throw new RuntimeException('File unavailable.');
+        // Never send an unscanned or integrity-failed academic document to
+        // an external provider, even with an approved privacy integration.
+        $f=Attachments::authorizeDownload($attachmentId,$actor);
+        if ($f['owner_type']!=='academic_verification')
+            throw new DomainException('Academic document unavailable.');
+        $path=$f['authorized_path'];
+        if (filesize($path)>5*1024*1024) throw new RuntimeException('File exceeds approved limit.');
         $uri='data:'.$f['mime_type'].';base64,'.base64_encode(file_get_contents($path));
         $document=$f['mime_type']==='application/pdf'
            ? ['type'=>'input_file','filename'=>'academic_document.pdf','file_data'=>$uri]
