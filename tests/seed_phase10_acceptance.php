@@ -11,8 +11,14 @@ use Agile\Content;
 
 $destination=getenv('PHASE10_FIXTURE');
 $password=getenv('HTTP_TEST_PASSWORD');
-if (!is_string($destination)||$destination===''||!str_starts_with($destination,sys_get_temp_dir().'/')
-    || !is_string($password)||strlen($password)<12) {
+$parent=is_string($destination)?realpath(dirname($destination)):false;
+$webRoot=realpath(dirname(__DIR__).'/public');
+if (!is_string($destination)||!str_starts_with($destination,'/')||
+    !preg_match('/^[A-Za-z0-9._-]+\\.json$/D',basename($destination)) ||
+    $parent===false||!is_writable($parent)||
+    ($webRoot!==false && ($parent===$webRoot ||
+      str_starts_with($parent,$webRoot.DIRECTORY_SEPARATOR))) ||
+    !is_string($password)||strlen($password)<12) {
     throw new RuntimeException('Configure a protected temporary fixture path and synthetic password.');
 }
 
