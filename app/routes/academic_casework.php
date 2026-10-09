@@ -140,12 +140,15 @@ if ($path==='/member/academic' && $method==='GET') {
                     .'<input type="file" name="attachment" accept=".pdf,.png,.jpg,.jpeg" required></label>'
                     .'<button>Upload Confidential Evidence</button></form>';
             }
-            $files=\db()->prepare("SELECT id,original_name FROM private_attachments
+            $files=\db()->prepare("SELECT id,original_name,scan_status FROM private_attachments
                 WHERE owner_type='academic_review_request' AND owner_id=? ORDER BY id DESC");
             $files->execute([(int)$req['id']]);
             foreach($files->fetchAll() as $file){
-                $html.='<p><a href="/staff/attachment?id='.(int)$file['id'].'">'
-                    .'Download own evidence: '.escape($file['original_name']).'</a></p>';
+                $html.='<p>'.escape($file['original_name']).' — '
+                  .($file['scan_status']==='clean'
+                    ? '<a href="/staff/attachment?id='.(int)$file['id'].'">Download cleared evidence</a>'
+                    : 'Security review pending ('.escape($file['scan_status']).')')
+                  .'</p>';
             }
         }
         $html.='<form method="post" action="/member/academic/request">'.formToken()
@@ -190,8 +193,11 @@ if ($path==='/staff/academic/appeals' && $method==='GET') {
             WHERE owner_type='academic_review_request' AND owner_id=? ORDER BY id DESC");
         $attachments->execute([(int)$req['id']]);
         foreach($attachments->fetchAll() as $attachment){
-            $html.='<p><a href="/staff/attachment?id='.(int)$attachment['id'].'">'
-               .'Confidential evidence: '.escape($attachment['original_name']).'</a></p>';
+            $html.='<p>'.escape($attachment['original_name']).' — '
+               .($attachment['scan_status']==='clean'
+                 ? '<a href="/staff/attachment?id='.(int)$attachment['id'].'">Download cleared evidence</a>'
+                 : 'Security review pending ('.escape($attachment['scan_status']).')')
+               .'</p>';
         }
         if (in_array($req['status'],['submitted','in_review'],true)) {
             $html.='<form method="post" action="/staff/academic/appeals/update">'.formToken()

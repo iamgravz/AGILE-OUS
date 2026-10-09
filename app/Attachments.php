@@ -50,32 +50,48 @@ final class Attachments {
             return $id;
         }catch(\Throwable $e){@unlink($target);throw $e;}
     }
-    public static function retrieve(int $id,array $actor): never {
+    /**
+     * Record-level permission + completed malware scanning + byte-for-byte
+     * integrity verification, used by all download endpoints.
+     */
+    public static function authorizeDownload(int $id,array $actor): array {
         $q=\db()->prepare('SELECT * FROM private_attachments WHERE id=?');
         $q->execute([$id]);$file=$q->fetch();
-        if (!$file) {http_response_code(404);exit('File unavailable.');}
+        if (!$file)throw new DomainException('Document not available.');
         $type=$file['owner_type'];
-        if ($type==='academic_verification'&&$actor['role']!=='msw_head') {
-            http_response_code(403);exit('Restricted academic document.');
-        }
-        if ($type==='academic_review_request') {
+        if ($type==='academic_verification' && ($actor['role']??'')!=='msw_head')
+            throw new DomainException('Restricted academic document.');
+        if ($type==='academic_review_request')
             AcademicCasework::authorizeEvidence((int)$file['owner_id'],$actor,false);
-        }
         if ($type==='welfare_case') Welfare::findForActor((int)$file['owner_id'],$actor);
         if ($type==='membership_application') ApplicationWorkflow::findForActor((int)$file['owner_id'],$actor);
-        $dir=dirname(__DIR__).'/storage/private';
-        $ext=self::ACCEPT[$file['mime_type']]??null;
-        if (!$ext||!preg_match('/^[a-f0-9]{40}$/',$file['storage_key'])) {
-            http_response_code(404);exit('File unavailable.');
+        if ($file['scan_status']!=='clean' ||
+            !is_string($file['content_sha256']) ||
+            !preg_match('/^[a-f0-9]{64}$/D',$file['content_sha256'])) {
+            throw new DomainException('Document awaiting security clearance or unavailable.');
         }
-        $path=$dir.'/'.$file['storage_key'].'.'.$ext;
-        if (!is_file($path)) {http_response_code(404);exit('File unavailable.');}
+        $path=AttachmentScanner::filePath($file);
+        if (filesize($path)!==(int)$file['byte_size'] ||
+            !hash_equals($file['content_sha256'],hash_file('sha256',$path))) {
+            throw new DomainException('Document integrity check failed. Contact MSW.');
+        }
+        $file['authorized_path']=$path;
+        return $file;
+    }
+
+    public static function retrieve(int $id,array $actor): never {
+        try {$file=self::authorizeDownload($id,$actor);}
+        catch(DomainException|\RuntimeException $e){
+            http_response_code(403);
+            header('Cache-Control: no-store');
+            exit('Document unavailable or awaiting security clearance.');
+        }
         \audit((int)$actor['id'],'attachment.downloaded','private_attachment',$id);
         header('Content-Type: '.$file['mime_type']);
-        header('Content-Disposition: attachment; filename="document.'.$ext.'"');
+        header('Content-Disposition: attachment; filename="document.'.self::ACCEPT[$file['mime_type']].'"');
         header('Cache-Control: private, no-store');
         header('X-Content-Type-Options: nosniff');
-        readfile($path);
+        readfile($file['authorized_path']);
         exit;
     }
 }

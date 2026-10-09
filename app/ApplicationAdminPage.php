@@ -38,10 +38,13 @@ final class ApplicationAdminPage {
         }
 
         $html .= '<h2>Supporting Documents</h2>';
-        $files = \db()->prepare("SELECT id,original_name FROM private_attachments WHERE owner_type='membership_application' AND owner_id=?");
+        $files = \db()->prepare("SELECT id,original_name,scan_status FROM private_attachments WHERE owner_type='membership_application' AND owner_id=?");
         $files->execute([$id]);
         foreach($files->fetchAll() as $file) {
-            $html .= '<p>'.\escape($file['original_name']).' · <a href="/staff/attachment?id='.(int)$file['id'].'">Download securely</a></p>';
+            $status=$file['scan_status']==='clean'
+                ? '<a href="/staff/attachment?id='.(int)$file['id'].'">Download cleared document</a>'
+                : 'Awaiting security clearance ('.\escape($file['scan_status']).')';
+            $html .= '<p>'.\escape($file['original_name']).' · '.$status.'</p>';
         }
         $html .= '<form method="post" enctype="multipart/form-data" action="/staff/attachment/upload">'
           . \formToken() . '<input type="hidden" name="owner_type" value="membership_application">'

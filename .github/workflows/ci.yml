@@ -56,6 +56,10 @@ jobs:
       - name: Validate provisional draft bylaws policy (synthetic cases)
         shell: bash
         run: php tests/draft_bylaws_preview.php
+      - name: Validate fail-closed staging security configuration
+        run: php tests/staging_preflight.php
+      - name: Verify encrypted private-document archive and recovery
+        run: php tests/attachment_vault.php
       - name: Verify encrypted backup format (synthetic fixtures)
         shell: bash
         run: php tests/backup_cipher.php
