@@ -48,7 +48,7 @@ Recruitment::recordEvaluation($app,$member,85,'recommend','Completed synthetic e
 ApplicationWorkflow::changeStatus($app,$member,'for_verification','Beginning synthetic documentation checks');
 ApplicationWorkflow::updateVerification($app,$head,true,true,'Interview and verification supported by test records.');
 ApplicationWorkflow::changeStatus($app,$head,'approved','Decision made following the synthetic interview and verification.');
-$q=$pdo->prepare('SELECT m.id,m.membership_type FROM members m WHERE application_id=?');$q->execute([$app]);$m=$q->fetch();
+$q=$pdo->prepare('SELECT m.id,m.membership_type,m.verification_token_hash FROM members m WHERE application_id=?');$q->execute([$app]);$m=$q->fetch();
 ok((bool)$m&&$m['membership_type']==='appointed','Approval creates actual appointed member');
 $q=$pdo->prepare('SELECT filled FROM vacancies WHERE id=?');$q->execute([(int)$v['id']]);
 ok((int)$q->fetchColumn()===1,'Vacancy capacity reconciled');
