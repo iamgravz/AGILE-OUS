@@ -65,7 +65,7 @@ expect_status 200 "$code" 'Password-confirmed MFA enrollment secret'
 SECRET="$(grep -oE 'id="mfa-secret">[A-Z2-7]+' "$BODY" | head -n 1 | cut -d'>' -f2)"
 test -n "$SECRET"
 TOKEN="$(extract_csrf)"
-CODE="$(php -r 'require getcwd()."/app/bootstrap.php"; echo \\Agile\\Mfa::totp($argv[1],intdiv(time(),30));' "$SECRET")"
+CODE="$(php -r 'require getcwd()."/app/bootstrap.php"; $name="Agile".chr(92)."Mfa"; echo $name::totp($argv[1],intdiv(time(),30));' "$SECRET")"
 code="$(curl -sS -o "$BODY" -w '%{http_code}' -b "$COOKIE" -c "$COOKIE" \
   --data-urlencode "_csrf=$TOKEN" \
   --data-urlencode "code=$CODE" "$BASE/mfa/confirm")"
