@@ -93,10 +93,15 @@ final class AttachmentScanner {
             if(filesize($path)!==$expected)throw new RuntimeException('Document size mismatch.');
             $actualMime=(new \finfo(FILEINFO_MIME_TYPE))->file($path);
             if($actualMime!==$row['mime_type'])throw new RuntimeException('Document MIME type changed.');
+            $beforeHash=hash_file('sha256',$path);
+            if(!is_string($beforeHash))throw new RuntimeException('Document hash unavailable.');
             $result=self::inspect($path);
             if($result==='clean') {
                 $hash=hash_file('sha256',$path);
-                if(!is_string($hash))throw new RuntimeException('Document digest computation failed.');
+                if(!is_string($hash)||!hash_equals($beforeHash,$hash)||
+                   filesize($path)!==$expected) {
+                    throw new RuntimeException('Document changed during malware scanning.');
+                }
             }
         }catch(\Throwable $e){
             $result='scan_error';
