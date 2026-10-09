@@ -70,6 +70,7 @@ try {
         $q->execute([$reference]); $id = $q->fetchColumn();
         if ($id) {
             $pdo->prepare("DELETE FROM audit_logs WHERE entity_type = 'membership_application' AND entity_id = ?")->execute([$id]);
+            $pdo->prepare('DELETE FROM application_verification_history WHERE application_id = ?')->execute([$id]);
             $pdo->prepare('DELETE FROM application_status_history WHERE application_id = ?')->execute([$id]);
             $pdo->prepare('DELETE FROM application_answers WHERE application_id = ?')->execute([$id]);
             $pdo->prepare('DELETE FROM membership_applications WHERE id = ?')->execute([$id]);
