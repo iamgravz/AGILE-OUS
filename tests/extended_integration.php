@@ -100,6 +100,14 @@ Academic::verify($check,$head,'ineligible','Synthetic human decision with docume
 Member::sendInvitation((int)$m['id'],$head);
 $pdo->prepare('UPDATE members SET user_id=? WHERE id=?')
     ->execute([(int)$actors['committee_head']['id'],(int)$m['id']]);
+// Even a human-reviewed ineligible result must not trigger a role transition
+// when policy/legal authorization is disabled.
+putenv('ACADEMIC_ROLE_TRANSITIONS_ENABLED=false');
+mustDeny(
+  fn()=>Academic::transitionToGeneral($check,$head,'Synthetic attempt without required organizational authorization.'),
+  'Default-off governance gate blocks role removal'
+);
+putenv('ACADEMIC_ROLE_TRANSITIONS_ENABLED=true');
 Academic::transitionToGeneral($check,$head,'Synthetic role transition after documented approval and due process.');
 $q=$pdo->prepare('SELECT role FROM users WHERE id=?');
 $q->execute([(int)$actors['committee_head']['id']]);
