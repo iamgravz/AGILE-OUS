@@ -1,0 +1,70 @@
+name: MySQL Integration
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: mysql-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  integration:
+    name: MySQL schema, auth and registration
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: synthetic_root_test_only
+          MYSQL_DATABASE: agile_ous
+          MYSQL_USER: agile_app
+          MYSQL_PASSWORD: synthetic_app_test_only
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping -h 127.0.0.1 -u root -psynthetic_root_test_only"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=8
+    env:
+      DB_HOST: 127.0.0.1
+      DB_PORT: 3306
+      DB_NAME: agile_ous
+      DB_USER: agile_app
+      DB_PASSWORD: synthetic_app_test_only
+      SESSION_SECURE: 'false'
+      RUN_E2E_TESTS: 'yes'
+      HTTP_TEST_PASSWORD: 'SyntheticHTTPPassword!2026'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          extensions: pdo_mysql, mbstring, fileinfo
+          coverage: none
+      - name: Apply and verify migrations
+        run: |
+          php scripts/migrate.php
+          php scripts/migrate.php
+      - name: Run real MySQL integration tests
+        run: php tests/mysql_integration.php
+      - name: Seed synthetic HTTP staff account
+        run: php tests/seed_http_user.php
+      - name: Start local PHP application
+        run: |
+          php -S 127.0.0.1:8090 -t public public/router.php > /tmp/agile-http.log 2>&1 &
+          echo $! > /tmp/agile-http.pid
+      - name: Exercise HTTP registration and login
+        run: |
+          if ! bash tests/http_smoke.sh; then
+            echo 'PHP server log (synthetic test environment):'
+            tail -n 120 /tmp/agile-http.log || true
+            exit 1
+          fi

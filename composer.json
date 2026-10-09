@@ -1,0 +1,17 @@
+{
+  "name": "agile-ous/management-system",
+  "description": "AGILE OUS membership and student welfare management system",
+  "type": "project",
+  "require": {
+    "php": "^8.2",
+    "ext-pdo": "*",
+    "ext-pdo_mysql": "*"
+  },
+  "scripts": {
+    "lint": "find app public scripts tests -name '*.php' -type f -exec php -l {} \\;"
+  },
+  "config": {
+    "sort-packages": true
+  },
+  "license": "proprietary"
+}
