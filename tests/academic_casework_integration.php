@@ -91,7 +91,7 @@ acadOk($out['screening_flag']==='review_required',
     'Draft flags 5.0 and under-year President for manual review');
 acadOk(str_contains(implode(' ', $out['issues']),'minimum of 3'),
     'Effective executive position was derived from actual membership assignment');
-acadOk(str_contains(implode(' ', $out['missing_information']),'entire'),
+acadOk(str_contains(implode(' ', $out['missing_information']),'institutional stay'),
     'Incomplete institutional grade history prompts further review');
 $latest=AcademicCasework::latestPreview($checkId,$head);
 acadOk((bool)$latest && (int)$latest['reviewed_by']===(int)$head['id'],
