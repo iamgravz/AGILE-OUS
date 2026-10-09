@@ -81,6 +81,10 @@ final class ApplicationWorkflow {
             if (in_array($row['status'], ['approved','rejected'], true)) { throw new DomainException('Finalized applications cannot be changed.'); }
             $q = $pdo->prepare('UPDATE membership_applications SET interview_completed = ?, documents_verified = ?, reviewed_by = ?, reviewed_at = NOW() WHERE id = ?');
             $q->execute([(int)$interview, (int)$documents, (int)$actor['id'], $id]);
+            $history = $pdo->prepare('INSERT INTO application_verification_history
+                (application_id,actor_user_id,interview_completed,documents_verified,note)
+                VALUES (?,?,?,?,?)');
+            $history->execute([$id,(int)$actor['id'],(int)$interview,(int)$documents,trim($note)]);
             \audit((int)$actor['id'], 'verification.updated', 'membership_application', $id);
             $pdo->commit();
         } catch (\Throwable $e) {
