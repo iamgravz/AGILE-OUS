@@ -1,6 +1,6 @@
 -- Recruitment and membership expansion. This is an additive schema migration.
 ALTER TABLE users MODIFY COLUMN role ENUM(
- 'msw_head','msw_member','president','admin','committee_head','deputy_head','executive_officer','source_editor'
+ 'msw_head','msw_member','president','admin','committee_head','deputy_head','executive_officer','source_editor','member'
 ) NOT NULL;
 
 CREATE TABLE IF NOT EXISTS hr_requests (
@@ -70,6 +70,7 @@ CREATE TABLE IF NOT EXISTS evaluations (
 CREATE TABLE IF NOT EXISTS members (
  id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
  application_id BIGINT UNSIGNED NOT NULL UNIQUE,
+ user_id BIGINT UNSIGNED NULL UNIQUE,
  student_number VARCHAR(32) NOT NULL,
  full_name VARCHAR(150) NOT NULL,
  email VARCHAR(190) NOT NULL,
@@ -79,6 +80,7 @@ CREATE TABLE IF NOT EXISTS members (
  valid_until DATE NULL,
  created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
  FOREIGN KEY (application_id) REFERENCES membership_applications(id),
+ FOREIGN KEY (user_id) REFERENCES users(id),
  INDEX idx_member_student (student_number)
 ) ENGINE=InnoDB;
 
