@@ -18,6 +18,7 @@ RUN mkdir -p /srv/agile/storage/private /srv/agile/storage/backups \
 # Root performs secret handoff and runs only the capability-restricted FPM
 # master. HTTP worker processes and CLI migration/scanner jobs use www-data.
 COPY --chmod=0755 deploy/staging/entrypoint.sh /usr/local/bin/agile-entrypoint
+COPY --chmod=0755 deploy/staging/healthcheck.sh /usr/local/bin/agile-healthcheck
 USER root
 ENTRYPOINT ["/usr/local/bin/agile-entrypoint"]
 EXPOSE 9000
