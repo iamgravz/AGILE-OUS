@@ -68,6 +68,25 @@ jobs:
         run: php tests/security_identity_mail_integration.php
       - name: Test Phase 7 provisional academic screening and appeals
         run: php tests/academic_casework_integration.php
+      - name: Validate fail-closed malware quarantine and access
+        run: php tests/attachment_scan_integration.php
+      - name: Validate private-file encrypted CLI backup and isolated restore
+        shell: bash
+        run: |
+          export AGILE_FILE_BACKUP_KEY_B64="$(php -r 'echo base64_encode(random_bytes(32));')"
+          export AGILE_FILE_BACKUP_DIR="$RUNNER_TEMP/agile-file-archives"
+          export AGILE_PRIVATE_FILES_DIR="$RUNNER_TEMP/agile-synthetic-private"
+          mkdir -p "$AGILE_PRIVATE_FILES_DIR" "$AGILE_FILE_BACKUP_DIR"
+          key="$(php -r 'echo bin2hex(random_bytes(20));')"
+          printf '%s' 'synthetic private document for isolated CI' > "$AGILE_PRIVATE_FILES_DIR/$key.pdf"
+          php scripts/private_file_backup.php backup
+          encrypted="$(find "$AGILE_FILE_BACKUP_DIR" -maxdepth 1 -type f -name '*.afb' | head -n 1)"
+          test -f "$encrypted"
+          php scripts/private_file_backup.php verify "$encrypted"
+          mkdir -p "$RUNNER_TEMP/agile_restore_files_ci"
+          AGILE_ALLOW_ISOLATED_RESTORE=true php scripts/private_file_backup.php restore "$encrypted" "$RUNNER_TEMP/agile_restore_files_ci"
+          cmp "$AGILE_PRIVATE_FILES_DIR/$key.pdf" "$RUNNER_TEMP/agile_restore_files_ci/$key.pdf"
+          echo 'PASS: encrypted private-document CLI backup, verify and recovery'
       - name: Test encrypted database backup and isolated restore
         shell: bash
         run: |
