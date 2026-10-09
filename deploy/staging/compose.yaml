@@ -77,7 +77,7 @@ services:
       - /tmp:rw,noexec,nosuid,size=64m
     security_opt: ["no-new-privileges:true"]
     cap_drop: ["ALL"]
-    # Root is used only for a brief secret handoff; gosu then drops to www-data.
+    # FPM master runs with only CHOWN/SETUID/SETGID; HTTP workers and CLI jobs run as www-data.
     cap_add: ["CHOWN", "SETUID", "SETGID"]
     healthcheck:
       test: ["CMD", "php", "scripts/staging_container_health.php"]
