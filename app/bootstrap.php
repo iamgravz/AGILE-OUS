@@ -51,6 +51,9 @@ function envValue(string $key, string $default = ''): string {
             if (!is_file($file) || !is_readable($file) || is_link($file)) {
                 throw new RuntimeException('Protected secret file unavailable for ' . $key);
             }
+            // PHP caches file metadata within a request. Clear that cache
+            // before checking a rotated secret (and in regression tests).
+            clearstatcache(true, $file);
             $size = filesize($file);
             if ($size === false || $size < 1 || $size > 4096) {
                 throw new RuntimeException('Protected secret file has invalid size for ' . $key);
