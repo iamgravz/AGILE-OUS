@@ -116,7 +116,7 @@ $q=$pdo->prepare('SELECT COUNT(*) FROM notification_outbox WHERE event_key=?');
 $q->execute([$key]);verifyCondition((int)$q->fetchColumn()===1,
     'Mail outbox ignores duplicate event keys');
 putenv('MAIL_TRANSPORT=disabled');
-$worker=MailQueue::work(1);
+$worker=MailQueue::work(100); // Consume other synthetic queue entries from earlier CI tests.
 verifyCondition($worker['disabled']===1 && $worker['sent']===0,
     'Unconfigured Gmail is not called or falsely marked submitted');
 $q=$pdo->prepare('SELECT id,status FROM notification_outbox WHERE event_key=?');
