@@ -26,3 +26,16 @@ CREATE TABLE IF NOT EXISTS application_status_history (
   CONSTRAINT fk_status_actor FOREIGN KEY (actor_user_id) REFERENCES users(id),
   INDEX idx_history_app (application_id, created_at)
 ) ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS application_verification_history (
+  id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+  application_id BIGINT UNSIGNED NOT NULL,
+  actor_user_id BIGINT UNSIGNED NOT NULL,
+  interview_completed TINYINT(1) NOT NULL,
+  documents_verified TINYINT(1) NOT NULL,
+  note VARCHAR(1000) NOT NULL,
+  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT fk_verification_application FOREIGN KEY (application_id) REFERENCES membership_applications(id),
+  CONSTRAINT fk_verification_actor FOREIGN KEY (actor_user_id) REFERENCES users(id),
+  INDEX idx_verification_app (application_id, created_at)
+) ENGINE=InnoDB;
