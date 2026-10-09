@@ -22,7 +22,8 @@ openssl req -x509 -newkey rsa:2048 -sha256 -days 1 -nodes \
 chmod 0600 "$scratch"/*
 
 docker compose -f deploy/staging/compose.yaml config --quiet
-docker compose -f deploy/staging/compose.yaml config --format json > "$scratch/manifest.json"
+# Include intentionally opt-in admin/tools services for topology assertions.
+docker compose --profile admin --profile tools -f deploy/staging/compose.yaml config --format json > "$scratch/manifest.json"
 assert_json() {
   local label="$1" expression="$2"
   if ! jq -e "$expression" "$scratch/manifest.json" >/dev/null; then
