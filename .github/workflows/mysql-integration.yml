@@ -57,6 +57,8 @@ jobs:
         run: php tests/mysql_integration.php
       - name: Test role-specific applications and reviewer permissions
         run: php tests/workflow_integration.php
+      - name: Extended system and automation integration tests
+        run: php tests/extended_integration.php
       - name: Seed synthetic HTTP staff account
         run: php tests/seed_http_user.php
       - name: Start local PHP application
