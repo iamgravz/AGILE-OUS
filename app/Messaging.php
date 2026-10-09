@@ -73,45 +73,13 @@ final class Messaging {
         $res=curl_exec($ch);$status=(int)curl_getinfo($ch,CURLINFO_HTTP_CODE);
         curl_close($ch);
         $payload=is_string($res)?json_decode($res,true):null;
-        if ($status<200||$status>=300||!is_array($payload)||empty($payload['id']))
-            throw new RuntimeException('Gmail message submission failed.');
+        if ($status<200||$status>=300||!is_array($payload)||empty($payload['id'])) {
+            // After the POST, we cannot safely assume Gmail did not accept the message.
+            throw new MailDeliveryUncertain('Gmail submission result could not be confirmed.');
+        }
         return (string)$payload['id']; // submitted to Gmail, not delivered or read
     }
     public static function work(int $limit=10): array {
-        if ($limit<1||$limit>100) throw new DomainException('Invalid batch size.');
-        $sent=0;$failed=0;$disabled=0;
-        for($i=0;$i<$limit;$i++){
-            $pdo=\db();$pdo->beginTransaction();
-            try{
-                $q=$pdo->query("SELECT * FROM notification_outbox
-                   WHERE status='queued' AND next_attempt_at<=NOW()
-                   ORDER BY id LIMIT 1 FOR UPDATE SKIP LOCKED");
-                $job=$q->fetch();
-                if (!$job){$pdo->commit();break;}
-                $pdo->prepare("UPDATE notification_outbox SET status='processing',attempts=attempts+1 WHERE id=?")
-                    ->execute([(int)$job['id']]);
-                $pdo->commit();
-            }catch(\Throwable $e){$pdo->rollBack();throw $e;}
-
-            try {
-                if (\envValue('MAIL_TRANSPORT','disabled')!=='gmail') {
-                    $pdo->prepare("UPDATE notification_outbox SET status='disabled',last_error='Transport not configured',processed_at=NOW() WHERE id=?")->execute([(int)$job['id']]);
-                    $disabled++;continue;
-                }
-                $id=self::sendGmail($job['recipient'],$job['subject'],$job['body']);
-                $pdo->prepare("UPDATE notification_outbox SET status='submitted',provider_reference=?,last_error=NULL,processed_at=NOW() WHERE id=?")->execute([$id,(int)$job['id']]);
-                $sent++;
-            } catch (\Throwable $e) {
-                $retry=(int)$job['attempts']+1<4;
-                $status=$retry?'queued':'failed';
-                $delay=min(60*(2**(int)$job['attempts']),3600);
-                // Never log provider token or response body.
-                $pdo->prepare('UPDATE notification_outbox SET status=?,last_error=?,next_attempt_at=DATE_ADD(NOW(), INTERVAL ? SECOND),processed_at=NOW() WHERE id=?')
-                    ->execute([$status,'Gmail transport error: see restricted worker logs',$delay,(int)$job['id']]);
-                error_log('AGILE mail worker failed job #'.$job['id'].': '.get_class($e));
-                $failed++;
-            }
-        }
-        return compact('sent','failed','disabled');
+        return MailQueue::work($limit);
     }
 }
