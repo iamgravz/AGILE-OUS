@@ -8,6 +8,7 @@ use Agile\Attachments;
 if($path==='/staff/academic'&&$method==='GET'){
   $actor=Auth::requireRole(['msw_head']);
   $html='<p>Only appointed officers, committee personnel and The Source Code personnel are screened each semester. General Members are excluded. All flags require authorized human review.</p>'
+    .'<p><a href="/staff/academic/casework">Open casework summary and appeals inbox</a></p>'
     .'<h2>Create academic term</h2><form method="post" action="/staff/academic/term">'.formToken()
     .'<label>Academic term<label><input name="label" required placeholder="AY 2026-2027 First Sem"></label>'
     .'<label>Start<input type="date" name="start" required></label><label>End<input type="date" name="end" required></label>'
@@ -53,6 +54,7 @@ if($path==='/staff/academic/check'&&$method==='GET'){
   $q->execute([$id]);$v=$q->fetch();
   if(!$v){http_response_code(404);page('Not Found','<p>Verification not found.</p>');}
   $html='<p><a href="/staff/academic">← Verification cycles</a></p>'
+    .'<p><a href="/staff/academic/preview?id='.(int)$id.'">Run provisional draft-bylaws preview</a> · <a href="/staff/academic/appeals">Correction/appeal inbox</a></p>'
     .'<p>'.escape($v['full_name']).' · '.escape($v['label']).'</p>'
     .'<p>Automated flag: '.escape($v['automated_flag']).' · Human outcome: '.escape($v['verified_result']).'</p>'
     .'<p>Grade screening requires a formally approved eligibility policy. Flags are never final decisions.</p>';
