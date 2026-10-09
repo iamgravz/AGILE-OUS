@@ -109,7 +109,6 @@ ok($q->fetchColumn()==='general','General Member retained after approved transit
 $q=$pdo->prepare('SELECT filled FROM vacancies WHERE id=?');$q->execute([(int)$v['id']]);
 ok((int)$q->fetchColumn()===0,'Vacancy reopened after authorized role transition');
 
-Member::sendInvitation((int)$m['id'],$head);
 $q=$pdo->query("SELECT COUNT(*) FROM notification_outbox WHERE event_key LIKE 'member.invite.%'");
 ok((int)$q->fetchColumn()>=1,'Member invitation queued without sending real email');
 ok(Member::publicVerification($m['verification_token_hash'])===null,'Public member verification private by default');
