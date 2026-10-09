@@ -24,6 +24,19 @@ final class ApplicationAdminPage {
             $html .= '<p><b>' . \escape(ucwords(str_replace('_', ' ', $answer['question_key']))) . ':</b> '
                 . nl2br(\escape($answer['answer_text'])) . '</p>';
         }
+        if ($user['role'] === 'msw_head' && !in_array($application['status'], ['approved','rejected'], true)) {
+            $reviewers = \\db()->query("SELECT id,display_name FROM users WHERE role = 'msw_member' AND is_active = 1 ORDER BY display_name")->fetchAll();
+            $html .= '<h2>Assign MSW reviewer</h2><form method="post" action="/application/assign">'
+                . \\formToken() . '<input type="hidden" name="id" value="' . $id . '">'
+                . '<label>Reviewer<select name="reviewer_id"><option value="">Unassigned (MSW Head only)</option>';
+            foreach ($reviewers as $reviewer) {
+                $selected = (int)($application['assigned_to'] ?? 0) === (int)$reviewer['id'] ? ' selected' : '';
+                $html .= '<option value="' . (int)$reviewer['id'] . '"' . $selected . '>'
+                    . \\escape($reviewer['display_name']) . '</option>';
+            }
+            $html .= '</select></label><button type="submit">Save reviewer assignment</button></form>';
+        }
+
         $html .= '<h2>Verification prerequisites</h2><p>Interview completed: <b>'
             . ((int)$application['interview_completed'] ? 'Yes' : 'Not yet')
             . '</b> · Documents verified: <b>'
