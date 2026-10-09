@@ -96,7 +96,14 @@ ok($r['flag']==='review_required','Policy engine flags grade for human review');
 $q=$pdo->prepare('SELECT membership_type FROM members WHERE id=?');$q->execute([(int)$m['id']]);
 ok($q->fetchColumn()==='appointed','Automated screening cannot demote member');
 Academic::verify($check,$head,'ineligible','Synthetic human decision with documented verification evidence.');
+// Queue invitation before linking a synthetic privileged staff identity.
+Member::sendInvitation((int)$m['id'],$head);
+$pdo->prepare('UPDATE members SET user_id=? WHERE id=?')
+    ->execute([(int)$actors['committee_head']['id'],(int)$m['id']]);
 Academic::transitionToGeneral($check,$head,'Synthetic role transition after documented approval and due process.');
+$q=$pdo->prepare('SELECT role FROM users WHERE id=?');
+$q->execute([(int)$actors['committee_head']['id']]);
+ok($q->fetchColumn()==='member','Authorized role transition revokes linked committee-head privileges');
 $q=$pdo->prepare('SELECT membership_type FROM members WHERE id=?');$q->execute([(int)$m['id']]);
 ok($q->fetchColumn()==='general','General Member retained after approved transition');
 $q=$pdo->prepare('SELECT filled FROM vacancies WHERE id=?');$q->execute([(int)$v['id']]);
