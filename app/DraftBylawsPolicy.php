@@ -54,7 +54,7 @@ final class DraftBylawsPolicy {
             }
             // Only the exact draft codes are definitive flags. Equivalently
             // written numeric 5.00 / 5.0 are both considered potentially 5.0.
-            $isFail=preg_match('/^5(?:\\.0+)?$/',$mark)===1
+            $isFail=preg_match('/^5(?:\.0+)?$/',$mark)===1
                 || in_array($mark,['F','W','D'],true);
             if ($isFail) {
                 $issues[]='Draft-listed grade/status '.$mark.' found in '.self::shortName($course).'; manual record verification required.';
