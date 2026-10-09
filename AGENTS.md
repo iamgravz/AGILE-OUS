@@ -19,7 +19,9 @@ PHP 8+, MySQL, HTML5, CSS3, vanilla JavaScript, Composer; modular monolith. Gmai
 
 ## Critical constraints
 - Enforce all authorization in PHP per action and record; deny by default.
-- Never automatically disqualify/demote a student based on AI/OCR. Reconcile draft bylaws with final approved policy first (including W/D, INC, retakes, historic scope).
+- **Use the user's actual 2026-09-24 draft AGILE OUS Constitution & By-Laws as the provisional requirements source**, with Article VI §2 for elected officer candidates and Article III membership classes. Consult `docs/PROVISIONAL_BYLAWS_POLICY.md`. Do not present the draft as ratified or university-approved.
+- Draft eligibility flags are **advisory only**. No automatic appointment, rejection, role removal or grade-derived sanctions. Keep `eligibility_policies.is_approved=false` for the seeded draft; consequential workflows require authorized approved policy and manual review.
+- Semestral review of committee/deputy/publication personnel and General Member exemption are working operational extensions, not clauses explicitly enacted by Article VI §2; review W/D, INC, retakes, full institutional lookback and due-process criteria before any enforcement.
 - Confidential academic and welfare attachments outside public web root; access only by authorized reviewers.
 - Use MySQL transactions, unique constraints, prepared queries, secure sessions, CSRF, password hashing, and audit logs.
 - Final acceptance requires real persisted records, authenticated roles, functional workflows, secure file handling and automated tests. A working HTML-only demo is not completion.
