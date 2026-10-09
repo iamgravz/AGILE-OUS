@@ -52,7 +52,10 @@ final class Member {
         } catch (\Throwable $e){$pdo->rollBack();throw $e;}
     }
     public static function own(array $user): ?array {
-        if ($user['role']!=='member')throw new DomainException('Member dashboard only.');
+        if (!in_array($user['role'],['member','msw_head','msw_member','committee_head',
+            'deputy_head','executive_officer','source_editor','president'],true)) {
+            throw new DomainException('Only linked active members may access member services.');
+        }
         $q=\db()->prepare('SELECT id,full_name,email,membership_status,membership_type,valid_until,verification_token_hash,public_verification_enabled
               FROM members WHERE user_id=?');
         $q->execute([(int)$user['id']]);return $q->fetch()?:null;
