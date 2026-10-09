@@ -15,8 +15,8 @@ RUN mkdir -p /srv/agile/storage/private /srv/agile/storage/backups \
     && chmod 0700 /srv/agile/storage/private /srv/agile/storage/backups \
     && php -r 'foreach(["pdo_mysql","mbstring","fileinfo","sodium"] as $e){if(!extension_loaded($e)){fwrite(STDERR,"Missing PHP extension: $e\n");exit(1);}}'
 
-# Root executes only the short-lived secret handoff, then drops permanently
-# to the unprivileged PHP user before starting web, scanner or migration code.
+# Root performs secret handoff and runs only the capability-restricted FPM
+# master. HTTP worker processes and CLI migration/scanner jobs use www-data.
 COPY --chmod=0755 deploy/staging/entrypoint.sh /usr/local/bin/agile-entrypoint
 USER root
 ENTRYPOINT ["/usr/local/bin/agile-entrypoint"]
