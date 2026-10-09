@@ -60,6 +60,8 @@ jobs:
         run: php tests/workflow_integration.php
       - name: Extended system and automation integration tests
         run: php tests/extended_integration.php
+      - name: Independent identity and email-recovery integration
+        run: php tests/security_identity_mail_integration.php
       - name: Seed synthetic HTTP staff account
         run: php tests/seed_http_user.php
       - name: Start local PHP application
