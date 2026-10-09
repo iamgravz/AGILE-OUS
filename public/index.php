@@ -184,6 +184,7 @@ try {
     require dirname(__DIR__).'/app/routes/member.php';
     require dirname(__DIR__).'/app/routes/academic.php';
     require dirname(__DIR__).'/app/routes/email.php';
+    require dirname(__DIR__).'/app/routes/identity.php';
     http_response_code(404);
     page('Not Found','<p>This page does not exist.</p>');
 } catch (PDOException $e) {

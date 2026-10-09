@@ -48,7 +48,7 @@ jobs:
       - uses: shivammathur/setup-php@v2
         with:
           php-version: '8.2'
-          extensions: pdo_mysql, mbstring, fileinfo
+          extensions: pdo_mysql, mbstring, fileinfo, sodium
           coverage: none
       - name: Apply and verify migrations
         run: |
@@ -60,6 +60,37 @@ jobs:
         run: php tests/workflow_integration.php
       - name: Extended system and automation integration tests
         run: php tests/extended_integration.php
+      - name: Independent identity and email-recovery integration
+        run: php tests/security_identity_mail_integration.php
+      - name: Test encrypted database backup and isolated restore
+        shell: bash
+        run: |
+          if ! command -v mysqldump >/dev/null || ! command -v mysql >/dev/null; then
+            sudo apt-get update -qq
+            sudo DEBIAN_FRONTEND=noninteractive apt-get install -y -qq default-mysql-client
+          fi
+          export AGILE_BACKUP_KEY_B64="$(php -r 'echo base64_encode(random_bytes(32));')"
+          export AGILE_BACKUP_DIR="$RUNNER_TEMP/agile-encrypted-backups"
+          php scripts/secure_backup.php backup
+          encrypted="$(find "$AGILE_BACKUP_DIR" -maxdepth 1 -name '*.abk' -type f | head -n 1)"
+          test -f "$encrypted"
+          php scripts/secure_backup.php verify "$encrypted"
+          if grep -a -q 'Synthetic Volunteer' "$encrypted"; then
+            echo 'FAIL: encrypted backup leaked synthetic plaintext'
+            exit 1
+          fi
+          export DB_USER=root
+          export DB_PASSWORD=synthetic_root_test_only
+          mysql -h 127.0.0.1 -P 3306 -u root -psynthetic_root_test_only \
+            -e 'CREATE DATABASE agile_restore_ci CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci'
+          AGILE_ALLOW_ISOLATED_RESTORE=true php scripts/secure_backup.php restore "$encrypted" agile_restore_ci
+          original="$(mysql -h 127.0.0.1 -P 3306 -u root -psynthetic_root_test_only -N -e 'SELECT COUNT(*) FROM agile_ous.members')"
+          recovered="$(mysql -h 127.0.0.1 -P 3306 -u root -psynthetic_root_test_only -N -e 'SELECT COUNT(*) FROM agile_restore_ci.members')"
+          if [[ "$original" != "$recovered" ]]; then
+            echo 'FAIL: restore count does not match original'
+            exit 1
+          fi
+          echo 'PASS: authenticated database backup, verification and isolated restore'
       - name: Seed synthetic HTTP staff account
         run: php tests/seed_http_user.php
       - name: Start local PHP application

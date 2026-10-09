@@ -23,7 +23,7 @@ jobs:
       - uses: shivammathur/setup-php@v2
         with:
           php-version: '8.2'
-          extensions: pdo_mysql, mbstring, fileinfo
+          extensions: pdo_mysql, mbstring, fileinfo, sodium
           coverage: none
           tools: composer:v2
       - name: Validate project structure
@@ -51,6 +51,9 @@ jobs:
           if [[ -f tests/cli_smoke.php ]]; then php tests/cli_smoke.php
           elif [[ -f vendor/bin/phpunit ]]; then vendor/bin/phpunit
           else echo 'No executable PHP test suite yet. Tests will be required for the functional modules.'; fi
+      - name: Verify encrypted backup format (synthetic fixtures)
+        shell: bash
+        run: php tests/backup_cipher.php
       - name: Dependency vulnerability audit (when lock exists)
         shell: bash
         run: |

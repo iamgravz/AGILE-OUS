@@ -7,6 +7,7 @@ use Agile\Messaging;
 if($path==='/staff/email'&&$method==='GET'){
   $actor=Auth::requireRole(['msw_head','msw_member']);
   $html='<p>AGILE OUS branded email drafts. All sending requires MSW Head approval. Gmail stays disabled until credentials and permission are configured.</p>'
+      .($actor['role']==='msw_head'?'<p><a href="/staff/email/reconcile">Review uncertain/failed email delivery</a></p>':'')
    .'<form method="post" action="/staff/email/draft">'.formToken()
    .'<label>Recipient<input name="recipient" type="email" required></label>'
    .'<label>Template<select name="template_code">';
@@ -50,6 +51,36 @@ if($path==='/staff/email/queue'&&$method==='POST'){
   $actor=Auth::requireRole(['msw_head']);verifyCsrf();
   try{EmailCenter::queueApproved((int)($_POST['id']??0),$actor);redirect('/staff/email');}
   catch(DomainException $e){http_response_code(422);page('Email Queue Error','<p class="error">'.escape($e->getMessage()).'</p>');}
+}
+if($path==='/staff/email/reconcile'&&$method==='GET'){
+    $actor=Auth::requireRole(['msw_head']);
+    $q=db()->query("SELECT id,recipient,subject,status,attempts,created_at,last_error
+        FROM notification_outbox
+        WHERE status IN ('needs_review','failed','disabled')
+        ORDER BY id DESC LIMIT 80");
+    $html='<p>Some Gmail submissions have an uncertain outcome. Before retrying, independently check Gmail Sent records '
+       .'to avoid duplicate messages. No confidential email body is shown here.</p>';
+    foreach($q->fetchAll() as $item){
+        $html.='<section><p><b>Job #'.(int)$item['id'].'</b> — '.escape($item['subject'])
+           .' to '.escape($item['recipient']).' · '.escape($item['status'])
+           .' · '.(int)$item['attempts'].' attempt(s)</p>'
+           .'<form method="post" action="/staff/email/reconcile">'.formToken()
+           .'<input type="hidden" name="job_id" value="'.(int)$item['id'].'">'
+           .'<label>Provider investigation / decision evidence<textarea name="reason" required minlength="30" maxlength="1000"></textarea></label>'
+           .'<button name="action" value="mark_failed">Mark Failed / Do Not Send</button>'
+           .'<button name="action" value="requeue">Requeue After Duplicate-Risk Review</button></form></section><hr>';
+    }
+    page('Email Delivery Reconciliation',$html);
+}
+if($path==='/staff/email/reconcile'&&$method==='POST'){
+    $actor=Auth::requireRole(['msw_head']);verifyCsrf();
+    try{
+        \Agile\MailQueue::review((int)($_POST['job_id']??0),$actor,
+            (string)($_POST['action']??''),(string)($_POST['reason']??''));
+        redirect('/staff/email/reconcile');
+    }catch(DomainException $e){
+        http_response_code(422);page('Delivery Review Error','<p class="error">'.escape($e->getMessage()).'</p>');
+    }
 }
 if($path==='/staff/notifications'&&$method==='GET'){
   $actor=Auth::requireRole(['msw_head','msw_member','committee_head','deputy_head','executive_officer','source_editor','member']);
