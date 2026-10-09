@@ -44,6 +44,10 @@ final class Membership {
             $answers = ApplicationQuestions::normalize($input['desired_role'], $input['answers'] ?? []);
             $qa = $pdo->prepare('INSERT INTO application_answers (application_id, question_key, answer_text) VALUES (?, ?, ?)');
             foreach ($answers as $key => $answer) { $qa->execute([$applicationId, $key, $answer]); }
+            if (isset($input['_attachment']) && is_array($input['_attachment']) &&
+                ($input['_attachment']['error'] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_NO_FILE) {
+                Attachments::store($input['_attachment'],'membership_application',$applicationId);
+            }
             \audit(null,'application.submitted','membership_application',$applicationId);
             $pdo->commit();
         } catch (\Throwable $e) { $pdo->rollBack(); throw $e; }
