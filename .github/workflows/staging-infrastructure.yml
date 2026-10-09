@@ -56,6 +56,9 @@ jobs:
       - name: Build isolated PHP-FPM with required scanning and crypto tools
         shell: bash
         run: docker compose -f deploy/staging/compose.yaml build app
+      - name: Check PHP-FPM pool configuration before launching
+        shell: bash
+        run: docker run --rm --entrypoint php-fpm agile-ous-staging-app:local -t
       - name: Boot database and apply manually gated staging migrations
         shell: bash
         run: |
@@ -78,6 +81,10 @@ jobs:
           done
           curl "${flags[@]}" --fail "$endpoint/" | grep -q 'AGILE OUS'
           curl "${flags[@]}" --fail "$endpoint/privacy" | grep -q 'synthetic demonstration data'
+          # These two public endpoints query MySQL *through the nonroot FPM
+          # worker* and verify the tmpfs secret handoff really works.
+          curl "${flags[@]}" --fail "$endpoint/vacancies" >/dev/null
+          curl "${flags[@]}" --fail "$endpoint/updates" >/dev/null
           code="$(curl "${flags[@]}" -o /dev/null -w '%{http_code}' "$endpoint/staff/academic")"
           test "$code" = 303
           code="$(curl "${flags[@]}" -o /dev/null -w '%{http_code}' "$endpoint/app/bootstrap.php")"
@@ -98,6 +105,9 @@ jobs:
           # Operational status only; do not print application logs that might
           # eventually include private information or credentials.
           docker compose -f deploy/staging/compose.yaml config --quiet || true
+          # Only this disposable synthetic CI environment is allowed to
+          # print bounded startup logs. Never enable this on real student data.
+          docker compose -f deploy/staging/compose.yaml logs --no-color --tail=20 app web || true
       - name: Destroy all synthetic CI containers and volumes
         if: always()
         shell: bash
