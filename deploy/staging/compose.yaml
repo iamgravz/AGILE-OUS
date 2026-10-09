@@ -77,6 +77,8 @@ services:
       - /tmp:rw,noexec,nosuid,size=64m
     security_opt: ["no-new-privileges:true"]
     cap_drop: ["ALL"]
+    # Root is used only for a brief secret handoff; gosu then drops to www-data.
+    cap_add: ["CHOWN", "SETUID", "SETGID"]
     healthcheck:
       test: ["CMD", "php", "scripts/staging_container_health.php"]
       interval: 30s
@@ -126,8 +128,11 @@ services:
       database:
         condition: service_healthy
     networks: [private]
+    read_only: true
+    tmpfs: ["/tmp:rw,noexec,nosuid,size=32m"]
     security_opt: ["no-new-privileges:true"]
     cap_drop: ["ALL"]
+    cap_add: ["CHOWN", "SETUID", "SETGID"]
 
   # CLI-only malware scanning; keeps quarantine closed when signatures are missing.
   # Operators must mount a current, vetted ClamAV definition directory.
@@ -148,6 +153,7 @@ services:
     tmpfs: ["/tmp:rw,noexec,nosuid,size=64m"]
     security_opt: ["no-new-privileges:true"]
     cap_drop: ["ALL"]
+    cap_add: ["CHOWN", "SETUID", "SETGID"]
 
 networks:
   private:
