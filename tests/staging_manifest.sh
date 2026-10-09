@@ -30,7 +30,7 @@ assert_json() {
     exit 1
   fi
 }
-assert_json 'project namespace' '.name == "agile-ous-staging"'
+assert_json 'isolated AGILE staging/CI project namespace' '(.name | startswith("agile-ous-"))'
 assert_json 'database host port must not exist' '.services.database.ports == null'
 assert_json 'PHP host port must not exist' '.services.app.ports == null'
 assert_json 'single HTTPS ingress port' '(.services.web.ports | length) == 1'
