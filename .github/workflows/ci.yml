@@ -1,0 +1,70 @@
+name: Quality Gate
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  php-quality:
+    name: PHP lint and tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          extensions: pdo_mysql, mbstring, fileinfo
+          coverage: none
+          tools: composer:v2
+      - name: Validate project structure
+        shell: bash
+        run: |
+          test -f AGENTS.md
+          test -f docs/IMPLEMENTATION_PLAN.md
+          test -f .gitignore
+      - name: Lint PHP source files (when present)
+        shell: bash
+        run: |
+          mapfile -d '' files < <(find . -type f -name '*.php' -not -path './vendor/*' -not -path './node_modules/*' -print0)
+          if (( ${#files[@]} == 0 )); then
+            echo 'No PHP files yet. Structural gate only; PHP functionality is not verified.'
+          else
+            for file in "${files[@]}"; do php -l "$file" || exit 1; done
+          fi
+      - name: Validate Composer configuration (when present)
+        shell: bash
+        run: |
+          if [[ -f composer.json ]]; then composer validate --no-check-publish --strict; else echo 'Composer configuration not added yet.'; fi
+      - name: Run independent tests (when present)
+        shell: bash
+        run: |
+          if [[ -f tests/cli_smoke.php ]]; then php tests/cli_smoke.php
+          elif [[ -f vendor/bin/phpunit ]]; then vendor/bin/phpunit
+          else echo 'No executable PHP test suite yet. Tests will be required for the functional modules.'; fi
+      - name: Dependency vulnerability audit (when lock exists)
+        shell: bash
+        run: |
+          if [[ -f composer.lock ]]; then composer audit --locked --no-interaction; else echo 'No dependency lockfile yet.'; fi
+  repository-hygiene:
+    name: Repository hygiene
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check for forbidden tracked runtime artifacts
+        shell: bash
+        run: |
+          if git ls-files | grep -E '(^|/)(\.env|config\.php|credentials\.json|client_secret[^/]*\.json|oauth-token[^/]*\.json)$'; then
+            echo 'Sensitive configuration or token-like file is tracked'; exit 1
+          fi
+          echo 'No forbidden runtime configuration filenames tracked'
