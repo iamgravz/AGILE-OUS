@@ -130,8 +130,8 @@ final class Recruitment {
         $q->execute([(int)$app['id'],$app['student_number'],$app['full_name'],$app['email'],$type,$verifyToken]);
         $memberId=(int)$pdo->lastInsertId();
         if ($vacancyId!==null) {
-            $pdo->prepare('INSERT INTO role_assignments(member_id,role_category,position_title,recorded_by) VALUES (?,?,?,?)')
-                ->execute([$memberId,$v['role_category'],$v['position_title'],(int)$actor['id']]);
+            $pdo->prepare('INSERT INTO role_assignments(member_id,vacancy_id,role_category,position_title,recorded_by) VALUES (?,?,?,?,?)')
+                ->execute([$memberId,(int)$vacancyId,$v['role_category'],$v['position_title'],(int)$actor['id']]);
         }
         \audit((int)$actor['id'],'member.created','member',$memberId);
         return $memberId;
