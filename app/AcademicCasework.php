@@ -173,6 +173,27 @@ final class AcademicCasework {
         }catch(\Throwable $e) {$pdo->rollBack();throw $e;}
     }
 
+    /**
+     * Own-case file access is always checked against the authenticated,
+     * explicitly linked member account. MSW Head has documented case oversight.
+     */
+    public static function authorizeEvidence(int $requestId,array $actor,bool $write): array {
+        if ($requestId<1) throw new DomainException('Invalid academic review request.');
+        $q=\db()->prepare('SELECT r.id,r.member_id,r.status,r.verification_id,
+                   m.user_id,m.membership_status
+            FROM academic_review_requests r
+            JOIN members m ON m.id=r.member_id
+            WHERE r.id=?');
+        $q->execute([$requestId]);$request=$q->fetch();
+        if(!$request) throw new DomainException('Academic review request unavailable.');
+        if(($actor['role']??'')==='msw_head') return $request;
+        self::linkedMember((int)$request['member_id'],$actor);
+        if($write && !in_array($request['status'],['submitted','in_review'],true)) {
+            throw new DomainException('Evidence cannot be added after this review is closed.');
+        }
+        return $request;
+    }
+
     public static function inbox(array $actor,int $limit=80): array {
         self::requireHead($actor);
         $limit=max(1,min($limit,100));
