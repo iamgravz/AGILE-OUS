@@ -129,3 +129,24 @@ jobs:
             tail -n 120 /tmp/agile-http.log || true
             exit 1
           fi
+      - name: Seed Phase 10 synthetic multi-role fixtures
+        shell: bash
+        run: |
+          echo "PHASE10_FIXTURE=$RUNNER_TEMP/phase10_acceptance.json" >> "$GITHUB_ENV"
+          PHASE10_FIXTURE="$RUNNER_TEMP/phase10_acceptance.json" php tests/seed_phase10_acceptance.php
+      - name: Phase 10 role-based HTTP staging acceptance
+        shell: bash
+        run: bash tests/phase10_http_acceptance.sh
+      - name: Validate acceptance invariants and release gates
+        shell: bash
+        run: |
+          php tests/staging_acceptance_report.php
+          php scripts/staging_acceptance_report.php > "$RUNNER_TEMP/phase10-acceptance.json"
+          jq -e '.all_schema_invariants_passed == true and .production_release_authorized == false and .mode == "synthetic_ci"' \
+            "$RUNNER_TEMP/phase10-acceptance.json"
+      - name: Publish sanitized synthetic CI acceptance evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: phase10-synthetic-acceptance-evidence
+          path: ${{ runner.temp }}/phase10-acceptance.json
+          retention-days: 7
