@@ -56,6 +56,8 @@ jobs:
       - name: Validate provisional draft bylaws policy (synthetic cases)
         shell: bash
         run: php tests/draft_bylaws_preview.php
+      - name: Validate file-backed staging secrets and failure modes
+        run: php tests/staging_secret_files.php
       - name: Verify staging release controls never self-authorize
         run: php tests/release_readiness.php
       - name: Validate fail-closed staging security configuration
