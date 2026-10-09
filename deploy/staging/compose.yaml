@@ -1,0 +1,176 @@
+name: agile-ous-staging
+
+x-php-environment: &php-environment
+  APP_ENV: staging
+  APP_URL: ${STAGING_URL:?An approved HTTPS staging URL is required}
+  SESSION_SECURE: "true"
+  DB_HOST: database
+  DB_PORT: "3306"
+  DB_NAME: agile_ous_staging
+  DB_USER: agile_staging
+  DB_PASSWORD_FILE: /run/secrets/mysql_app_password
+  MFA_KEY_B64_FILE: /run/secrets/mfa_key_b64
+  AGILE_BACKUP_KEY_B64_FILE: /run/secrets/db_backup_key_b64
+  AGILE_FILE_BACKUP_KEY_B64_FILE: /run/secrets/file_backup_key_b64
+  FILE_SCANNING_ENABLED: "true"
+  FILE_SCAN_DRIVER: clamav
+  SECURITY_MONITOR_ENABLED: "false"
+  MAIL_TRANSPORT: disabled
+  AI_EXTERNAL_PROCESSING_APPROVED: "false"
+  AI_EXTRACT_PROVIDER: disabled
+  ACADEMIC_ROLE_TRANSITIONS_ENABLED: "false"
+  AUTOMATION_ENABLED: "false"
+  AGILE_ALLOW_ISOLATED_RESTORE: "false"
+  AGILE_UAT_READ_ONLY: "true"
+  AGILE_FILE_BACKUP_DIR: /srv/agile/storage/backups
+  AGILE_PRIVATE_FILES_DIR: /srv/agile/storage/private
+
+x-php-secrets: &php-secrets
+  - mysql_app_password
+  - mfa_key_b64
+  - db_backup_key_b64
+  - file_backup_key_b64
+
+x-php-volumes: &php-volumes
+  - private_data:/srv/agile/storage/private
+  - encrypted_backups:/srv/agile/storage/backups
+
+services:
+  database:
+    image: mysql:8.4
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: agile_ous_staging
+      MYSQL_USER: agile_staging
+      MYSQL_PASSWORD_FILE: /run/secrets/mysql_app_password
+      MYSQL_ROOT_PASSWORD_FILE: /run/secrets/mysql_root_password
+    secrets:
+      - mysql_app_password
+      - mysql_root_password
+    volumes:
+      - database_data:/var/lib/mysql
+    networks: [private]
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping --protocol=tcp -h 127.0.0.1 --silent >/dev/null 2>&1"]
+      interval: 15s
+      timeout: 5s
+      retries: 10
+      start_period: 50s
+    security_opt: ["no-new-privileges:true"]
+    # Never publish MySQL ports or mount the Docker socket.
+
+  app:
+    image: agile-ous-staging-app:local
+    build:
+      context: ../..
+      dockerfile: deploy/staging/Dockerfile
+    restart: unless-stopped
+    environment: *php-environment
+    secrets: *php-secrets
+    volumes: *php-volumes
+    depends_on:
+      database:
+        condition: service_healthy
+    networks: [private]
+    read_only: true
+    tmpfs:
+      - /tmp:rw,noexec,nosuid,size=64m
+    security_opt: ["no-new-privileges:true"]
+    cap_drop: ["ALL"]
+    healthcheck:
+      test: ["CMD", "php", "scripts/staging_container_health.php"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 90s
+    pids_limit: 200
+    # The service is accessible only to the private Docker network.
+
+  web:
+    image: nginx:stable-alpine
+    restart: unless-stopped
+    ports:
+      - "${STAGING_BIND_IP:-127.0.0.1}:${STAGING_HTTPS_PORT:-8443}:443"
+    environment:
+      NGINX_ENTRYPOINT_QUIET_LOGS: "1"
+    secrets:
+      - tls_cert
+      - tls_key
+    volumes:
+      - ./nginx.container.conf:/etc/nginx/conf.d/default.conf:ro
+      - ../../public:/srv/agile/public:ro
+    depends_on:
+      app:
+        condition: service_healthy
+    networks: [private, edge]
+    read_only: true
+    tmpfs:
+      - /var/cache/nginx:rw,noexec,nosuid,size=32m
+      - /var/run:rw,noexec,nosuid,size=4m
+      - /tmp:rw,noexec,nosuid,size=16m
+    security_opt: ["no-new-privileges:true"]
+    cap_drop: ["ALL"]
+    cap_add: ["NET_BIND_SERVICE"]
+    pids_limit: 100
+
+  # Never invoked automatically during web startup or CI acceptance.
+  # An operator explicitly runs: docker compose --profile admin run --rm migrate
+  migrate:
+    profiles: [admin]
+    image: agile-ous-staging-app:local
+    environment: *php-environment
+    secrets: *php-secrets
+    volumes: *php-volumes
+    command: ["php", "scripts/migrate.php"]
+    depends_on:
+      database:
+        condition: service_healthy
+    networks: [private]
+    security_opt: ["no-new-privileges:true"]
+    cap_drop: ["ALL"]
+
+  # CLI-only malware scanning; keeps quarantine closed when signatures are missing.
+  # Operators must mount a current, vetted ClamAV definition directory.
+  scanner:
+    profiles: [tools]
+    image: agile-ous-staging-app:local
+    environment: *php-environment
+    secrets: *php-secrets
+    volumes:
+      - private_data:/srv/agile/storage/private
+      - ${AGILE_CLAMAV_DB_DIR:?Provide a protected ClamAV definitions directory}:/var/lib/clamav:ro
+    command: ["php", "jobs/run_file_scanner.php"]
+    depends_on:
+      database:
+        condition: service_healthy
+    networks: [private]
+    read_only: true
+    tmpfs: ["/tmp:rw,noexec,nosuid,size=64m"]
+    security_opt: ["no-new-privileges:true"]
+    cap_drop: ["ALL"]
+
+networks:
+  private:
+    internal: true
+  edge: {}
+
+volumes:
+  database_data: {}
+  private_data: {}
+  encrypted_backups: {}
+
+secrets:
+  mysql_app_password:
+    file: ${AGILE_STAGING_SECRET_DIR:?Protected secret directory required}/mysql_app_password
+  mysql_root_password:
+    file: ${AGILE_STAGING_SECRET_DIR:?Protected secret directory required}/mysql_root_password
+  mfa_key_b64:
+    file: ${AGILE_STAGING_SECRET_DIR:?Protected secret directory required}/mfa_key_b64
+  db_backup_key_b64:
+    file: ${AGILE_STAGING_SECRET_DIR:?Protected secret directory required}/db_backup_key_b64
+  file_backup_key_b64:
+    file: ${AGILE_STAGING_SECRET_DIR:?Protected secret directory required}/file_backup_key_b64
+  tls_cert:
+    file: ${AGILE_STAGING_SECRET_DIR:?Protected secret directory required}/tls.crt
+  tls_key:
+    file: ${AGILE_STAGING_SECRET_DIR:?Protected secret directory required}/tls.key
