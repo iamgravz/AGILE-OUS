@@ -52,7 +52,8 @@ if($path==='/member/card'&&$method==='GET'){
       .'<label><input type="checkbox" name="enabled" value="yes" style="display:inline;width:auto" '
       .((int)$m['public_verification_enabled']?'checked':'').'> Allow public verification of my name and active membership status</label>'
       .'<button>Save Privacy Preference</button></form>'
-      .'<p><a href="/member/certificate">View printable membership certificate</a></p>';
+      .'<p><a href="/member/certificate">View printable membership certificate</a></p>'
+      .'<p><a href="/member/academic">My semester verification and corrections</a></p>';
     page('My Membership',$html);
 }
 if($path==='/member/verification-visibility'&&$method==='POST'){

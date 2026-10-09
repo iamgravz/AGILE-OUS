@@ -54,6 +54,23 @@ code="$(curl -sS -o "$BODY" -w '%{http_code}' -b "$COOKIE" -c "$COOKIE" "$BASE/d
 expect_status 200 "$code" 'Authorized dashboard'
 grep -q 'Synthetic HTTP Applicant' "$BODY"
 echo 'PASS stored application visible to authorized staff'
+
+code="$(curl -sS -o "$BODY" -w '%{http_code}' -b "$COOKIE" -c "$COOKIE" "$BASE/staff/academic/casework")"
+expect_status 200 "$code" 'MSW Head academic casework dashboard'
+grep -q 'Semester Summary' "$BODY"
+echo 'PASS academic casework summary rendered'
+code="$(curl -sS -o "$BODY" -w '%{http_code}' -b "$COOKIE" -c "$COOKIE" "$BASE/staff/academic/appeals")"
+expect_status 200 "$code" 'MSW Head academic correction inbox'
+grep -q 'Academic Corrections' "$BODY"
+echo 'PASS academic correction inbox rendered'
+code="$(curl -sS -o "$BODY" -w '%{http_code}' -b "$COOKIE" -c "$COOKIE" "$BASE/member/academic")"
+expect_status 200 "$code" 'Authenticated linked-member academic view'
+grep -q 'No academic verification cycles are linked' "$BODY"
+echo 'PASS staff account with no member association cannot see other students'
+# The member page has no form for an unlinked account: obtain a fresh logout
+# CSRF token from the authenticated staff dashboard before signing out.
+code="$(curl -sS -o "$BODY" -w '%{http_code}' -b "$COOKIE" -c "$COOKIE" "$BASE/dashboard")"
+expect_status 200 "$code" 'Refresh staff dashboard before secure logout'
 TOKEN="$(extract_csrf)"
 code="$(curl -sS -o "$BODY" -w '%{http_code}' -b "$COOKIE" -c "$COOKIE" \
   --data-urlencode "_csrf=$TOKEN" "$BASE/logout")"
