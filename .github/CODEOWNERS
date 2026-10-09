@@ -1,0 +1,10 @@
+# Default review owner
+* @iamgravz
+
+# Security-sensitive code: owner's review required when CODEOWNERS is enforced
+/app/ @iamgravz
+/config/ @iamgravz
+/database/ @iamgravz
+/jobs/ @iamgravz
+/.github/ @iamgravz
+/docs/ @iamgravz
