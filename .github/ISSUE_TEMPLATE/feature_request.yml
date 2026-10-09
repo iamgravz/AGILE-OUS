@@ -1,0 +1,24 @@
+name: Feature request
+description: Propose an additive AGILE OUS feature or enhancement.
+title: "feat: "
+labels: ["enhancement"]
+body:
+  - type: textarea
+    id: requirement
+    attributes:
+      label: Requirement and user benefit
+      description: Reference requirements IDs and explain who needs the change.
+    validations:
+      required: true
+  - type: textarea
+    id: access
+    attributes:
+      label: Roles, data privacy, and automated decisions
+      description: Describe any sensitive data and the required human oversight.
+    validations:
+      required: true
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Acceptance criteria
+      description: Include happy-path and unauthorized-access tests.
