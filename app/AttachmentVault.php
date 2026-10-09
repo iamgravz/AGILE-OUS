@@ -14,7 +14,7 @@ final class AttachmentVault {
     private const CHUNK=32768;
     private const MAX_FILE=5*1024*1024;
     private const MAX_FILES=20000;
-    private const NAME_PATTERN='/^[a-f0-9]{40}\\.(pdf|jpg|png)$/D';
+    private const NAME_PATTERN='/^[a-f0-9]{40}\.(pdf|jpg|png)$/D';
 
     public static function keyFromEnvironment():string {
         $encoded=\envValue('AGILE_FILE_BACKUP_KEY_B64');
