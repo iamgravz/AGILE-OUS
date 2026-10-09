@@ -7,15 +7,20 @@ use Agile\Membership;
 use Agile\ApplicationForm;
 use Agile\ApplicationAdminPage;
 use Agile\ApplicationWorkflow;
+use Agile\Attachments;
 
 startSession();
+header('Referrer-Policy: no-referrer');
+header('X-Content-Type-Options: nosniff');
+header('X-Frame-Options: DENY');
+header('Cache-Control: no-store');
 $path = parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH) ?: '/';
 $method = $_SERVER['REQUEST_METHOD'] ?? 'GET';
 $errors = [];
 $notice = '';
 function page(string $title, string $body): never {
     $csrf = csrfToken();
-    $nav = '<nav><a href="/">AGILE OUS</a> · <a href="/apply">Apply</a> · <a href="/login">Staff Login</a></nav>';
+    $nav = '<nav><a href="/">AGILE OUS</a> · <a href="/apply">Apply</a> · <a href="/vacancies">Vacancies</a> · <a href="/welfare">Welfare</a> · <a href="/updates">News</a> · <a href="/login">Login</a></nav>';
     echo '<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>'.escape($title).' — AGILE OUS</title><style>body{font-family:system-ui,sans-serif;max-width:780px;margin:2rem auto;padding:0 1rem;background:#faf8f7;color:#251c20}nav{padding:1rem;background:#70102d;color:white;border-radius:8px}nav a{color:white;margin-right:1rem}main{background:white;padding:2rem;border:1px solid #e8dee1;border-radius:10px;margin-top:1rem}label{display:block;margin-top:1rem;font-weight:600}input,select,textarea{display:block;width:100%;box-sizing:border-box;padding:.7rem;border:1px solid #999;border-radius:5px}button{background:#70102d;color:white;border:0;padding:.75rem 1.5rem;border-radius:5px;margin-top:1.3rem;cursor:pointer}a{color:#70102d}.error{color:#9c0020}.notice{background:#e7f4e7;padding:1rem;border-radius:5px}table{width:100%;border-collapse:collapse}td,th{border-bottom:1px solid #ddd;padding:.6rem;text-align:left}</style></head><body>'.$nav.'<main><h1>'.escape($title).'</h1>'.$body.'</main></body></html>';
     exit;
 }
@@ -38,7 +43,8 @@ try {
     if ($path === '/apply' && $method === 'POST') {
         verifyCsrf();
         try {
-            $ref = Membership::submit($_POST);
+            $input=$_POST; $input['_attachment']=$_FILES['attachment']??null;
+            $ref = Membership::submit($input);
             page('Application Submitted', '<p class="notice">Your application has been saved.</p><p>Reference: <strong>'.escape($ref).'</strong></p><p>Keep this reference. Staff will contact you using the submitted email.</p>');
         } catch (InvalidArgumentException $e) {
             http_response_code(422);
@@ -61,7 +67,13 @@ try {
         if ((int)$q->fetchColumn() >= 5) { http_response_code(429); page('Try Again Later','<p>Too many attempts. Try again after 15 minutes.</p>'); }
         if (Auth::login($email,(string)($_POST['password'] ?? ''))) {
             $q=db()->prepare('DELETE FROM login_attempts WHERE email_hash = ?');$q->execute([$hash]);
-            redirect('/dashboard');
+            $signed=Auth::user();
+            redirect(match($signed['role']??'') {
+                'member'=>'/member/card',
+                'committee_head'=>'/staff/hr',
+                'source_editor','executive_officer'=>'/staff/content',
+                default=>'/dashboard'
+            });
         }
         $q=db()->prepare('INSERT INTO login_attempts (email_hash) VALUES (?)');$q->execute([$hash]);
         http_response_code(401);
@@ -149,6 +161,29 @@ try {
         }
         page('Staff Dashboard', $html.'</table><p>Further permission-restricted workflows will be added in subsequent phases.</p>');
     }
+    if ($path==='/staff/attachment' && $method==='GET') {
+        $actor=Auth::requireRole(['msw_head','msw_member']);
+        Attachments::retrieve((int)($_GET['id']??0),$actor);
+    }
+    if ($path==='/staff/attachment/upload' && $method==='POST') {
+        $actor=Auth::requireRole(['msw_head','msw_member']);
+        verifyCsrf();
+        $type=(string)($_POST['owner_type']??'');
+        $id=(int)($_POST['owner_id']??0);
+        try{
+            Attachments::store($_FILES['attachment']??[],$type,$id,$actor);
+            $next=$type==='welfare_case'?'/staff/welfare/case?id='.$id:'/application?id='.$id;
+            redirect($next);
+        }catch(DomainException $e){
+            http_response_code(422);page('Document Upload Error','<p class="error">'.escape($e->getMessage()).'</p>');
+        }
+    }
+    require dirname(__DIR__).'/app/routes/recruitment.php';
+    require dirname(__DIR__).'/app/routes/welfare.php';
+    require dirname(__DIR__).'/app/routes/content.php';
+    require dirname(__DIR__).'/app/routes/member.php';
+    require dirname(__DIR__).'/app/routes/academic.php';
+    require dirname(__DIR__).'/app/routes/email.php';
     http_response_code(404);
     page('Not Found','<p>This page does not exist.</p>');
 } catch (PDOException $e) {
