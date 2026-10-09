@@ -39,7 +39,7 @@ if($path==='/claim'&&$method==='POST'){
     }catch(DomainException $e){http_response_code(422);page('Activation Failed','<p class="error">'.escape($e->getMessage()).'</p>');}
 }
 if($path==='/member/card'&&$method==='GET'){
-    $actor=Auth::requireRole(['member']);
+    $actor=Auth::requireRole(['member','msw_head','msw_member','committee_head','deputy_head','executive_officer','source_editor','president']);
     $m=Member::own($actor);
     if(!$m){http_response_code(404);page('Member Not Found','<p>Account is not linked to a member record.</p>');}
     $url=rtrim(envValue('APP_URL','http://localhost:8000'),'/').'/member/verify?code='.rawurlencode($m['verification_token_hash']);
@@ -56,7 +56,7 @@ if($path==='/member/card'&&$method==='GET'){
     page('My Membership',$html);
 }
 if($path==='/member/verification-visibility'&&$method==='POST'){
-    $actor=Auth::requireRole(['member']);verifyCsrf();
+    $actor=Auth::requireRole(['member','msw_head','msw_member','committee_head','deputy_head','executive_officer','source_editor','president']);verifyCsrf();
     try{Member::setPublicVerification($actor,($_POST['enabled']??'')==='yes');redirect('/member/card');}
     catch(DomainException $e){http_response_code(422);page('Preference Error','<p class="error">'.escape($e->getMessage()).'</p>');}
 }
@@ -68,7 +68,7 @@ if($path==='/member/verify'&&$method==='GET'){
       .'<p>Category: '.escape($card['membership_type']).'</p><p>Do not rely on a screenshot alone; check the current record at this URL.</p>');
 }
 if($path==='/member/certificate'&&$method==='GET'){
-    $actor=Auth::requireRole(['member']);$m=Member::own($actor);
+    $actor=Auth::requireRole(['member','msw_head','msw_member','committee_head','deputy_head','executive_officer','source_editor','president']);$m=Member::own($actor);
     if(!$m){http_response_code(404);page('Certificate Unavailable','<p>Member account not linked.</p>');}
     page('Membership Certificate','<div style="border:5px double #b18430;padding:40px;text-align:center;margin:32px 0">'
       .'<h2 style="color:#70102d">AGILE OUS</h2><p>Certificate of Membership</p>'
