@@ -37,6 +37,18 @@ final class ApplicationAdminPage {
             $html .= '</select></label><button type="submit">Save reviewer assignment</button></form>';
         }
 
+        $html .= '<h2>Supporting Documents</h2>';
+        $files = \db()->prepare("SELECT id,original_name FROM private_attachments WHERE owner_type='membership_application' AND owner_id=?");
+        $files->execute([$id]);
+        foreach($files->fetchAll() as $file) {
+            $html .= '<p>'.\escape($file['original_name']).' · <a href="/staff/attachment?id='.(int)$file['id'].'">Download securely</a></p>';
+        }
+        $html .= '<form method="post" enctype="multipart/form-data" action="/staff/attachment/upload">'
+          . \formToken() . '<input type="hidden" name="owner_type" value="membership_application">'
+          . '<input type="hidden" name="owner_id" value="'.$id.'">'
+          . '<label>Add supporting document<input type="file" name="attachment" required accept=".pdf,.png,.jpg,.jpeg"></label>'
+          . '<button>Upload Private Document</button></form>'
+          . '<p><a href="/staff/recruitment?application_id='.$id.'">Schedule Interview / Record Evaluation</a></p>';
         $html .= '<h2>Verification prerequisites</h2><p>Interview completed: <b>'
             . ((int)$application['interview_completed'] ? 'Yes' : 'Not yet')
             . '</b> · Documents verified: <b>'
