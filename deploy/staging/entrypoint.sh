@@ -26,13 +26,15 @@ for key in DB_PASSWORD MFA_KEY_B64 AGILE_BACKUP_KEY_B64 AGILE_FILE_BACKUP_KEY_B6
     # The source is never chmod'd or modified: host mode 0600 remains intact.
     destination="$dir/$key"
     cp -- "$source" "$destination"
-    chown www-data:www-data "$destination"
+    # Root has CHOWN but intentionally not FOWNER/DAC_OVERRIDE capabilities.
+    # Set permissions while still owner, then transfer file ownership once.
     chmod 0400 "$destination"
+    chown www-data:www-data "$destination"
     export "${key}_FILE=$destination"
 done
 
-chown www-data:www-data "$dir"
 chmod 0700 "$dir"
+chown www-data:www-data "$dir"
 
 # gosu switches both UID/GID; no application code executes as root.
 exec gosu www-data "$@"
