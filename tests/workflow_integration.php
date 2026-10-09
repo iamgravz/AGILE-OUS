@@ -60,6 +60,9 @@ try {
     expectedDenial(fn()=>ApplicationWorkflow::changeStatus($appId,$head,'approved','Approved membership application'),'Approval blocked without interview and documents');
 
     ApplicationWorkflow::updateVerification($appId,$head,true,true,'Verified synthetic interview and supporting documentation');
+    $q=$pdo->prepare('SELECT COUNT(*) FROM application_verification_history WHERE application_id=? AND actor_user_id=? AND note LIKE ?');
+    $q->execute([$appId,$head['id'],'Verified synthetic%']);
+    assertWorkflow((int)$q->fetchColumn()===1,'Verification outcome, actor and note persisted');
     ApplicationWorkflow::changeStatus($appId,$head,'approved','Authorized decision after verified synthetic requirements');
     assertWorkflow(ApplicationWorkflow::find($appId)['status']==='approved','MSW Head finalized verified application');
     expectedDenial(fn()=>ApplicationWorkflow::changeStatus($appId,$head,'screening','Attempt to reopen finalized'),'Finalized application cannot be reopened');
@@ -74,6 +77,7 @@ try {
 } finally {
     if ($appId !== null) {
         $pdo->prepare("DELETE FROM audit_logs WHERE entity_type='membership_application' AND entity_id = ?")->execute([$appId]);
+        $pdo->prepare('DELETE FROM application_verification_history WHERE application_id = ?')->execute([$appId]);
         $pdo->prepare('DELETE FROM application_status_history WHERE application_id = ?')->execute([$appId]);
         $pdo->prepare('DELETE FROM application_answers WHERE application_id = ?')->execute([$appId]);
         $pdo->prepare('DELETE FROM membership_applications WHERE id = ?')->execute([$appId]);
