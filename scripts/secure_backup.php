@@ -90,6 +90,7 @@ try {
             $cmd=['mysqldump','--defaults-extra-file='.$credentials,
               '--single-transaction','--quick','--hex-blob','--no-tablespaces',
               '--default-character-set=utf8mb4',envValue('DB_NAME','agile_ous')];
+            $pipes=[];
             $proc=process($cmd,$pipes);
             fclose($pipes[0]);
             try {
@@ -141,6 +142,7 @@ try {
     }
     $restoreCheck=null;
     $credentials=temporaryMySqlCredentials();
+    $pipes=[];
     $proc=process(['mysql','--defaults-extra-file='.$credentials,'--default-character-set=utf8mb4',$target],$pipes);
     fclose($pipes[1]);
     $input=fopen($file,'rb');
