@@ -13,6 +13,12 @@ final class ApplicationForm {
         foreach (Membership::ROLES as $role) {
             $html .= '<option value="' . \escape($role) . '">' . \escape($role) . '</option>';
         }
+        $html .= '</select></label><label>Open recruitment position (optional)<select name="vacancy_id" id="vacancy-id"><option value="">General membership / not applying to a listed vacancy</option>';
+        foreach (Recruitment::openVacancies() as $v) {
+            $html .= '<option data-role="' . \escape($v['role_category']) . '" value="' . (int)$v['id'] . '">'
+                . \escape($v['committee_name'] . ' — ' . $v['position_title'])
+                . ' (' . ((int)$v['capacity']-(int)$v['filled']) . ' open)</option>';
+        }
         $html .= '</select></label>'
             . '<label>Why would you like to join?<textarea required minlength="10" maxlength="2000" name="motivation"></textarea></label>';
         foreach (Membership::ROLES as $role) {
@@ -48,7 +54,13 @@ final class ApplicationForm {
 (function() {
  const role = document.getElementById('desired-role');
  const groups = Array.from(document.querySelectorAll('.role-fields'));
+ const vacancy = document.getElementById('vacancy-id');
  function refresh() {
+   for (const option of vacancy.querySelectorAll('option[data-role]')) {
+     option.hidden = option.dataset.role !== role.value;
+     option.disabled = option.hidden;
+   }
+   if (vacancy.selectedOptions[0]?.disabled) vacancy.value = '';
    for (const fieldset of groups) {
      const active = fieldset.dataset.role === role.value;
      fieldset.hidden = !active;
