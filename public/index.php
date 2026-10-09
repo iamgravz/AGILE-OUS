@@ -183,6 +183,7 @@ try {
     require dirname(__DIR__).'/app/routes/content.php';
     require dirname(__DIR__).'/app/routes/member.php';
     require dirname(__DIR__).'/app/routes/academic.php';
+    require dirname(__DIR__).'/app/routes/academic_casework.php';
     require dirname(__DIR__).'/app/routes/email.php';
     require dirname(__DIR__).'/app/routes/identity.php';
     http_response_code(404);
