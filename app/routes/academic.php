@@ -80,11 +80,13 @@ if($path==='/staff/academic/check'&&$method==='GET'){
        .'<label>Document authorized due-process outcome<textarea name="reason" required minlength="25"></textarea></label>'
        .'<button>Transition to General Membership</button></form>';
   }
-  $q=db()->prepare("SELECT id,original_name FROM private_attachments WHERE owner_type='academic_verification' AND owner_id=? ORDER BY id DESC");$q->execute([$id]);
+  $q=db()->prepare("SELECT id,original_name,scan_status FROM private_attachments WHERE owner_type='academic_verification' AND owner_id=? ORDER BY id DESC");$q->execute([$id]);
   foreach($q->fetchAll() as $file){
     $html.='<p>Private attachment: '.escape($file['original_name'])
-      .' <a href="/staff/attachment?id='.(int)$file['id'].'">Download securely</a></p>';
-    if($v['verified_result']==='pending'){
+      .' — '.($file['scan_status']==='clean'
+        ? '<a href="/staff/attachment?id='.(int)$file['id'].'">Download cleared document</a>'
+        : 'Security scan pending ('.escape($file['scan_status']).')').'</p>';
+    if($v['verified_result']==='pending' && $file['scan_status']==='clean'){
       $html.='<form method="post" action="/staff/academic/ai-extract">'.formToken()
         .'<input type="hidden" name="id" value="'.$id.'">'
         .'<input type="hidden" name="attachment_id" value="'.(int)$file['id'].'">'
