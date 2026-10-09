@@ -112,7 +112,9 @@ services:
       - /tmp:rw,noexec,nosuid,size=16m
     security_opt: ["no-new-privileges:true"]
     cap_drop: ["ALL"]
-    cap_add: ["NET_BIND_SERVICE"]
+    # The Nginx master must own its tmpfs cache and drop workers to nginx.
+    # Neither database access nor Docker privileges are granted.
+    cap_add: ["NET_BIND_SERVICE", "CHOWN", "SETUID", "SETGID"]
     pids_limit: 100
 
   # Never invoked automatically during web startup or CI acceptance.
