@@ -28,6 +28,40 @@ final class ApplicationWorkflow {
         return $q->fetch() ?: null;
     }
 
+    public static function findForActor(int $id, array $actor): ?array {
+        $row = self::find($id);
+        if (!$row) { return null; }
+        if ($actor['role'] === 'msw_head') { return $row; }
+        if ($actor['role'] === 'msw_member' && (int)($row['assigned_to'] ?? 0) === (int)$actor['id']) {
+            return $row;
+        }
+        throw new DomainException('This application is not assigned to your account.');
+    }
+
+    public static function assignReviewer(int $id, array $actor, ?int $reviewerId): void {
+        if ($actor['role'] !== 'msw_head') { throw new DomainException('Only the MSW Head may assign applications.'); }
+        $pdo = \\db();
+        $pdo->beginTransaction();
+        try {
+            $application = self::locked($pdo, $id);
+            if (in_array($application['status'], ['approved', 'rejected'], true)) {
+                throw new DomainException('Cannot reassign a finalized application.');
+            }
+            if ($reviewerId !== null) {
+                $q = $pdo->prepare("SELECT id FROM users WHERE id = ? AND role = 'msw_member' AND is_active = 1 LIMIT 1");
+                $q->execute([$reviewerId]);
+                if (!$q->fetchColumn()) { throw new DomainException('Reviewer must be an active MSW Member.'); }
+            }
+            $q = $pdo->prepare('UPDATE membership_applications SET assigned_to = ? WHERE id = ?');
+            $q->execute([$reviewerId, $id]);
+            \\audit((int)$actor['id'], 'application.reassigned', 'membership_application', $id);
+            $pdo->commit();
+        } catch (\\Throwable $e) {
+            $pdo->rollBack();
+            throw $e;
+        }
+    }
+
     public static function availableTargets(string $status, string $role): array {
         if (!in_array($role, ['msw_head','msw_member'], true)) { return []; }
         $targets = self::TRANSITIONS[$status] ?? [];
@@ -65,6 +99,9 @@ final class ApplicationWorkflow {
         $pdo->beginTransaction();
         try {
             $row = self::locked($pdo, $id);
+            if ($actor['role'] === 'msw_member' && (int)($row['assigned_to'] ?? 0) !== (int)$actor['id']) {
+                throw new DomainException('This application is not assigned to your account.');
+            }
             $oldStatus = $row['status'];
             if (!in_array($newStatus, self::availableTargets($oldStatus, $actor['role']), true)) {
                 throw new DomainException('This status transition is not authorized.');
