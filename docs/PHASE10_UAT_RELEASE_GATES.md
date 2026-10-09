@@ -65,6 +65,8 @@ CI=true RUN_E2E_TESTS=yes php scripts/acceptance_audit.php
 
 Or run with `APP_ENV=staging` against an approved staging environment. If any gate fails, the command exits nonzero. Passing this report does not authorize deployment. It does **not** inspect real grade values, welfare narratives, or uploaded documents.
 
+The rollback-only negative suite deliberately simulates three **synthetic** corruptions—an accidentally approved draft bylaw version, mismatched vacancy count, and a cleared file without a digest—and confirms each is detected. It then rolls back every change and rechecks all gates. This avoids an always-green audit that merely reports healthy data without detecting invalid states.
+
 ## Exact execution in GitHub Actions
 
 The existing `MySQL Integration` workflow boots an isolated MySQL 8 test service, applies all schema migrations twice to ensure idempotence, runs the previously tested domain suites, verifies encrypted database and private-file restores, starts the PHP test server, executes authenticated registration/MFA HTTP smoke, then adds:
@@ -73,6 +75,7 @@ The existing `MySQL Integration` workflow boots an isolated MySQL 8 test service
 UAT_CREDENTIALS_FILE="$RUNNER_TEMP/agile-uat-credentials.txt" php tests/seed_uat_accounts.php
 UAT_CREDENTIALS_FILE="$RUNNER_TEMP/agile-uat-credentials.txt" bash tests/role_matrix_http.sh
 php tests/acceptance_integrity.php
+php tests/acceptance_gate_negative.php
 php scripts/acceptance_audit.php
 ```
 
