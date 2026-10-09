@@ -63,6 +63,12 @@ try {
     }
     if ($path === '/dashboard' && $method === 'GET') {
         $user = Auth::requireRole(['msw_head','msw_member','president','admin']);
+        if ($user['role'] === 'president' || $user['role'] === 'admin') {
+            $stats = db()->query('SELECT status, COUNT(*) AS total FROM membership_applications GROUP BY status')->fetchAll();
+            $html = '<p>Signed in as '.escape($user['display_name']).' ('.escape($user['role']).')</p><form method="post" action="/logout">'.formToken().'<button>Sign Out</button></form><h2>Membership summary (no applicant details)</h2><table><tr><th>Status</th><th>Total</th></tr>';
+            foreach ($stats as $stat) { $html .= '<tr><td>'.escape($stat['status']).'</td><td>'.(int)$stat['total'].'</td></tr>'; }
+            page('Read-only Overview', $html.'</table>');
+        }
         $rows = db()->query('SELECT id, reference_code, full_name, desired_role, status, created_at FROM membership_applications ORDER BY created_at DESC LIMIT 30')->fetchAll();
         $html = '<p>Signed in as '.escape($user['display_name']).' ('.escape($user['role']).')</p><form method="post" action="/logout">'.formToken().'<button>Sign Out</button></form><h2>Recent applications</h2><table><tr><th>Reference</th><th>Applicant</th><th>Role</th><th>Status</th></tr>';
         foreach($rows as $r) {
