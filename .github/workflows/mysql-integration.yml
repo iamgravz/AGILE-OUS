@@ -143,3 +143,25 @@ jobs:
           php tests/acceptance_gate_negative.php
           php scripts/acceptance_audit.php
 
+      - name: Seed independent Phase 10 synthetic reviewer scope fixtures
+        shell: bash
+        run: |
+          echo "PHASE10_FIXTURE=$RUNNER_TEMP/phase10_acceptance.json" >> "$GITHUB_ENV"
+          PHASE10_FIXTURE="$RUNNER_TEMP/phase10_acceptance.json" php tests/seed_phase10_acceptance.php
+      - name: Test expanded Welfare/CMS/Member-privacy role matrix
+        shell: bash
+        run: bash tests/phase10_http_acceptance.sh
+      - name: Verify privacy-minimized staging evidence and NO-GO release status
+        shell: bash
+        run: |
+          php tests/staging_acceptance_report.php
+          php scripts/staging_acceptance_report.php > "$RUNNER_TEMP/phase10-acceptance.json"
+          jq -e '.all_schema_invariants_passed == true and .production_release_authorized == false and .mode == "synthetic_ci"' \
+            "$RUNNER_TEMP/phase10-acceptance.json"
+      - name: Publish aggregate synthetic staging acceptance evidence only
+        uses: actions/upload-artifact@v4
+        with:
+          name: phase11-synthetic-staging-report
+          path: ${{ runner.temp }}/phase10-acceptance.json
+          retention-days: 7
+
