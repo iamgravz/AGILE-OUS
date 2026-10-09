@@ -31,6 +31,10 @@ try {
         'desired_role' => 'Committee Member',
         'motivation' => 'Synthetic data used only to validate the MySQL write workflow.',
         'privacy_consent' => 'yes',
+        'answers' => [
+            'preferred_committee' => 'Membership and Student Welfare',
+            'relevant_skills' => 'Synthetic documentation and coordination experience',
+        ],
     ];
     $reference = Membership::submit($payload);
     check((bool)preg_match('/^AG-[A-F0-9]{14}$/', $reference), 'Created unpredictable application reference');
@@ -41,6 +45,9 @@ try {
     check((bool)$row && $row['status'] === 'submitted' && $row['student_number'] === $student,
         'Application saved and retrievable from MySQL');
     $appId = (int)$row['id'];
+    $q = $pdo->prepare('SELECT question_key, answer_text FROM application_answers WHERE application_id = ?');
+    $q->execute([$appId]);
+    check(count($q->fetchAll()) === 2, 'Position-specific application answers stored in MySQL');
     $q = $pdo->prepare("SELECT COUNT(*) FROM audit_logs WHERE entity_type = 'membership_application' AND entity_id = ? AND action = 'application.submitted'");
     $q->execute([$appId]);
     check((int)$q->fetchColumn() === 1, 'Application audit entry persisted');
@@ -63,6 +70,8 @@ try {
         $q->execute([$reference]); $id = $q->fetchColumn();
         if ($id) {
             $pdo->prepare("DELETE FROM audit_logs WHERE entity_type = 'membership_application' AND entity_id = ?")->execute([$id]);
+            $pdo->prepare('DELETE FROM application_status_history WHERE application_id = ?')->execute([$id]);
+            $pdo->prepare('DELETE FROM application_answers WHERE application_id = ?')->execute([$id]);
             $pdo->prepare('DELETE FROM membership_applications WHERE id = ?')->execute([$id]);
         }
     }
