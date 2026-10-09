@@ -19,11 +19,15 @@ final class Attachments {
         if (!isset(self::ACCEPT[$mime])) throw new DomainException('Upload PDF, JPG or PNG only.');
     }
     public static function store(array $file,string $ownerType,int $ownerId,?array $actor=null): int {
-        if (!in_array($ownerType,['membership_application','welfare_case','academic_verification'],true)||$ownerId<1)
+        if (!in_array($ownerType,['membership_application','welfare_case','academic_verification','academic_review_request'],true)||$ownerId<1)
             throw new DomainException('Invalid private attachment destination.');
         self::validateUpload($file);
         if ($ownerType==='academic_verification'&&($actor['role']??'')!=='msw_head')
             throw new DomainException('Academic files require an authorized verifier.');
+        if ($ownerType==='academic_review_request') {
+            if ($actor===null) throw new DomainException('Academic appeal evidence requires a verified account.');
+            AcademicCasework::authorizeEvidence($ownerId,$actor,true);
+        }
         if ($ownerType==='welfare_case'&&$actor!==null) {
             Welfare::findForActor($ownerId,$actor);
         }
@@ -53,6 +57,9 @@ final class Attachments {
         $type=$file['owner_type'];
         if ($type==='academic_verification'&&$actor['role']!=='msw_head') {
             http_response_code(403);exit('Restricted academic document.');
+        }
+        if ($type==='academic_review_request') {
+            AcademicCasework::authorizeEvidence((int)$file['owner_id'],$actor,false);
         }
         if ($type==='welfare_case') Welfare::findForActor((int)$file['owner_id'],$actor);
         if ($type==='membership_application') ApplicationWorkflow::findForActor((int)$file['owner_id'],$actor);

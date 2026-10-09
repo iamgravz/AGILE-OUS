@@ -16,6 +16,9 @@ final class Auth {
         $user = self::user();
         if (!$user) { \redirect('/login'); }
         if (!in_array($user['role'], $roles, true)) { http_response_code(403); exit('Access denied.'); }
+        if (Mfa::required($user) && !Mfa::sessionVerified($user)) {
+            \redirect(Mfa::enrolled((int)$user['id']) ? '/mfa/challenge' : '/mfa/setup');
+        }
         return $user;
     }
     public static function login(string $email, string $password): bool {
@@ -26,6 +29,10 @@ final class Auth {
         if (!$user || !$user['is_active'] || !password_verify($password, $user['password_hash'])) { return false; }
         \startSession();
         session_regenerate_id(true);
+        // A fresh password login must never reuse step-up verification from
+        // any earlier login, even if the same browser remains signed in.
+        unset($_SESSION['mfa_ok_uid'],$_SESSION['mfa_ok_role'],
+              $_SESSION['mfa_at'],$_SESSION['mfa_last_seen']);
         $_SESSION['uid'] = (int) $user['id'];
         $_SESSION['csrf'] = bin2hex(random_bytes(32));
         \audit((int)$user['id'], 'login', 'user', (int)$user['id']);

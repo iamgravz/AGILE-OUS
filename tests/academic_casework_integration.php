@@ -123,6 +123,16 @@ acadDenied(fn()=>AcademicCasework::submitRequest($checkId,$president,'appeal',
 $requestId=AcademicCasework::submitRequest($checkId,$officer,'correction',
     'My synthetic institutional grade record needs manual verification against its official source.');
 acadOk($requestId>0,'Linked member submits confidential correction request');
+
+acadOk((int)\Agile\AcademicCasework::authorizeEvidence($requestId,$officer,true)['member_id']===$officerMember,
+    'Academic appeal owner may attach documents to a pending own request');
+acadOk((int)\Agile\AcademicCasework::authorizeEvidence($requestId,$head,false)['member_id']===$officerMember,
+    'MSW Head may review authorized confidential appeal evidence');
+acadDenied(fn()=>\Agile\AcademicCasework::authorizeEvidence($requestId,$general,false),
+    'Another member cannot download someone else academic evidence');
+acadDenied(fn()=>\Agile\AcademicCasework::authorizeEvidence($requestId,$president,true),
+    'Unlinked President may not upload to someone else appeal');
+
 acadDenied(fn()=>AcademicCasework::submitRequest($checkId,$officer,'appeal',
     'Submitting another pending request should be rejected until review finishes.'),
     'Duplicate pending correction / appeal requests are blocked');
@@ -143,6 +153,8 @@ acadDenied(fn()=>AcademicCasework::resolve($requestId,$head,'in_review',
     'Previously resolved requests must remain immutable.'),
     'Resolved academic case cannot be reopened or overwritten');
 $events=AcademicCasework::events($requestId,$head);
+acadDenied(fn()=>\Agile\AcademicCasework::authorizeEvidence($requestId,$officer,true),
+    'Resolved academic request cannot receive more student evidence');
 acadOk(count($events)===3 &&
     array_column($events,'event_type')===['submitted','in_review','resolved'],
     'Academic request maintains append-only submit/review/resolve event history');

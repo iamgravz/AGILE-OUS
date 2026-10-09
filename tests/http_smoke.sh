@@ -51,6 +51,29 @@ code="$(curl -sS -o "$BODY" -w '%{http_code}' -b "$COOKIE" -c "$COOKIE" \
   --data-urlencode "password=${HTTP_TEST_PASSWORD}" "$BASE/login")"
 expect_status 303 "$code" 'Staff login with synthetic credentials'
 code="$(curl -sS -o "$BODY" -w '%{http_code}' -b "$COOKIE" -c "$COOKIE" "$BASE/dashboard")"
+expect_status 303 "$code" 'Password-only staff session blocked pending MFA'
+code="$(curl -sS -o "$BODY" -w '%{http_code}' -b "$COOKIE" -c "$COOKIE" "$BASE/staff/academic/casework")"
+expect_status 303 "$code" 'Sensitive academic route blocked before MFA'
+code="$(curl -sS -o "$BODY" -w '%{http_code}' -b "$COOKIE" -c "$COOKIE" "$BASE/mfa/setup")"
+expect_status 200 "$code" 'MFA enrollment screen'
+TOKEN="$(extract_csrf)"
+test -n "$TOKEN"
+code="$(curl -sS -o "$BODY" -w '%{http_code}' -b "$COOKIE" -c "$COOKIE" \
+  --data-urlencode "_csrf=$TOKEN" \
+  --data-urlencode "password=${HTTP_TEST_PASSWORD}" "$BASE/mfa/enroll")"
+expect_status 200 "$code" 'Password-confirmed MFA enrollment secret'
+SECRET="$(grep -oE 'id="mfa-secret">[A-Z2-7]+' "$BODY" | head -n 1 | cut -d'>' -f2)"
+test -n "$SECRET"
+TOKEN="$(extract_csrf)"
+CODE="$(php -r 'require getcwd()."/app/bootstrap.php"; $name="Agile".chr(92)."Mfa"; echo $name::totp($argv[1],intdiv(time(),30));' "$SECRET")"
+code="$(curl -sS -o "$BODY" -w '%{http_code}' -b "$COOKIE" -c "$COOKIE" \
+  --data-urlencode "_csrf=$TOKEN" \
+  --data-urlencode "code=$CODE" "$BASE/mfa/confirm")"
+expect_status 200 "$code" 'MFA confirmation and one-time recovery code display'
+grep -q 'Staff MFA Enabled' "$BODY"
+RECOVERY="$(grep -oE '<li><code>[A-F0-9]{24}</code></li>' "$BODY" | head -n 1 | cut -d'>' -f3 | cut -d'<' -f1)"
+test -n "$RECOVERY"
+code="$(curl -sS -o "$BODY" -w '%{http_code}' -b "$COOKIE" -c "$COOKIE" "$BASE/dashboard")"
 expect_status 200 "$code" 'Authorized dashboard'
 grep -q 'Synthetic HTTP Applicant' "$BODY"
 echo 'PASS stored application visible to authorized staff'
@@ -77,4 +100,23 @@ code="$(curl -sS -o "$BODY" -w '%{http_code}' -b "$COOKIE" -c "$COOKIE" \
 expect_status 303 "$code" 'Staff logout'
 code="$(curl -sS -o "$BODY" -w '%{http_code}' -b "$COOKIE" "$BASE/dashboard")"
 expect_status 303 "$code" 'Dashboard denied after logout'
+# Second password login must never silently inherit MFA from the earlier session.
+code="$(curl -sS -o "$BODY" -w '%{http_code}' -b "$COOKIE" -c "$COOKIE" "$BASE/login")"
+expect_status 200 "$code" 'Second password login form'
+TOKEN="$(extract_csrf)"
+code="$(curl -sS -o "$BODY" -w '%{http_code}' -b "$COOKIE" -c "$COOKIE" \
+  --data-urlencode "_csrf=$TOKEN" \
+  --data-urlencode "email=staff-smoke@example.invalid" \
+  --data-urlencode "password=${HTTP_TEST_PASSWORD}" "$BASE/login")"
+expect_status 303 "$code" 'Second password login accepted'
+code="$(curl -sS -o "$BODY" -w '%{http_code}' -b "$COOKIE" -c "$COOKIE" "$BASE/dashboard")"
+expect_status 303 "$code" 'New login still requires MFA'
+code="$(curl -sS -o "$BODY" -w '%{http_code}' -b "$COOKIE" -c "$COOKIE" "$BASE/mfa/challenge")"
+expect_status 200 "$code" 'Second factor challenge form'
+TOKEN="$(extract_csrf)"
+code="$(curl -sS -o "$BODY" -w '%{http_code}' -b "$COOKIE" -c "$COOKIE" \
+  --data-urlencode "_csrf=$TOKEN" --data-urlencode "code=$RECOVERY" "$BASE/mfa/verify")"
+expect_status 303 "$code" 'One-time recovery code authorizes second login'
+code="$(curl -sS -o "$BODY" -w '%{http_code}' -b "$COOKIE" -c "$COOKIE" "$BASE/dashboard")"
+expect_status 200 "$code" 'Staff dashboard restored only after MFA'
 echo 'HTTP end-to-end smoke passed (synthetic test records).'
