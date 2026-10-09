@@ -33,6 +33,39 @@ function loadLocalEnv(): void {
 loadLocalEnv();
 
 function envValue(string $key, string $default = ''): string {
+    // Only a fixed allowlist of credentials may be loaded from container
+    // secret files. No file content is ever logged or returned to a browser.
+    // Existing local/test environment variables remain supported.
+    static $fileSecrets = [
+        'DB_PASSWORD' => true,
+        'MFA_KEY_B64' => true,
+        'AGILE_BACKUP_KEY_B64' => true,
+        'AGILE_FILE_BACKUP_KEY_B64' => true,
+    ];
+    if (isset($fileSecrets[$key])) {
+        $file = getenv($key . '_FILE');
+        if ($file !== false && $file !== '') {
+            if (getenv($key) !== false) {
+                throw new RuntimeException('Conflicting secret configuration for ' . $key);
+            }
+            if (!is_file($file) || !is_readable($file) || is_link($file)) {
+                throw new RuntimeException('Protected secret file unavailable for ' . $key);
+            }
+            $size = filesize($file);
+            if ($size === false || $size < 1 || $size > 4096) {
+                throw new RuntimeException('Protected secret file has invalid size for ' . $key);
+            }
+            $contents = file_get_contents($file);
+            if ($contents === false) {
+                throw new RuntimeException('Cannot read protected secret file for ' . $key);
+            }
+            $value = rtrim($contents, "\r\n");
+            if ($value === '') {
+                throw new RuntimeException('Protected secret value is empty for ' . $key);
+            }
+            return $value;
+        }
+    }
     $value = getenv($key);
     return $value === false ? $default : $value;
 }
