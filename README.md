@@ -1,1 +1,34 @@
-# AGILE-OUS
+# AGILE OUS — Membership & Student Welfare
+
+**Status:** Phase 1 secure PHP/MySQL foundation; **not production-ready**. This is an incremental implementation, not a completed system.
+
+## Requirements
+PHP 8.2+ with PDO MySQL, MySQL 8+, a local web server.
+
+## Local installation
+1. Create a new empty MySQL database `agile_ous`.
+2. Apply `database/001_initial.sql` to that database.
+3. Copy `.env.example` to `.env` and configure local DB credentials. Never commit `.env`.
+4. Create an authorized local test account: `php scripts/create_user.php admin@example.test admin "Local Administrator"`.
+5. Launch local development server: `php -S 127.0.0.1:8000 -t public`. Visit `http://127.0.0.1:8000`.
+
+Use a restricted MySQL application account, not root. On deployment set `SESSION_SECURE=true` and enforce HTTPS; keep the document root set to `public/`.
+
+## Implemented in this branch
+- Login using password hashes, session regeneration, CSRF protection, no-store authenticated responses.
+- PDO parameterized login query and safe output encoding.
+- Live MySQL counts for approved membership applications and pending applications.
+- Aggregate-only open welfare case count for authorized roles; the President has no edit routes.
+- Role helper functions for later endpoint authorization.
+- Starter database migrations without collecting confidential case descriptions.
+
+## NOT implemented yet (required before real use)
+- Public membership form, consent/validation, semester verification, review/approval workflow.
+- Welfare submission and workflow with case-level ownership, sensitive-field encryption, audit trail, retention policy and referrals.
+- Fine-grained RBAC permissions for each endpoint; role helpers are not a replacement for policy tests.
+- Rate limiting, account lockout, MFA, password reset, production security headers, backups and operational monitoring.
+- Transactions, validation and concurrency handling for approvals; recruitment processes and exports.
+- Verified tests, deployment pipeline, caching and cache invalidation.
+
+## Data-handling warning
+Do not input real student details or welfare concerns into this phase-1 build. Welfare details must never be stored in logs or a shared/public cache. Avoid caching authorization, approval states, sessions and live confidential records. Add short-lived caching only after correct live queries and invalidation tests are completed.
