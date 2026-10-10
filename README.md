@@ -79,3 +79,10 @@ Apply `database/003_membership.sql` **once**, after migrations 001 and 002, and 
 - `/recruitment.php` displays occupancy based on assigned position ID rather than title matching.
 - Some older README statements describe previous phases, and do not override this section.
 - **Deployment gate:** migration compatibility with populated databases, concurrent approval tests, permission/access tests, outbox lifecycle, position changes, and real privacy review have not been completed. Do not deploy with real student records.
+
+## Phase 5C — Notification review and reporting
+- Staff can review notification drafts and mark them approved or cancelled in `/notification_drafts.php`; decisions check the applicant's current status, require CSRF and authorized membership leadership.
+- **Draft approval does not send email.** No email provider or background worker is configured.
+- `/reports.php` displays aggregate recruitment status counts with academic year and semester filters; membership leadership can download a limited CSV containing no names or email addresses.
+- CSV has formula-prefix protection, a 10,000-row cap and no welfare records. Exported references are still pseudonymous records, not fully anonymous; safeguard downloaded files.
+- Remaining requirements: event history for notification reviews, stronger access segregation, privacy/retention policy, email service integration with explicit consent, export logging, pagination, and verified integration/security tests.
