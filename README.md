@@ -56,3 +56,11 @@ Apply `database/003_membership.sql` **once**, after migrations 001 and 002, and 
 - Workflow: pending → for_interview or rejected; for_interview → approved or rejected. Changes use row locks and status history in a transaction.
 - This is **not public-launch ready**. Position capacity management, interview date selection, applicant ownership verification, actual BSIT OUS eligibility proof, personal-data retention/withdrawal process, approved privacy policy, public submission abuse controls and end-to-end tests are still required.
 - In `README.md`, earlier statements about Phase 3 being pending refer to the prior phase and should be interpreted against this latest section.
+
+## Phase 4 — Recruitment workflow (development only)
+- Run `database/004_recruitment.sql` after migrations 001–003.
+- Staff-only `/recruitment.php` displays position capacity and applications marked `for_interview`.
+- Membership Head and Admin may schedule/reschedule interviews and add or update three scored evaluation criteria; membership members are read-only here.
+- Position capacity is informational only; no position records are prefilled because real open allocations must be approved and mapped to committee-specific position identifiers.
+- No emails are sent automatically. Email invites, outcomes, collision checking, private interview links, cancellation, approval capacity enforcement, detailed audit events, and security tests remain outstanding.
+- Database migration and PHP application have not been run in a live test environment. Do not collect actual student records yet.
