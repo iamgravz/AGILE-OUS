@@ -14,6 +14,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (!$canDecide) { http_response_code(403); exit('Approval permission required'); }
     $id = filter_var($_POST['id'] ?? null, FILTER_VALIDATE_INT);
     $next = (string)($_POST['status'] ?? '');
+    if ($next === 'assign_position') {
+        $positionId = filter_var($_POST['position_id'] ?? null,FILTER_VALIDATE_INT);
+        if (!$id || !$positionId) {http_response_code(422);exit('Invalid position assignment');}
+        $pdo = db();
+        try {
+            $pdo->beginTransaction();
+            $stmt = $pdo->prepare('SELECT status, academic_year,semester FROM membership_applications WHERE id=? FOR UPDATE');
+            $stmt->execute([$id]); $application=$stmt->fetch();
+            if (!$application || !in_array($application['status'],['pending','for_interview'],true)) {
+                $pdo->rollBack();http_response_code(409);exit('Application cannot be reassigned');
+            }
+            $stmt=$pdo->prepare('SELECT id FROM recruitment_positions WHERE id=? AND academic_year=? AND semester=? AND enabled=1');
+            $stmt->execute([$positionId,$application['academic_year'],$application['semester']]);
+            if (!$stmt->fetchColumn()) {$pdo->rollBack();http_response_code(409);exit('Invalid term position');}
+            $stmt=$pdo->prepare('UPDATE membership_applications SET recruitment_position_id=? WHERE id=?');
+            $stmt->execute([$positionId,$id]);
+            $pdo->commit();
+            header('Location: /membership.php?updated=1',true,303);exit;
+        }catch(Throwable $e){if($pdo->inTransaction())$pdo->rollBack();throw $e;}
+    }
     if (!$id || !in_array($next, ['for_interview','approved','rejected'], true)) {
         http_response_code(422); exit('Invalid request');
     }
@@ -62,6 +82,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 $stmt = db()->query('SELECT id, application_reference, applicant_name, applicant_email, academic_year, semester, requested_position, recruitment_position_id, status, created_at FROM membership_applications ORDER BY id DESC LIMIT 100');
 $items = $stmt->fetchAll();
+$positions = db()->query('SELECT id,title,committee,academic_year,semester FROM recruitment_positions WHERE enabled=1 ORDER BY committee,title')->fetchAll();
 ?>
 <!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Membership review</title>
 <style>body{font:15px system-ui;margin:2rem;background:#faf8f5}table{border-collapse:collapse;background:white;width:100%}td,th{border:1px solid #ddd;padding:.7rem;text-align:left}button{padding:.5rem}main{overflow-x:auto}</style></head>
@@ -75,6 +96,12 @@ $items = $stmt->fetchAll();
 <td><?= escapeHtml((string)($item['requested_position'] ?? '—')) ?></td>
 <td><?= escapeHtml((string)$item['status']) ?></td><td>
 <?php if ($canDecide && in_array($item['status'], ['pending','for_interview'], true)): ?>
+<form method="post"><input type="hidden" name="csrf_token" value="<?= escapeHtml(csrfToken()) ?>">
+<input type="hidden" name="id" value="<?= (int)$item['id'] ?>"><input type="hidden" name="status" value="assign_position">
+<select name="position_id" required><option value="">Assign position</option>
+<?php foreach ($positions as $p): if($p['academic_year']!==$item['academic_year'] || $p['semester']!==$item['semester'])continue; ?>
+<option value="<?= (int)$p['id'] ?>" <?= (int)$item['recruitment_position_id']===(int)$p['id']?'selected':'' ?>><?= escapeHtml($p['committee'].' — '.$p['title']) ?></option>
+<?php endforeach; ?></select><button type="submit">Assign</button></form>
 <form method="post"><input type="hidden" name="csrf_token" value="<?= escapeHtml(csrfToken()) ?>">
 <input type="hidden" name="id" value="<?= (int)$item['id'] ?>">
 <select name="status"><?php if ($item['status']==='pending'): ?><option value="for_interview">For interview</option><?php else: ?><option value="approved">Approve</option><?php endif; ?><option value="rejected">Reject</option></select>
