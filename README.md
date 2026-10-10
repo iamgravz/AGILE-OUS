@@ -40,3 +40,11 @@ Do not input real student details or welfare concerns into this phase-1 build. W
 - `tests/permissions.php` is a CLI smoke test: run `php tests/permissions.php`. It has not been executed in an integrated deployment.
 - Role model is provisional and will need approval for admin visibility, membership member approval rights and welfare case assignment.
 - **Security blocker:** until login throttling, auditable writes, endpoint authorization and end-to-end tests are finished, do not use with real student data.
+
+## Phase 2B authentication hardening (incremental)
+- Apply `database/002_security.sql` before running this revision.
+- Set `APP_KEY` in private `.env` to at least 32 unpredictable characters. Never commit it.
+- Login rejects an account identifier after five failed attempts in 15 minutes and logs successful sign-ins and sign-outs to `audit_events`.
+- This is an account-identifier throttle, **not** IP-wide protection. Add reverse proxy rate limiting, scheduled login_attempts cleanup, and concurrency-safe throttling before production.
+- Test locally with `php tests/permissions.php`; verify the 6th incorrect login is blocked, successful login works and audit events appear. These checks are NOT yet executed here.
+- Phase 3 membership applicant self-service, evaluation, privacy notices, officer approvals and record lifecycle are still pending.
