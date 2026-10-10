@@ -23,7 +23,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Install PHP dependencies for smoke tests
-        run: sudo apt-get update && sudo apt-get install -y php-cli php-mysql
+        run: sudo apt-get update && sudo apt-get install -y php-cli php-mysql default-mysql-client
       - name: PHP lint (all source files)
         run: |
           set -eu
