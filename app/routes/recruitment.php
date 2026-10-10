@@ -6,11 +6,11 @@ use Agile\ApplicationWorkflow;
 
 // Public vacancies: no applicant information.
 if ($path==='/vacancies'&&$method==='GET') {
-    $html='<p>Published AGILE OUS recruitment positions, subject to available slots.</p><table><tr><th>Committee</th><th>Position</th><th>Open</th></tr>';
+    $html='<p>Published AGILE OUS recruitment positions, subject to available slots.</p><div class="table-scroll" role="region" aria-label="Available recruitment positions" tabindex="0"><table><tr><th>Committee</th><th>Position</th><th>Open</th></tr>';
     foreach(Recruitment::openVacancies() as $v) {
         $html.='<tr><td>'.escape($v['committee_name']).'</td><td>'.escape($v['position_title']).'</td><td>'.((int)$v['capacity']-(int)$v['filled']).'</td></tr>';
     }
-    page('Available Positions',$html.'</table><p><a href="/apply">Apply for membership</a></p>');
+    page('Available Positions',$html.'</table></div><p><a href="/apply">Apply for membership</a></p>');
 }
 if ($path==='/staff/hr'&&$method==='GET') {
     $actor=Auth::requireRole(['msw_head','committee_head']);
