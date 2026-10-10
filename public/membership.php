@@ -57,4 +57,4 @@ $items = $stmt->fetchAll();
 <input type="hidden" name="id" value="<?= (int)$item['id'] ?>">
 <select name="status"><?php if ($item['status']==='pending'): ?><option value="for_interview">For interview</option><?php else: ?><option value="approved">Approve</option><?php endif; ?><option value="rejected">Reject</option></select>
 <button type="submit">Update</button></form><?php else: ?>Read only<?php endif; ?></td></tr><?php endforeach; ?>
-</tbody></table></main><p><a href="/">Return to dashboard</a></p></body></html>
+</tbody></table></main><p><a href="/recruitment.php">Manage interviews and evaluations</a> · <a href="/">Return to dashboard</a></p></body></html>
