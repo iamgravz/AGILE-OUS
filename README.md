@@ -64,3 +64,10 @@ Apply `database/003_membership.sql` **once**, after migrations 001 and 002, and 
 - Position capacity is informational only; no position records are prefilled because real open allocations must be approved and mapped to committee-specific position identifiers.
 - No emails are sent automatically. Email invites, outcomes, collision checking, private interview links, cancellation, approval capacity enforcement, detailed audit events, and security tests remain outstanding.
 - Database migration and PHP application have not been run in a live test environment. Do not collect actual student records yet.
+
+## Phase 5 — Recruitment notification drafts
+- Apply `database/005_recruitment_automation.sql` after migrations 001–004.
+- Visit `/notification_drafts.php` as Membership Head or Admin to create notification drafts for applicants whose status matches the template.
+- Draft records are visible to staff with membership.view permission. **No message is sent.**
+- This is a development-only workflow. No actual SMTP/Gmail integration, delivery tracking, approval queue, applicant contact verification, position-capacity enforcement, interview link confidentiality or full QA is implemented.
+- Do not use real student records until privacy/security review and integration tests are complete.
