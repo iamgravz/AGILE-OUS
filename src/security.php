@@ -8,7 +8,7 @@ function loginIdentifier(string $email): string {
     return hash_hmac('sha256', strtolower(trim($email)), $key);
 }
 function tooManyAttempts(string $identifier): bool {
-    $stmt = db()->prepare('SELECT COUNT(*) FROM login_attempts WHERE identifier_hash = ? AND attempted_at > (UTC_TIMESTAMP() - INTERVAL 15 MINUTE)');
+    $stmt = db()->prepare('SELECT COUNT(*) FROM login_attempts WHERE identifier_hash = ? AND attempted_at > (NOW() - INTERVAL 15 MINUTE)');
     $stmt->execute([$identifier]);
     return (int) $stmt->fetchColumn() >= 5;
 }
