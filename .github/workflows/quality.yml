@@ -30,6 +30,8 @@ jobs:
           find public src scripts tests -name '*.php' -type f -print0 | xargs -0 -n1 php -l
       - name: Authorization smoke tests
         run: php tests/permissions.php
+      - name: Welfare cryptography and case access smoke tests
+        run: php tests/welfare_security.php
       - name: MySQL migration smoke test
         env:
           MYSQL_PWD: root_local_ci_only
