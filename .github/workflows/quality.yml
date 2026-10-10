@@ -1,0 +1,50 @@
+name: AGILE OUS Quality Gate
+on:
+  push:
+    branches: [main, develop/phase-1-secure-foundation]
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  php-quality:
+    runs-on: ubuntu-latest
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: root_local_ci_only
+          MYSQL_DATABASE: agile_ous
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping -h 127.0.0.1 -uroot -proot_local_ci_only"
+          --health-interval=10s --health-timeout=5s --health-retries=12
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install PHP dependencies for smoke tests
+        run: sudo apt-get update && sudo apt-get install -y php-cli php-mysql
+      - name: PHP lint (all source files)
+        run: |
+          set -eu
+          find public src scripts tests -name '*.php' -type f -print0 | xargs -0 -n1 php -l
+      - name: Authorization smoke tests
+        run: php tests/permissions.php
+      - name: MySQL migration smoke test
+        env:
+          MYSQL_PWD: root_local_ci_only
+        run: |
+          set -eu
+          for f in database/0*.sql; do
+            echo "Applying $f"
+            mysql -h 127.0.0.1 -P 3306 -uroot agile_ous < "$f"
+          done
+          mysql -h 127.0.0.1 -P 3306 -uroot agile_ous -e "SHOW TABLES;"
+      - name: Database integrity smoke checks
+        env:
+          DB_HOST: 127.0.0.1
+          DB_PORT: '3306'
+          DB_NAME: agile_ous
+          DB_USER: root
+          DB_PASSWORD: root_local_ci_only
+        run: php tests/database_smoke.php
