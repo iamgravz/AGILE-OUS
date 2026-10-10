@@ -55,9 +55,10 @@ async function layoutAndNavigation(page, viewportName) {
   assert.equal(await page.getByRole('main').count(), 1,
     'Exactly one main landmark is expected');
   const first = page.locator('nav a').first();
-  await first.focus();
+  // Exercise a real keyboard Tab navigation, not just programmatic focus().
+  await page.keyboard.press('Tab');
   assert.equal(await first.evaluate(el => document.activeElement === el), true,
-    'Main navigation must be keyboard-focusable');
+    'First navigation link must be reached from the keyboard');
 }
 
 async function main() {
@@ -143,15 +144,22 @@ async function main() {
     assert.equal(await page.locator('fieldset[data-role="Committee Member"]').isVisible(), true);
     assert.equal(await page.locator('fieldset[data-role="Committee Member"] [name="answers[preferred_committee]"]').isEnabled(), true);
     assert.equal(await page.locator('fieldset[data-role="General Member"] textarea').isDisabled(), true);
+    await role.selectOption('The Source Code');
+    assert.equal(await page.locator('fieldset[data-role="The Source Code"]').isVisible(), true);
+    assert.equal(await page.locator('fieldset[data-role="Committee Member"]').isVisible(), false);
+    await page.locator('fieldset[data-role="The Source Code"] [name="answers[publication_position]"]')
+      .selectOption('Writer');
+    // Restore the intended test role; other role answers must stay disabled.
+    await role.selectOption('Committee Member');
 
     await page.locator('[name="full_name"]').fill('Synthetic Browser Applicant');
     await page.locator('[name="email"]').fill('phase13-browser@example.invalid');
     await page.locator('[name="student_number"]').fill('TEST-13-2026');
     await page.locator('[name="motivation"]').fill(
       'Synthetic CI registration to verify the real responsive browser workflow.');
-    await page.locator('[name="answers[preferred_committee]"]').fill(
+    await page.locator('fieldset[data-role="Committee Member"] [name="answers[preferred_committee]"]').fill(
       'Membership and Student Welfare');
-    await page.locator('[name="answers[relevant_skills]"]').fill(
+    await page.locator('fieldset[data-role="Committee Member"] [name="answers[relevant_skills]"]').fill(
       'Synthetic volunteer collaboration and online events');
     await page.locator('input[name="privacy_consent"]').check();
     await page.getByRole('button', { name: 'Submit Application' }).click();
