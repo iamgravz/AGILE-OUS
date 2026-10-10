@@ -71,3 +71,11 @@ Apply `database/003_membership.sql` **once**, after migrations 001 and 002, and 
 - Draft records are visible to staff with membership.view permission. **No message is sent.**
 - This is a development-only workflow. No actual SMTP/Gmail integration, delivery tracking, approval queue, applicant contact verification, position-capacity enforcement, interview link confidentiality or full QA is implemented.
 - Do not use real student records until privacy/security review and integration tests are complete.
+
+## Phase 5B — Vacancy management and approval capacity
+- Apply `database/006_vacancy_integrity.sql` **only after 001–005**, and back up database first. Existing data and indexes should be reviewed prior to applying the ALTER statements.
+- `/positions.php` supports authorized staff creating term-specific vacancies, changing capacity, and opening/closing positions. Capacity cannot be reduced below already-approved occupancy.
+- `/membership.php` assigns each applicant a term-specific position. Approval locks that position row and checks occupancy to prevent overfilling among requests using this same workflow.
+- `/recruitment.php` displays occupancy based on assigned position ID rather than title matching.
+- Some older README statements describe previous phases, and do not override this section.
+- **Deployment gate:** migration compatibility with populated databases, concurrent approval tests, permission/access tests, outbox lifecycle, position changes, and real privacy review have not been completed. Do not deploy with real student records.
