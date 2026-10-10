@@ -48,3 +48,12 @@ jobs:
           DB_USER: root
           DB_PASSWORD: root_local_ci_only
         run: php tests/database_smoke.php
+      - name: Synthetic membership integration checks (transaction rolled back)
+        env:
+          APP_ENV: testing
+          DB_HOST: 127.0.0.1
+          DB_PORT: '3306'
+          DB_NAME: agile_ous
+          DB_USER: root
+          DB_PASSWORD: root_local_ci_only
+        run: php tests/integration_smoke.php
