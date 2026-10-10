@@ -90,6 +90,7 @@ button{border:0;background:#670c24;color:#fff;cursor:pointer}.muted{color:#555}
 <?php if (isset($stats['open_welfare'])): ?><div class="stat">Open welfare cases (count only)<strong><?= $stats['open_welfare'] ?></strong></div><?php endif; ?>
 </div>
 <?php if (hasPermission((string)$user['role'], 'membership.view')): ?><p><a href="/membership.php">Review membership applications</a></p><?php endif; ?>
+<?php if (hasPermission((string)$user['role'], 'welfare.view')): ?><p><a href="/welfare.php">Staff welfare case management</a></p><?php endif; ?>
 <p class="muted">No confidential welfare narratives are displayed on this dashboard.</p>
 <form method="post"><input type="hidden" name="action" value="logout">
 <input type="hidden" name="csrf_token" value="<?= escapeHtml(csrfToken()) ?>"><button>Sign Out</button></form></section>
