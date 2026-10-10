@@ -1,6 +1,7 @@
 <?php
 declare(strict_types=1);
 require dirname(__DIR__) . '/src/bootstrap.php';
+require dirname(__DIR__) . '/src/authorization.php';
 startSecureSession();
 header('X-Content-Type-Options: nosniff');
 header('X-Frame-Options: DENY');
@@ -37,11 +38,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 $user = authUser();
 $stats = [];
 if ($user) {
-    if (in_array((string) $user['role'], ['admin','president','membership_head','membership_member'], true)) {
+    if (hasPermission((string) $user['role'], 'membership.view') || hasPermission((string) $user['role'], 'membership.summary')) {
         $stats['approved'] = (int) db()->query("SELECT COUNT(*) FROM membership_applications WHERE status = 'approved'")->fetchColumn();
         $stats['pending'] = (int) db()->query("SELECT COUNT(*) FROM membership_applications WHERE status = 'pending'")->fetchColumn();
     }
-    if (mayViewWelfareSummary((string) $user['role'])) {
+    if (hasPermission((string) $user['role'], 'welfare.summary')) {
         $stats['open_welfare'] = (int) db()->query("SELECT COUNT(*) FROM welfare_cases WHERE status NOT IN ('resolved','closed')")->fetchColumn();
     }
 }
