@@ -2,6 +2,7 @@
 declare(strict_types=1);
 require dirname(__DIR__) . '/src/bootstrap.php';
 require dirname(__DIR__) . '/src/authorization.php';
+require dirname(__DIR__) . '/src/security.php';
 startSecureSession();
 header('X-Content-Type-Options: nosniff');
 header('X-Frame-Options: DENY');
@@ -12,6 +13,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     checkCsrf();
     $action = (string) ($_POST['action'] ?? '');
     if ($action === 'logout') {
+        $actor = authUser();
+        if ($actor) { writeAudit((int)$actor['id'], 'logout'); }
         $_SESSION = [];
         session_regenerate_id(true);
         header('Location: /');
@@ -20,19 +23,27 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if ($action === 'login') {
         $email = trim((string) ($_POST['email'] ?? ''));
         $password = (string) ($_POST['password'] ?? '');
-        if (strlen($email) <= 190 && filter_var($email, FILTER_VALIDATE_EMAIL) && strlen($password) <= 4096) {
+        $identifier = loginIdentifier($email);
+        if (tooManyAttempts($identifier)) {
+            $error = 'Unable to sign in. Please try again later.';
+        } elseif (strlen($email) <= 190 && filter_var($email, FILTER_VALIDATE_EMAIL) && strlen($password) <= 4096) {
             $stmt = db()->prepare('SELECT id, password_hash, active FROM users WHERE email = :email LIMIT 1');
             $stmt->execute(['email'=>$email]);
             $row = $stmt->fetch();
             if ($row && (int) $row['active'] === 1 && password_verify($password, $row['password_hash'])) {
+                resetAttempts($identifier);
                 session_regenerate_id(true);
+                writeAudit((int)$row['id'], 'login_success');
                 $_SESSION['user_id'] = (int) $row['id'];
                 $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
                 header('Location: /');
                 exit;
             }
         }
-        $error = 'Invalid email or password.';
+        if ($error === '') {
+            recordAttempt($identifier);
+            $error = 'Invalid email or password.';
+        }
     }
 }
 $user = authUser();
