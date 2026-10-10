@@ -32,6 +32,20 @@ jobs:
         run: php tests/permissions.php
       - name: Welfare cryptography and case access smoke tests
         run: php tests/welfare_security.php
+      - name: Anonymous HTTP authorization and closed-form checks
+        env:
+          APPLICATIONS_OPEN: "false"
+          APP_KEY: "ci-only-not-a-secret-0123456789abcdef0123456789abcdef"
+        run: |
+          set -eu
+          php -S 127.0.0.1:8080 -t public >/tmp/agile-http.log 2>&1 &
+          server_pid=$!
+          trap 'kill "$server_pid" || true' EXIT
+          for attempt in 1 2 3 4 5; do
+            if curl --silent --fail http://127.0.0.1:8080/ >/dev/null; then break; fi
+            sleep 1
+          done
+          bash tests/http_smoke.sh http://127.0.0.1:8080
       - name: MySQL migration smoke test
         env:
           MYSQL_PWD: root_local_ci_only
