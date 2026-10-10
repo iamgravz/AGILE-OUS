@@ -37,8 +37,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 $user = authUser();
 $stats = [];
 if ($user) {
-    $stats['approved'] = (int) db()->query("SELECT COUNT(*) FROM membership_applications WHERE status = 'approved'")->fetchColumn();
-    $stats['pending'] = (int) db()->query("SELECT COUNT(*) FROM membership_applications WHERE status = 'pending'")->fetchColumn();
+    if (in_array((string) $user['role'], ['admin','president','membership_head','membership_member'], true)) {
+        $stats['approved'] = (int) db()->query("SELECT COUNT(*) FROM membership_applications WHERE status = 'approved'")->fetchColumn();
+        $stats['pending'] = (int) db()->query("SELECT COUNT(*) FROM membership_applications WHERE status = 'pending'")->fetchColumn();
+    }
     if (mayViewWelfareSummary((string) $user['role'])) {
         $stats['open_welfare'] = (int) db()->query("SELECT COUNT(*) FROM welfare_cases WHERE status NOT IN ('resolved','closed')")->fetchColumn();
     }
@@ -71,8 +73,8 @@ button{border:0;background:#670c24;color:#fff;cursor:pointer}.muted{color:#555}
 <section class="panel"><h1>Dashboard</h1>
 <p>Welcome, <?= escapeHtml((string) $user['full_name']) ?>. Role: <?= escapeHtml((string) $user['role']) ?></p>
 <div class="grid">
-<div class="stat">Approved applications<strong><?= $stats['approved'] ?></strong></div>
-<div class="stat">Pending applications<strong><?= $stats['pending'] ?></strong></div>
+<?php if (isset($stats['approved'])): ?><div class="stat">Approved applications<strong><?= $stats['approved'] ?></strong></div>
+<div class="stat">Pending applications<strong><?= $stats['pending'] ?></strong></div><?php endif; ?>
 <?php if (isset($stats['open_welfare'])): ?><div class="stat">Open welfare cases (count only)<strong><?= $stats['open_welfare'] ?></strong></div><?php endif; ?>
 </div>
 <p class="muted">Read-only phase 1 summary. No case narratives or applicant documents are shown.</p>
