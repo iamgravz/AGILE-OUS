@@ -50,3 +50,6 @@ backups/
 /deploy/staging/secrets/
 /deploy/staging/*.crt
 /deploy/staging/*.key
+
+# Synthetic browser UAT local install (keep reproducible source only)
+/tests/browser/node_modules/
