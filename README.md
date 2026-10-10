@@ -32,3 +32,11 @@ Use a restricted MySQL application account, not root. On deployment set `SESSION
 
 ## Data-handling warning
 Do not input real student details or welfare concerns into this phase-1 build. Welfare details must never be stored in logs or a shared/public cache. Avoid caching authorization, approval states, sessions and live confidential records. Add short-lived caching only after correct live queries and invalidation tests are completed.
+
+## Phase 2 incremental security changes
+- Central role/permission mapping in `src/authorization.php`, default-deny with `requirePermission()`.
+- Dashboard counters use the same role permission checks; President can see aggregate counts, not case details or writes.
+- `database/002_security.sql` adds audit and throttling storage **only**; no audit events or throttling are wired to the login handler yet.
+- `tests/permissions.php` is a CLI smoke test: run `php tests/permissions.php`. It has not been executed in an integrated deployment.
+- Role model is provisional and will need approval for admin visibility, membership member approval rights and welfare case assignment.
+- **Security blocker:** until login throttling, auditable writes, endpoint authorization and end-to-end tests are finished, do not use with real student data.
