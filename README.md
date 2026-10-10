@@ -86,3 +86,10 @@ Apply `database/003_membership.sql` **once**, after migrations 001 and 002, and 
 - `/reports.php` displays aggregate recruitment status counts with academic year and semester filters; membership leadership can download a limited CSV containing no names or email addresses.
 - CSV has formula-prefix protection, a 10,000-row cap and no welfare records. Exported references are still pseudonymous records, not fully anonymous; safeguard downloaded files.
 - Remaining requirements: event history for notification reviews, stronger access segregation, privacy/retention policy, email service integration with explicit consent, export logging, pagination, and verified integration/security tests.
+
+## Phase 6 — Continuous Integration quality gate
+- GitHub Actions workflow `.github/workflows/quality.yml` now defines PHP lint checks, RBAC smoke tests, sequential MySQL 8 schema migrations, and column/table integrity checks.
+- The smoke tests are **not equivalent to application integration, concurrency, security penetration, accessibility, or user acceptance testing**.
+- Run locally: `find public src scripts tests -name '*.php' -print0 | xargs -0 -n1 php -l` and `php tests/permissions.php`. With a disposable DB configured, apply migrations 001–006 and run `php tests/database_smoke.php`.
+- Check CI logs at the Actions tab and treat any failing step as a release blocker. No green workflow has been verified as part of these commits.
+- Remaining release blockers: server-side test isolation; seeded-fixture end-to-end membership flow; concurrent approval and term-boundary tests; application abuse throttling; logging of sensitive data access and exports; welfare privacy requirements; backups and restore drill; HTTPS deployment validation.
