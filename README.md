@@ -93,3 +93,10 @@ Apply `database/003_membership.sql` **once**, after migrations 001 and 002, and 
 - Run locally: `find public src scripts tests -name '*.php' -print0 | xargs -0 -n1 php -l` and `php tests/permissions.php`. With a disposable DB configured, apply migrations 001–006 and run `php tests/database_smoke.php`.
 - Check CI logs at the Actions tab and treat any failing step as a release blocker. No green workflow has been verified as part of these commits.
 - Remaining release blockers: server-side test isolation; seeded-fixture end-to-end membership flow; concurrent approval and term-boundary tests; application abuse throttling; logging of sensitive data access and exports; welfare privacy requirements; backups and restore drill; HTTPS deployment validation.
+
+## Phase 6B — Synthetic integration tests and CI stabilization
+- CI now installs `default-mysql-client` before using the MySQL CLI.
+- `tests/integration_smoke.php` requires `APP_ENV=testing`; it inserts fake application/position records inside a transaction and always rolls them back, verifies the duplicate applicant constraint, occupancy counting, position row locking and notification outbox schema.
+- Additional role checks protect President read-only access and separate Membership and Welfare views.
+- Integration smoke tests **do not** exercise HTTP routes, concurrent requests, SMTP, actual approval capacity decisions or data retention.
+- Verification remains incomplete until GitHub Actions returns a confirmed successful workflow and hands-on security/integration tests pass. Do not enter actual student data.
