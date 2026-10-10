@@ -1,7 +1,13 @@
 <?php
 declare(strict_types=1);
 require dirname(__DIR__) . '/src/bootstrap.php';
+require dirname(__DIR__) . '/src/public_submission_guard.php';
 startSecureSession();
+if (getenv('APPLICATIONS_OPEN') !== 'true') {
+    http_response_code(503);
+    header('Cache-Control: no-store');
+    exit('Recruitment applications are currently closed.');
+}
 header('Cache-Control: no-store, private');
 header('X-Content-Type-Options: nosniff');
 header('X-Frame-Options: DENY');
@@ -9,6 +15,7 @@ $notice = '';
 $success = false;
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     checkCsrf();
+    enforcePublicSubmissionLimit();
     $name = trim((string)($_POST['full_name'] ?? ''));
     $email = strtolower(trim((string)($_POST['email'] ?? '')));
     $academicYear = trim((string)($_POST['academic_year'] ?? ''));
