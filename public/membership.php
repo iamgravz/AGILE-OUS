@@ -20,17 +20,39 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $pdo = db();
     try {
         $pdo->beginTransaction();
-        $stmt = $pdo->prepare('SELECT status FROM membership_applications WHERE id = ? FOR UPDATE');
+        $stmt = $pdo->prepare('SELECT status, recruitment_position_id, academic_year, semester FROM membership_applications WHERE id = ? FOR UPDATE');
         $stmt->execute([$id]);
-        $old = $stmt->fetchColumn();
+        $application = $stmt->fetch();
+        $old = $application['status'] ?? null;
         $allowed = ['pending'=>['for_interview','rejected'], 'for_interview'=>['approved','rejected']];
         if (!$old || !in_array($next, $allowed[$old] ?? [], true)) {
             $pdo->rollBack(); http_response_code(409); exit('Invalid status transition');
+        }
+        if ($next === 'approved') {
+            $positionId = (int)($application['recruitment_position_id'] ?? 0);
+            if (!$positionId) { $pdo->rollBack(); http_response_code(409); exit('Assign an available recruitment position before approval'); }
+            $position = $pdo->prepare('SELECT capacity,enabled,academic_year,semester FROM recruitment_positions WHERE id=? FOR UPDATE');
+            $position->execute([$positionId]);
+            $vacancy = $position->fetch();
+            if (!$vacancy || !(int)$vacancy['enabled'] ||
+                $vacancy['academic_year'] !== $application['academic_year'] ||
+                $vacancy['semester'] !== $application['semester']) {
+                $pdo->rollBack(); http_response_code(409); exit('Position is unavailable for this period');
+            }
+            $count = $pdo->prepare("SELECT COUNT(*) FROM membership_applications WHERE recruitment_position_id=? AND status='approved'");
+            $count->execute([$positionId]);
+            if ((int)$count->fetchColumn() >= (int)$vacancy['capacity']) {
+                $pdo->rollBack(); http_response_code(409); exit('Position has reached its capacity');
+            }
         }
         $stmt = $pdo->prepare('UPDATE membership_applications SET status=?, reviewed_by=? WHERE id=?');
         $stmt->execute([$next, $user['id'], $id]);
         $stmt = $pdo->prepare('INSERT INTO membership_status_events(application_id, actor_id, old_status, new_status) VALUES (?,?,?,?)');
         $stmt->execute([$id, $user['id'], $old, $next]);
+        if (in_array($next, ['approved','rejected'], true)) {
+            $draft = $pdo->prepare('INSERT IGNORE INTO notification_outbox (application_id,template_key) VALUES (?,?)');
+            $draft->execute([$id,$next]);
+        }
         $pdo->commit();
         header('Location: /membership.php?updated=1', true, 303); exit;
     } catch (Throwable $e) {
@@ -38,7 +60,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         throw $e;
     }
 }
-$stmt = db()->query('SELECT id, application_reference, applicant_name, applicant_email, academic_year, semester, requested_position, status, created_at FROM membership_applications ORDER BY id DESC LIMIT 100');
+$stmt = db()->query('SELECT id, application_reference, applicant_name, applicant_email, academic_year, semester, requested_position, recruitment_position_id, status, created_at FROM membership_applications ORDER BY id DESC LIMIT 100');
 $items = $stmt->fetchAll();
 ?>
 <!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Membership review</title>
