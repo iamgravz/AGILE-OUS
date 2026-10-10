@@ -17,7 +17,7 @@ jobs:
   validate-staging-runtime:
     name: Synthetic HTTPS staging container smoke
     runs-on: ubuntu-latest
-    timeout-minutes: 25
+    timeout-minutes: 40
     env:
       STAGING_URL: https://staging.example.invalid
       STAGING_BIND_IP: 127.0.0.1
@@ -96,6 +96,50 @@ jobs:
           jq -e '.technical_checks_passed == true and .production_release_authorized == false and .production_release_decision == "NO_GO_UNTIL_SEPARATE_HUMAN_APPROVAL"' \
             "$RUNNER_TEMP/staging-readiness.json"
           echo 'PASS: isolated HTTPS staging, protected source routes, and production NO-GO controls'
+      - name: Set up isolated Chromium acceptance testing runtime
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install pinned synthetic browser and WCAG dependencies
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd tests/browser
+          npm install --no-audit --no-fund --ignore-scripts
+          npx playwright install --with-deps chromium
+      - name: Run responsive browser, accessibility and confidential flow acceptance
+        shell: bash
+        env:
+          RUN_E2E_TESTS: 'yes'
+          AGILE_UAT_BASE_URL: https://127.0.0.1:8443
+          AGILE_BROWSER_UAT_REPORT: ${{ runner.temp }}/phase13-browser-uat.json
+        run: node tests/browser/browser_uat.cjs
+      - name: Verify private browser report contains only aggregate results
+        shell: bash
+        run: |
+          set -euo pipefail
+          file="$RUNNER_TEMP/phase13-browser-uat.json"
+          jq -e '.success == true
+            and .pages_checked == 24
+            and .serious_critical_wcag_violations == 0
+            and .application_submitted == true
+            and .welfare_status_privacy == true
+            and .csrf_rejected == true
+            and .secure_sessions == true
+            and .private_routes_denied == true
+            and (.viewports == ["desktop","mobile","small-mobile"])' "$file"
+          if grep -Eiq '@example[.]invalid|password|secret|tracking_token|recovery_code|TEST-13-2026' "$file"; then
+            echo 'FAIL: refuse to publish a browser report containing potentially sensitive fixture details'
+            exit 1
+          fi
+          echo 'PASS: sanitized Phase 13 synthetic browser UAT report validated'
+      - name: Retain aggregate-only synthetic browser acceptance counts
+        uses: actions/upload-artifact@v4
+        with:
+          name: phase13-synthetic-browser-uat
+          path: ${{ runner.temp }}/phase13-browser-uat.json
+          retention-days: 7
+          if-no-files-found: error
       - name: Show bounded diagnostics on failure
         if: failure()
         shell: bash
