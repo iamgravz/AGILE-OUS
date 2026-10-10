@@ -74,7 +74,7 @@ button{border:0;background:#670c24;color:#fff;cursor:pointer}.muted{color:#555}
 <main>
 <?php if (!$user): ?>
 <section class="panel"><h1>Staff Sign In</h1>
-<p class="muted">Authorized organizational personnel only.</p>
+<p class="muted">Authorized organizational personnel only.</p><p><a href="/apply.php">Membership application (development)</a></p>
 <?php if ($error): ?><p role="alert"><?= escapeHtml($error) ?></p><?php endif; ?>
 <form method="post"><input type="hidden" name="csrf_token" value="<?= escapeHtml(csrfToken()) ?>">
 <input type="hidden" name="action" value="login">
@@ -89,7 +89,8 @@ button{border:0;background:#670c24;color:#fff;cursor:pointer}.muted{color:#555}
 <div class="stat">Pending applications<strong><?= $stats['pending'] ?></strong></div><?php endif; ?>
 <?php if (isset($stats['open_welfare'])): ?><div class="stat">Open welfare cases (count only)<strong><?= $stats['open_welfare'] ?></strong></div><?php endif; ?>
 </div>
-<p class="muted">Read-only phase 1 summary. No case narratives or applicant documents are shown.</p>
+<?php if (hasPermission((string)$user['role'], 'membership.view')): ?><p><a href="/membership.php">Review membership applications</a></p><?php endif; ?>
+<p class="muted">No confidential welfare narratives are displayed on this dashboard.</p>
 <form method="post"><input type="hidden" name="action" value="logout">
 <input type="hidden" name="csrf_token" value="<?= escapeHtml(csrfToken()) ?>"><button>Sign Out</button></form></section>
 <?php endif; ?>
