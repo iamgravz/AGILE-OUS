@@ -9,7 +9,8 @@ $pdo = db();
 $tables = ['users','membership_applications','welfare_cases','audit_events',
     'login_attempts','recruitment_positions','membership_interviews',
     'membership_evaluations','membership_status_events',
-    'recruitment_notification_drafts','notification_outbox'];
+    'recruitment_notification_drafts','notification_outbox',
+    'welfare_case_events','public_submission_attempts'];
 foreach ($tables as $table) {
     $stmt = $pdo->prepare('SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = DATABASE() AND table_name = ?');
     $stmt->execute([$table]);
@@ -17,7 +18,8 @@ foreach ($tables as $table) {
 }
 $columns = [
  'membership_applications' => ['recruitment_position_id','application_reference','consent_at'],
- 'recruitment_positions' => ['academic_year','semester','capacity','enabled']
+ 'recruitment_positions' => ['academic_year','semester','capacity','enabled'],
+ 'welfare_cases' => ['encrypted_narrative','priority']
 ];
 foreach($columns as $table=>$fields){
  foreach($fields as $field){
