@@ -48,3 +48,11 @@ Do not input real student details or welfare concerns into this phase-1 build. W
 - This is an account-identifier throttle, **not** IP-wide protection. Add reverse proxy rate limiting, scheduled login_attempts cleanup, and concurrency-safe throttling before production.
 - Test locally with `php tests/permissions.php`; verify the 6th incorrect login is blocked, successful login works and audit events appear. These checks are NOT yet executed here.
 - Phase 3 membership applicant self-service, evaluation, privacy notices, officer approvals and record lifecycle are still pending.
+
+## Phase 3 — Membership workflow (development only)
+Apply `database/003_membership.sql` **once**, after migrations 001 and 002, and back up any existing database before schema changes.
+- Public non-login applicant form: `/apply.php`; creates a pending application with a random reference, records consent acknowledgment and blocks duplicate email/academic-year/semester records at the database level.
+- Staff review: `/membership.php`, restricted by `membership.view`. Only `membership_head` and `admin` can change application status in this initial workflow. Committee members can read but cannot approve/reject.
+- Workflow: pending → for_interview or rejected; for_interview → approved or rejected. Changes use row locks and status history in a transaction.
+- This is **not public-launch ready**. Position capacity management, interview date selection, applicant ownership verification, actual BSIT OUS eligibility proof, personal-data retention/withdrawal process, approved privacy policy, public submission abuse controls and end-to-end tests are still required.
+- In `README.md`, earlier statements about Phase 3 being pending refer to the prior phase and should be interpreted against this latest section.
