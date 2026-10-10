@@ -1,0 +1,13 @@
+{
+  "name": "agile-ous-synthetic-browser-uat",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Synthetic-only browser and WCAG checks for AGILE OUS disposable CI staging",
+  "scripts": {
+    "test": "node browser_uat.cjs"
+  },
+  "dependencies": {
+    "axe-core": "4.10.3",
+    "playwright": "1.56.1"
+  }
+}
