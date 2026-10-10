@@ -51,3 +51,6 @@ Do not merge into main or activate public intake until independent review, authe
 - Production reverse proxy/TLS/HSTS, backup drills, monitoring, multi-user UAT and concurrent last-slot approval stress tests outstanding.
 
 **Do not enter any real student welfare data or applicant PII until the release gates are completed.**
+
+## Railway test hosting
+A Dockerfile-compatible Railway configuration is included in `railway.json`, with Apache listening on the platform's `$PORT`. See `docs/RAILWAY_TEST_SETUP.md` for the exact GitHub + MySQL service setup, private environment references, migrations and test-user instructions. This does **not** mean a Railway account or running service has been provisioned. Use synthetic test data and keep `APPLICATIONS_OPEN=false` by default.
