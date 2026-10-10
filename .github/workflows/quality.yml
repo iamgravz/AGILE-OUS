@@ -64,6 +64,18 @@ jobs:
           DB_USER: root
           DB_PASSWORD: root_local_ci_only
         run: php tests/database_smoke.php
+      - name: Deployment configuration preflight (test settings)
+        env:
+          APP_ENV: testing
+          APPLICATIONS_OPEN: 'false'
+          APP_KEY: ci-test-application-hmac-key-0123456789abcdef
+          WELFARE_ENCRYPTION_KEY: 0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef
+          DB_HOST: 127.0.0.1
+          DB_PORT: '3306'
+          DB_NAME: agile_ous
+          DB_USER: root
+          DB_PASSWORD: root_local_ci_only
+        run: php scripts/preflight.php
       - name: Synthetic membership integration checks (transaction rolled back)
         env:
           APP_ENV: testing
