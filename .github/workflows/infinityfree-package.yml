@@ -1,0 +1,37 @@
+name: InfinityFree ZIP (test data only)
+on:
+  push:
+    branches: [develop/phase-1-secure-foundation]
+    paths:
+      - "public/**"
+      - "src/**"
+      - "database/**"
+      - "scripts/build_infinityfree.py"
+      - "tests/infinityfree_package.py"
+      - "scripts/generate_test_user_sql.php"
+      - ".github/workflows/infinityfree-package.yml"
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  build-and-audit-package:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Build InfinityFree ZIP
+        run: python3 scripts/build_infinityfree.py --output dist/AGILE-OUS-InfinityFree-Testing.zip
+      - name: Verify package layout and safety
+        run: |
+          python3 tests/infinityfree_package.py dist/AGILE-OUS-InfinityFree-Testing.zip
+          mkdir -p /tmp/agile_infinityfree_qa
+          python3 -c "from zipfile import ZipFile; ZipFile('dist/AGILE-OUS-InfinityFree-Testing.zip').extractall('/tmp/agile_infinityfree_qa')"
+          find /tmp/agile_infinityfree_qa/htdocs -name '*.php' -type f -print0 | xargs -0 -n1 php -l
+      - name: Upload tested ZIP artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: AGILE-OUS-InfinityFree-Testing
+          path: dist/AGILE-OUS-InfinityFree-Testing.zip
+          if-no-files-found: error
+          retention-days: 14
