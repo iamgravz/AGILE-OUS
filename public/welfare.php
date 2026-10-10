@@ -111,8 +111,7 @@ input,select,textarea,button{font:inherit;padding:.55rem;margin:.3rem}textarea{w
 <?php foreach($cases as $case):if(!canReadWelfareCase($user,$case))continue;?>
 <article><h3><?=escapeHtml($case['case_reference'])?></h3>
 <p><?=escapeHtml($case['category'])?> · <?=escapeHtml($case['priority'])?> · <?=escapeHtml($case['status'])?></p>
-<details><summary>View confidential case description</summary>
-<pre><?=escapeHtml(decryptWelfare((string)$case['encrypted_narrative']))?></pre></details>
+<p><a href="/welfare_case.php?id=<?=(int)$case['id']?>">View confidential description (access logged)</a></p>
 <?php if(!empty($allowed[$case['status']])):?>
 <form method="post"><input type="hidden" name="csrf_token" value="<?=escapeHtml(csrfToken())?>">
 <input type="hidden" name="action" value="status"><input type="hidden" name="case_id" value="<?=(int)$case['id']?>">
