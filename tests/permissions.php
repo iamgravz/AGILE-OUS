@@ -10,6 +10,11 @@ $cases = [
  ['membership_member','membership.update',true],
  ['membership_member','welfare.view',false],
  ['admin','users.manage',true],
+ ['president','membership.view',false],
+ ['president','welfare.update',false],
+ ['welfare_member','welfare.summary',true],
+ ['membership_head','membership.view',true],
+ ['membership_head','welfare.view',false],
  ['unknown','dashboard.view',false]
 ];
 foreach ($cases as [$role,$permission,$expected]) {
