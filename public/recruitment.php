@@ -74,7 +74,7 @@ $positions=db()->query("SELECT p.title,p.committee,p.capacity,p.enabled,
 body{font:15px system-ui;background:#faf8f5;color:#25212a;margin:2rem}table{width:100%;border-collapse:collapse;background:white}td,th{padding:12px;border:1px solid #ddd;text-align:left}
 input,select,button{padding:7px;margin:3px}section{margin-bottom:2rem;overflow-x:auto}button{background:#670c24;color:white;border:0;border-radius:5px}
 </style></head><body><h1>AGILE OUS — Recruitment Management</h1>
-<p><a href="/membership.php">Applications</a> · <a href="/positions.php">Manage vacancies</a> · <a href="/">Dashboard</a></p>
+<p><a href="/membership.php">Applications</a> · <a href="/positions.php">Manage vacancies</a> · <a href="/notification_drafts.php">Notification drafts</a> · <a href="/reports.php">Reports</a> · <a href="/">Dashboard</a></p>
 <?php if(isset($_GET['updated'])): ?><p role="status">Changes recorded.</p><?php endif; ?>
 <section><h2>Position Capacity by Term</h2>
 <table><tr><th>Committee</th><th>Position</th><th>Capacity</th><th>Approved</th><th>Remaining</th></tr>
