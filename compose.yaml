@@ -1,0 +1,46 @@
+# Local development only. Do not use PHP's built-in server in production.
+services:
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    working_dir: /app
+    volumes:
+      - ./:/app:ro
+    environment:
+      APP_ENV: local
+      APP_DEBUG: "false"
+      APP_TIMEZONE: Asia/Manila
+      APP_KEY: ${APP_KEY:?Set APP_KEY in your untracked .env}
+      WELFARE_ENCRYPTION_KEY: ${WELFARE_ENCRYPTION_KEY:?Set distinct welfare key}
+      APPLICATIONS_OPEN: "false"
+      DB_HOST: db
+      DB_PORT: "3306"
+      DB_NAME: agile_ous
+      DB_USER: agile_app
+      DB_PASSWORD: ${DB_PASSWORD:?Set DB_PASSWORD}
+      SESSION_SECURE: "false"
+    ports:
+      - "127.0.0.1:8080:8080"
+    depends_on:
+      db:
+        condition: service_healthy
+    read_only: true
+    tmpfs:
+      - /tmp
+  db:
+    image: mysql:8.0
+    environment:
+      MYSQL_DATABASE: agile_ous
+      MYSQL_USER: agile_app
+      MYSQL_PASSWORD: ${DB_PASSWORD:?Set DB_PASSWORD}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:?Set a local MySQL root secret}
+    volumes:
+      - mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h localhost -uroot -p$$MYSQL_ROOT_PASSWORD --silent"]
+      interval: 10s
+      timeout: 5s
+      retries: 15
+volumes:
+  mysql_data:
