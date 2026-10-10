@@ -66,7 +66,7 @@ $rows=db()->query("SELECT a.id,a.application_reference,a.applicant_name,a.reques
  FROM membership_applications a LEFT JOIN membership_interviews i ON i.application_id=a.id
  WHERE a.status='for_interview' ORDER BY a.id DESC LIMIT 100")->fetchAll();
 $positions=db()->query("SELECT p.title,p.committee,p.capacity,p.enabled,
- (SELECT COUNT(*) FROM membership_applications a WHERE a.requested_position=p.title AND a.status='approved') AS filled
+ (SELECT COUNT(*) FROM membership_applications a WHERE a.recruitment_position_id=p.id AND a.status='approved') AS filled
  FROM recruitment_positions p ORDER BY p.committee,p.title")->fetchAll();
 ?>
 <!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
@@ -74,13 +74,13 @@ $positions=db()->query("SELECT p.title,p.committee,p.capacity,p.enabled,
 body{font:15px system-ui;background:#faf8f5;color:#25212a;margin:2rem}table{width:100%;border-collapse:collapse;background:white}td,th{padding:12px;border:1px solid #ddd;text-align:left}
 input,select,button{padding:7px;margin:3px}section{margin-bottom:2rem;overflow-x:auto}button{background:#670c24;color:white;border:0;border-radius:5px}
 </style></head><body><h1>AGILE OUS — Recruitment Management</h1>
-<p><a href="/membership.php">Applications</a> · <a href="/">Dashboard</a></p>
+<p><a href="/membership.php">Applications</a> · <a href="/positions.php">Manage vacancies</a> · <a href="/">Dashboard</a></p>
 <?php if(isset($_GET['updated'])): ?><p role="status">Changes recorded.</p><?php endif; ?>
-<section><h2>Position Capacity (Informational)</h2>
+<section><h2>Position Capacity by Term</h2>
 <table><tr><th>Committee</th><th>Position</th><th>Capacity</th><th>Approved</th><th>Remaining</th></tr>
 <?php foreach($positions as $p): ?><tr><td><?= escapeHtml($p['committee']) ?></td><td><?= escapeHtml($p['title']) ?></td>
 <td><?= (int)$p['capacity'] ?></td><td><?= (int)$p['filled'] ?></td><td><?= max(0,(int)$p['capacity']-(int)$p['filled']) ?></td></tr><?php endforeach; ?></table>
-<p>Capacity is display-only in this phase; approval enforcement requires a future transactional capacity check.</p></section>
+<p>Approvals check remaining capacity within a transaction. Manage positions from the vacancy page.</p></section>
 <section><h2>Interviews and Evaluations</h2><table><tr><th>Applicant</th><th>Schedule</th><th>Evaluation</th></tr>
 <?php foreach($rows as $r): ?><tr><td><?= escapeHtml($r['applicant_name']) ?> <small><?= escapeHtml((string)$r['application_reference']) ?></small></td>
 <td><?= escapeHtml((string)($r['scheduled_at']??'Not scheduled')) ?>
