@@ -1,0 +1,15 @@
+.git
+.github
+.env
+.env.*
+!.env.example
+.vercel
+database
+docs
+tests
+scripts
+preview
+compose.yaml
+Dockerfile.dev
+*.log
+*.sql

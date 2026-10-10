@@ -1,0 +1,87 @@
+name: AGILE OUS Quality Gate
+on:
+  push:
+    branches: [main, develop/phase-1-secure-foundation]
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  php-quality:
+    runs-on: ubuntu-latest
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: root_local_ci_only
+          MYSQL_DATABASE: agile_ous
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping -h 127.0.0.1 -uroot -proot_local_ci_only"
+          --health-interval=10s --health-timeout=5s --health-retries=12
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install PHP dependencies for smoke tests
+        run: sudo apt-get update && sudo apt-get install -y php-cli php-mysql default-mysql-client
+      - name: PHP lint (all source files)
+        run: |
+          set -eu
+          find public src scripts tests -name '*.php' -type f -print0 | xargs -0 -n1 php -l
+      - name: Authorization smoke tests
+        run: php tests/permissions.php
+      - name: Welfare cryptography and case access smoke tests
+        run: php tests/welfare_security.php
+      - name: Anonymous HTTP authorization and closed-form checks
+        env:
+          APPLICATIONS_OPEN: "false"
+          APP_KEY: "ci-only-not-a-secret-0123456789abcdef0123456789abcdef"
+        run: |
+          set -eu
+          php -S 127.0.0.1:8080 -t public >/tmp/agile-http.log 2>&1 &
+          server_pid=$!
+          trap 'kill "$server_pid" || true' EXIT
+          for attempt in 1 2 3 4 5; do
+            if curl --silent --fail http://127.0.0.1:8080/ >/dev/null; then break; fi
+            sleep 1
+          done
+          bash tests/http_smoke.sh http://127.0.0.1:8080
+      - name: MySQL migration smoke test
+        env:
+          MYSQL_PWD: root_local_ci_only
+        run: |
+          set -eu
+          for f in database/0*.sql; do
+            echo "Applying $f"
+            mysql -h 127.0.0.1 -P 3306 -uroot agile_ous < "$f"
+          done
+          mysql -h 127.0.0.1 -P 3306 -uroot agile_ous -e "SHOW TABLES;"
+      - name: Database integrity smoke checks
+        env:
+          DB_HOST: 127.0.0.1
+          DB_PORT: '3306'
+          DB_NAME: agile_ous
+          DB_USER: root
+          DB_PASSWORD: root_local_ci_only
+        run: php tests/database_smoke.php
+      - name: Deployment configuration preflight (test settings)
+        env:
+          APP_ENV: testing
+          APPLICATIONS_OPEN: 'false'
+          APP_KEY: ci-test-application-hmac-key-0123456789abcdef
+          WELFARE_ENCRYPTION_KEY: 0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef
+          DB_HOST: 127.0.0.1
+          DB_PORT: '3306'
+          DB_NAME: agile_ous
+          DB_USER: root
+          DB_PASSWORD: root_local_ci_only
+        run: php scripts/preflight.php
+      - name: Synthetic membership integration checks (transaction rolled back)
+        env:
+          APP_ENV: testing
+          DB_HOST: 127.0.0.1
+          DB_PORT: '3306'
+          DB_NAME: agile_ous
+          DB_USER: root
+          DB_PASSWORD: root_local_ci_only
+        run: php tests/integration_smoke.php
