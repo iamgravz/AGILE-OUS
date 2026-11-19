@@ -157,6 +157,102 @@ final class AppointmentFlowTest extends TestCase
         });
     }
 
+    public function testTheChecklistComesBeforeTheResult(): void
+    {
+        $this->inRollback(function (): void {
+            $applicationId = $this->application('under_review', null);
+            $this->signIn('mswmember@agile.test');
+            $service = new InterviewService();
+            $service->schedule($applicationId, $this->interview(24));
+            $id = (int) (new InterviewRepository())->forApplication($applicationId)[0]['interview_id'];
+
+            try {
+                $service->recordResult($applicationId, $id, 'passed', '');
+                $this->fail('A result needs the checklist first (BR-25).');
+            } catch (DomainException $exception) {
+                $this->assertStringContainsString('checklist', $exception->getMessage());
+            }
+
+            try {
+                $service->saveChecklist($applicationId, $id, ['identity' => true, 'role' => true, 'privacy' => false, 'conflict' => 'no']);
+                $this->fail('Every item must be ticked.');
+            } catch (DomainException) {
+                $this->addToAssertionCount(1);
+            }
+
+            $service->saveChecklist($applicationId, $id, ['identity' => true, 'role' => true, 'privacy' => true, 'conflict' => 'no']);
+            $saved = (new InterviewRepository())->find($id);
+            $this->assertSame($this->userId('mswmember@agile.test'), (int) $saved['checklist_by']);
+            $this->assertSame(0, (int) $saved['conflict_of_interest']);
+
+            $service->recordResult($applicationId, $id, 'passed', 'Confident answers.');
+            $this->assertSame('passed', (new InterviewRepository())->find($id)['result']);
+        });
+    }
+
+    public function testANoShowNeedsNoChecklist(): void
+    {
+        $this->inRollback(function (): void {
+            $applicationId = $this->application('under_review', null);
+            $this->signIn('mswmember@agile.test');
+            $service = new InterviewService();
+            $service->schedule($applicationId, $this->interview(24));
+            $id = (int) (new InterviewRepository())->forApplication($applicationId)[0]['interview_id'];
+
+            $service->recordResult($applicationId, $id, 'no_show', 'Did not join.');
+            $this->assertSame('no_show', (new InterviewRepository())->find($id)['result']);
+        });
+    }
+
+    public function testAConflictBlocksTheResultAndTheScoreUntilRescheduled(): void
+    {
+        $this->inRollback(function (): void {
+            $applicationId = $this->application('under_review', $this->vacancy('open', 2));
+            $this->signIn('mswmember@agile.test');
+            $service = new InterviewService();
+            $service->schedule($applicationId, $this->interview(24));
+            $id = (int) (new InterviewRepository())->forApplication($applicationId)[0]['interview_id'];
+            $service->saveChecklist($applicationId, $id, ['identity' => true, 'role' => true, 'privacy' => true, 'conflict' => 'yes']);
+
+            try {
+                $service->recordResult($applicationId, $id, 'passed', '');
+                $this->fail('A declared conflict blocks the result.');
+            } catch (DomainException $exception) {
+                $this->assertStringContainsString('conflict of interest', $exception->getMessage());
+            }
+
+            // The interviewer with the conflict (the MSW Committee Head here) cannot score this applicant.
+            $this->signIn('mswhead@agile.test');
+
+            try {
+                (new EvaluationService())->submit($applicationId, ['qualifications' => '5', 'skills' => '5', 'communication' => '5', 'commitment' => '5', 'teamwork' => '5'], 'recommend', 'Biased');
+                $this->fail('An interviewer with a conflict cannot score (BR-25).');
+            } catch (DomainException $exception) {
+                $this->assertStringContainsString('conflict of interest', $exception->getMessage());
+            }
+
+            // Rescheduling with someone else starts a new checklist.
+            $this->signIn('mswmember@agile.test');
+            $service->reschedule($applicationId, $id, ['interviewer_id' => $this->userId('mswdeputy@agile.test')] + $this->interview(48));
+            $fresh = (new InterviewRepository())->find($id);
+            $this->assertNull($fresh['checklist_at']);
+            $this->assertNull($fresh['conflict_of_interest']);
+        });
+    }
+
+    public function testTheDatabaseRefusesAHalfFilledChecklist(): void
+    {
+        $this->inRollback(function (): void {
+            $applicationId = $this->application('under_review', null);
+            $this->signIn('mswmember@agile.test');
+            (new InterviewService())->schedule($applicationId, $this->interview(24));
+            $id = (int) (new InterviewRepository())->forApplication($applicationId)[0]['interview_id'];
+
+            $this->expectException(PDOException::class);
+            Database::connection()->exec("UPDATE interviews SET checklist_at = NOW(), checklist_by = 1 WHERE interview_id = {$id}");
+        });
+    }
+
     public function testPreparedChangesNothingAndApprovalChangesEverything(): void
     {
         $this->inRollback(function (): void {

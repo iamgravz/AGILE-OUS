@@ -22,7 +22,35 @@ $modeError = field_error('mode');
 $interviewerError = field_error('interviewer_id');
 ?>
 <div class="account-sections">
-    <?php if ($pending !== null && can('interview.manage')) : ?>
+    <?php $checklistDone = $pending !== null && $pending['checklist_at'] !== null; ?>
+    <?php $hasConflict = $checklistDone && (int) $pending['conflict_of_interest'] === 1; ?>
+    <?php if ($pending !== null && can('interview.manage') && !$checklistDone) : ?>
+        <form class="plain-section" method="post" action="<?= e(route('applications.interviews.checklist', ['id' => $id, 'interviewId' => (int) $pending['interview_id']])) ?>">
+            <?= csrf_field() ?>
+            <div class="card__header"><h2 class="card__title">Interview checklist</h2></div>
+            <div class="card__body">
+                <p class="field__help">Before scoring (BR-25). <?= e($pending['interviewer_name']) ?> is the interviewer.</p>
+                <fieldset class="field-group">
+                    <legend class="field-group__legend">Done with the applicant <span class="field__required" aria-hidden="true">*</span></legend>
+                    <label class="check"><input type="checkbox" name="identity_verified" value="1" required> <span>Identity and AGILE record verified</span></label>
+                    <label class="check"><input type="checkbox" name="role_confirmed" value="1" required> <span>Role or position applied for confirmed</span></label>
+                    <label class="check"><input type="checkbox" name="privacy_reminder_given" value="1" required> <span>Privacy reminder given</span></label>
+                </fieldset>
+                <fieldset class="field-group">
+                    <legend class="field-group__legend">Does the interviewer have a conflict of interest with this applicant? <span class="field__required" aria-hidden="true">*</span></legend>
+                    <label class="check"><input type="radio" name="conflict_of_interest" value="no" required> <span>No</span></label>
+                    <label class="check"><input type="radio" name="conflict_of_interest" value="yes"> <span>Yes: they cannot score this applicant, and the interview is rescheduled with someone else</span></label>
+                </fieldset>
+                <button type="submit" class="btn btn--primary">Confirm checklist</button>
+            </div>
+        </form>
+    <?php elseif ($hasConflict) : ?>
+        <div class="alert alert--warning" role="status">
+            <?= icon('alert') ?>
+            <p class="alert__text"><?= e($pending['interviewer_name']) ?> declared a conflict of interest. Reschedule this interview below with another interviewer.</p>
+        </div>
+    <?php endif; ?>
+    <?php if ($pending !== null && can('interview.manage') && $checklistDone && !$hasConflict) : ?>
         <form class="plain-section" method="post" action="<?= e(route('applications.interviews.result', ['id' => $id, 'interviewId' => (int) $pending['interview_id']])) ?>">
             <?= csrf_field() ?>
             <div class="card__header"><h2 class="card__title">Record the result</h2></div>
@@ -96,6 +124,9 @@ $interviewerError = field_error('interviewer_id');
                             </div>
                             <p class="timeline__meta"><?= e(\App\Services\InterviewService::MODES[$interview['mode']]) ?> with <?= e($interview['interviewer_name']) ?></p>
                             <p class="timeline__meta interview-location"><?= e($interview['location']) ?></p>
+                            <?php if ($interview['checklist_at'] !== null) : ?>
+                                <p class="timeline__meta">Checklist confirmed by <?= e((string) $interview['checklist_by_name']) ?>, <?= e(datetime_ph($interview['checklist_at'])) ?><?= (int) $interview['conflict_of_interest'] === 1 ? ' · conflict of interest declared' : '' ?></p>
+                            <?php endif; ?>
                             <?php if ($interview['reminder_sent_at'] !== null) : ?>
                                 <p class="timeline__meta">Reminder sent <?= e(datetime_ph($interview['reminder_sent_at'])) ?></p>
                             <?php endif; ?>

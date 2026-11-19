@@ -472,6 +472,12 @@ CREATE TABLE IF NOT EXISTS interviews (
     result ENUM('pending','passed','failed','no_show') NOT NULL DEFAULT 'pending',
     notes TEXT NULL,
     reminder_sent_at DATETIME NULL,
+    identity_verified TINYINT(1) NOT NULL DEFAULT 0,
+    role_confirmed TINYINT(1) NOT NULL DEFAULT 0,
+    privacy_reminder_given TINYINT(1) NOT NULL DEFAULT 0,
+    conflict_of_interest TINYINT(1) NULL,
+    checklist_by INT UNSIGNED NULL,
+    checklist_at DATETIME NULL,
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     PRIMARY KEY (interview_id),
@@ -479,6 +485,9 @@ CREATE TABLE IF NOT EXISTS interviews (
     KEY idx_interviews_interviewer_id (interviewer_id),
     KEY idx_interviews_scheduled_at (scheduled_at),
     KEY idx_interviews_result (result),
+    KEY idx_interviews_checklist_by (checklist_by),
+    CONSTRAINT chk_interviews_checklist CHECK (checklist_at IS NULL OR (identity_verified = 1 AND role_confirmed = 1 AND privacy_reminder_given = 1 AND conflict_of_interest IS NOT NULL AND checklist_by IS NOT NULL)),
+    CONSTRAINT fk_interviews_checklist_by FOREIGN KEY (checklist_by) REFERENCES users (user_id) ON DELETE RESTRICT ON UPDATE RESTRICT,
     CONSTRAINT fk_interviews_application FOREIGN KEY (application_id) REFERENCES membership_applications (application_id) ON DELETE RESTRICT ON UPDATE RESTRICT,
     CONSTRAINT fk_interviews_interviewer FOREIGN KEY (interviewer_id) REFERENCES users (user_id) ON DELETE RESTRICT ON UPDATE RESTRICT
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

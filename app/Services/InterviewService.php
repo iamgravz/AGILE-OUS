@@ -135,9 +135,52 @@ final class InterviewService
                 throw new DomainException('This interview cannot be rescheduled in the application\'s current status.');
             }
 
-            $this->interviews->update($interviewId, $data + ['reminder_sent_at' => null]);
+            // A new time or interviewer starts a new checklist.
+            $this->interviews->update($interviewId, $data + ['reminder_sent_at' => null, 'identity_verified' => 0, 'role_confirmed' => 0,
+                'privacy_reminder_given' => 0, 'conflict_of_interest' => null, 'checklist_by' => null, 'checklist_at' => null]);
             AuditService::log('interview.rescheduled', 'membership_application', $applicationId, ['interview_id' => $interviewId, 'scheduled_at' => $data['scheduled_at'], 'mode' => $data['mode']]);
             $this->invite($application, $data);
+        });
+    }
+
+    /**
+     * BR-25, AGILE's interview checklist: before scoring, the interviewer verifies the applicant's identity and record,
+     * confirms the role applied for, gives the privacy reminder and declares any conflict of interest. With a conflict,
+     * the interview has to be rescheduled with another interviewer.
+     *
+     * @param array{identity: bool, role: bool, privacy: bool, conflict: string} $checklist conflict is 'no' or 'yes'
+     * @throws DomainException
+     */
+    public function saveChecklist(int $applicationId, int $interviewId, array $checklist): void
+    {
+        authorize('interview.manage');
+
+        if (!$checklist['identity'] || !$checklist['role'] || !$checklist['privacy']) {
+            throw new DomainException('Tick every item on the checklist: identity and record, role, and privacy reminder.');
+        }
+
+        if (!in_array($checklist['conflict'], ['no', 'yes'], true)) {
+            throw new DomainException('Say whether the interviewer has a conflict of interest.');
+        }
+
+        Database::transaction(function () use ($applicationId, $interviewId, $checklist): void {
+            $this->lockApplication($applicationId);
+            $interview = $this->pendingInterview($applicationId, $interviewId);
+
+            if ($interview['checklist_at'] !== null) {
+                throw new DomainException('The checklist for this interview is already confirmed.');
+            }
+
+            $conflict = $checklist['conflict'] === 'yes';
+            $this->interviews->update($interviewId, [
+                'identity_verified' => 1,
+                'role_confirmed' => 1,
+                'privacy_reminder_given' => 1,
+                'conflict_of_interest' => $conflict ? 1 : 0,
+                'checklist_by' => current_user_id(),
+                'checklist_at' => date('Y-m-d H:i:s'),
+            ]);
+            AuditService::log($conflict ? 'interview.conflict_declared' : 'interview.checklist_confirmed', 'membership_application', $applicationId, ['interview_id' => $interviewId]);
         });
     }
 
@@ -152,7 +195,18 @@ final class InterviewService
 
         Database::transaction(function () use ($applicationId, $interviewId, $result, $notes): void {
             $this->lockApplication($applicationId);
-            $this->pendingInterview($applicationId, $interviewId);
+            $interview = $this->pendingInterview($applicationId, $interviewId);
+
+            // A no-show needs no checklist. Passed or failed means the interview happened, so the checklist comes first (BR-25).
+            if ($result !== 'no_show') {
+                if ($interview['checklist_at'] === null) {
+                    throw new DomainException('Confirm the interview checklist before recording the result.');
+                }
+
+                if ((int) $interview['conflict_of_interest'] === 1) {
+                    throw new DomainException('The interviewer declared a conflict of interest. Reschedule this interview with another interviewer.');
+                }
+            }
 
             $this->interviews->update($interviewId, ['result' => $result, 'notes' => trim($notes) === '' ? null : trim($notes)]);
             AuditService::log('interview.result_recorded', 'membership_application', $applicationId, ['interview_id' => $interviewId, 'result' => $result]);

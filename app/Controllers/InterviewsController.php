@@ -41,6 +41,25 @@ final class InterviewsController
         return $this->save($request, $id, (int) $interviewId);
     }
 
+    public function checklist(Request $request, string $id, string $interviewId): Response
+    {
+        try {
+            $this->interviews->saveChecklist((int) $id, (int) $interviewId, [
+                'identity' => $request->text('identity_verified') === '1',
+                'role' => $request->text('role_confirmed') === '1',
+                'privacy' => $request->text('privacy_reminder_given') === '1',
+                'conflict' => $request->text('conflict_of_interest'),
+            ]);
+            flash('success', $request->text('conflict_of_interest') === 'yes'
+                ? 'Conflict of interest recorded. Reschedule this interview with another interviewer.'
+                : 'The interview checklist was confirmed. You can now record the result.');
+        } catch (DomainException $exception) {
+            flash('error', $exception->getMessage());
+        }
+
+        return redirect($this->back($id));
+    }
+
     public function recordResult(Request $request, string $id, string $interviewId): Response
     {
         $notes = $request->text('notes');

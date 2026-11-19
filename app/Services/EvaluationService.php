@@ -7,6 +7,7 @@ namespace App\Services;
 use App\Core\Database;
 use App\Core\ForbiddenException;
 use App\Models\EvaluationRepository;
+use App\Models\InterviewRepository;
 use App\Models\MembershipApplicationRepository;
 use App\Models\SettingRepository;
 use App\Models\VacancyRepository;
@@ -136,6 +137,10 @@ final class EvaluationService
 
             if ($application === null || $application['status'] === 'draft') {
                 throw new DomainException('This application no longer exists.');
+            }
+
+            if ((new InterviewRepository())->hasConflict($applicationId, (int) current_user_id())) {
+                throw new DomainException('You declared a conflict of interest for this applicant, so you cannot score them (BR-25).');
             }
 
             if ((int) $application['user_id'] === current_user_id()) {

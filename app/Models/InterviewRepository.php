@@ -13,9 +13,11 @@ final class InterviewRepository extends BaseRepository
     public function forApplication(int $applicationId): array
     {
         $statement = $this->pdo()->prepare(
-            "SELECT i.*, CONCAT(u.first_name, ' ', u.last_name) AS interviewer_name
+            "SELECT i.*, CONCAT(u.first_name, ' ', u.last_name) AS interviewer_name,
+                    CONCAT(cb.first_name, ' ', cb.last_name) AS checklist_by_name
              FROM interviews i
              JOIN users u ON u.user_id = i.interviewer_id
+             LEFT JOIN users cb ON cb.user_id = i.checklist_by
              WHERE i.application_id = ?
              ORDER BY i.interview_id DESC"
         );
@@ -90,5 +92,14 @@ final class InterviewRepository extends BaseRepository
         $statement->execute([$id]);
 
         return $statement->fetch() ?: null;
+    }
+
+    /** BR-25: this person declared a conflict of interest on one of this application's interviews. */
+    public function hasConflict(int $applicationId, int $userId): bool
+    {
+        $statement = $this->pdo()->prepare('SELECT COUNT(*) FROM interviews WHERE application_id = ? AND interviewer_id = ? AND conflict_of_interest = 1');
+        $statement->execute([$applicationId, $userId]);
+
+        return (int) $statement->fetchColumn() > 0;
     }
 }

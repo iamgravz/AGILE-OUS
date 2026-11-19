@@ -121,6 +121,7 @@ The database has 46 tables (45 for the system and `schema_migrations`), 76 forei
 | `members.applicant_id` | BR-18: an approved applicant becomes a member before having an account. |
 | `members.registered_at` | BR-18: when they registered at `/register`. `members.user_id` stays NULL until then. |
 | `members.registration_reminders` | How many reminders to register were sent, so the daily job cannot send one twice. |
+| `membership_applications.status` value `waitlisted` | AGILE's Waitlisted decision: qualified but no slot yet; the decider can approve or reject later. |
 | `membership_applications.wizard_step` | Lets an applicant leave the wizard and resume at the same step, even after logging out. |
 | `membership_applications.enrollment_confirmed_at` | Records when the applicant confirmed current enrollment (BR-01). |
 | `digital_credentials.status`, `reason`, `approved_by`, `approved_at`, `review_remarks`, `replaces_credential_id` | BR-19: a new credential waits for the MSW Committee Head, and a manual reissue says what it replaces. |
@@ -132,6 +133,7 @@ The database has 46 tables (45 for the system and `schema_migrations`), 76 forei
 | `application_documents.verification_remarks` | Applicants need to know why a document needs correction. |
 | `ai_extractions.source_type` | Extractions can come from application documents or eligibility screenings. |
 | `interviews.reminder_sent_at` | Prevents the hourly reminder job from sending the 24-hour reminder twice. |
+| `interviews.identity_verified`, `role_confirmed`, `privacy_reminder_given`, `conflict_of_interest`, `checklist_by`, `checklist_at` | BR-25: the interview checklist from AGILE's INTERVIEW_CONTROL sheet. A CHECK constraint (`chk_interviews_checklist`) refuses a confirmed checklist with an item missing. |
 | `appointments.status` | Separates a prepared appointment from one the MSW Head approved or returned (FR-REC-08). |
 | `appointments.prepared_by` | Records which MSW Deputy Head or Member prepared the appointment (FR-REC-08). |
 | `welfare_cases.guest_name` | Guest cases have no user account to take the name from (BR-17). Encrypted. |
