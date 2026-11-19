@@ -1625,3 +1625,8 @@ Re-audit 10/10 (was 7/10). Details and evidence in [database-audit.md](database-
 - "Committees" is in the public nav bar after About, linking to About, "Our committees" (`config/menu.php`).
 - The home page section "What AGILE does" is off by default (`LandingService::OFF_BY_DEFAULT`); Settings > Landing page can still show it. Migration `2026_11_19_committees_in_nav.php` unticks it once in a saved list.
 - `composer test`: OK, 330 tests.
+
+### Design: full-screen hero like the BHMS landing page (Nov 19, 2026)
+- The home hero fills the first screen (`100svh`); the campus photos cover it, and the logo, a pill badge, the title, taglines, lead and buttons sit centered on the photo with no box. A round arrow at the bottom scrolls to the rest of the page (`#explore`).
+- Files: `portal/landing/hero.php`, `portal/home.php`, `css/landing.css` ("Full-screen hero"). Reduced motion stops the arrow and smooth scrolling.
+- `composer test`: OK, 330 tests. Checked at 1366 and 390 wide with no console errors.

@@ -680,3 +680,132 @@ html:not(.js) .hero--landing .glass-glows {
         opacity: 1;
     }
 }
+
+/* ---------- Full-screen hero, like the BHMS landing page ----------
+   The campus photos fill the whole first screen. The text sits in the middle on the photo itself (no box),
+   readable through the overlay and a soft text shadow. An arrow at the bottom scrolls to the rest of the page. */
+
+.hero--landing {
+    display: flex;
+    align-items: center;
+    min-height: 100vh;
+    min-height: 100svh;
+    padding-bottom: 5rem;
+}
+
+.hero--landing .hero__campus::after {
+    background:
+        radial-gradient(ellipse at center, rgba(13, 17, 23, 0.55) 0%, rgba(13, 17, 23, 0.2) 70%),
+        linear-gradient(180deg, rgba(13, 17, 23, 0.45) 0%, rgba(92, 10, 16, 0.25) 55%, rgba(13, 17, 23, 0.7) 100%);
+}
+
+.hero--landing .hero__inner {
+    display: flex;
+    justify-content: center;
+    width: 100%;
+}
+
+.hero--landing .hero__panel {
+    max-width: 46rem;
+    padding: 0;
+    text-align: center;
+}
+
+.hero--landing .hero__logo {
+    width: 5.5rem;
+    height: 5.5rem;
+    margin: 0 auto var(--space-3);
+    box-shadow: 0 6px 24px rgba(0, 0, 0, 0.35);
+}
+
+.hero--landing .hero__badge {
+    display: inline-block;
+    margin-bottom: var(--space-3);
+    padding: 0.35rem 1rem;
+    border: 1px solid rgba(255, 255, 255, 0.35);
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.14);
+    color: #fff;
+    -webkit-backdrop-filter: blur(8px);
+    backdrop-filter: blur(8px);
+}
+
+.hero--landing .hero__title {
+    max-width: none;
+    color: #fff;
+    font-size: clamp(2.25rem, 5.5vw, 4rem);
+    line-height: 1.1;
+    text-shadow: 0 2px 24px rgba(0, 0, 0, 0.55);
+}
+
+.hero--landing .hero__tagline {
+    color: var(--gold);
+    text-shadow: 0 1px 12px rgba(0, 0, 0, 0.6);
+}
+
+.hero--landing .hero__lead {
+    max-width: 34rem;
+    margin-inline: auto;
+    color: rgba(255, 255, 255, 0.9);
+    font-size: clamp(1rem, 1.8vw, 1.2rem);
+    text-shadow: 0 1px 12px rgba(0, 0, 0, 0.6);
+}
+
+.hero--landing .cluster {
+    justify-content: center;
+}
+
+.hero__scroll {
+    position: absolute;
+    left: 50%;
+    bottom: var(--space-4);
+    z-index: 2;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.75rem;
+    height: 2.75rem;
+    border: 1px solid rgba(255, 255, 255, 0.35);
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.12);
+    color: #fff;
+    transform: translateX(-50%);
+}
+
+.hero__scroll:hover {
+    background: rgba(255, 255, 255, 0.24);
+}
+
+.hero__scroll .icon {
+    width: 1.25rem;
+    height: 1.25rem;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+    .hero__scroll {
+        animation: hero-scroll-bob 2.4s ease-in-out infinite;
+    }
+
+    .motion-paused .hero__scroll {
+        animation-play-state: paused;
+    }
+}
+
+@keyframes hero-scroll-bob {
+    0%, 100% { transform: translate(-50%, 0); }
+    50% { transform: translate(-50%, 6px); }
+}
+
+#explore:focus {
+    outline: none;
+}
+
+html {
+    scroll-behavior: smooth;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    html {
+        scroll-behavior: auto;
+    }
+}

@@ -31,7 +31,7 @@ $heroSrc = $heroImage !== '' ? media_url($heroImage) : asset('img/logo-hero.webp
     <?php $this->end() ?>
 <?php endif; ?>
 
-<div class="landing">
+<div class="landing" id="explore" tabindex="-1">
     <?php if (!$shows('hero')) : ?><h1 class="sr-only"><?= e($headline) ?></h1><?php endif; ?>
     <?php if ($shows('numbers')) : ?>
         <?= $this->partial('portal/landing/numbers', compact('numbers')) ?>

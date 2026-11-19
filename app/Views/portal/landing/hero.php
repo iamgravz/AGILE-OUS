@@ -24,9 +24,10 @@ if ($term !== null) {
     </div>
     <span class="glass-glows" aria-hidden="true"></span>
     <div class="container hero__inner">
-        <div class="glass--dark hero__panel">
+        <div class="hero__panel">
             <div class="hero-rise">
-                <p class="eyebrow"><?= e($eyebrow) ?></p>
+                <img class="hero__logo<?= $heroImage !== '' ? ' hero__logo--photo' : '' ?>" src="<?= e($heroSrc) ?>" alt="" width="176" height="176" fetchpriority="high">
+                <p class="eyebrow hero__badge"><?= e($eyebrow) ?></p>
                 <h1 class="hero__title"><?= e($headline) ?></h1>
                 <?php if ($taglines !== []) : ?><p class="hero__tagline"><?= e(implode(' · ', $taglines)) ?></p><?php endif; ?>
                 <p class="hero__lead"><?= e($subheadline) ?></p>
@@ -38,7 +39,7 @@ if ($term !== null) {
                 </div>
             </div>
         </div>
-        <img class="hero__logo hero-rise<?= $heroImage !== '' ? ' hero__logo--photo' : '' ?>" src="<?= e($heroSrc) ?>" alt="" width="176" height="176" fetchpriority="high">
     </div>
+    <a class="hero__scroll" href="#explore" aria-label="Scroll to the rest of the page"><?= icon('chevron-down') ?></a>
     <button type="button" class="hero__pause" data-motion-toggle hidden>Pause animation</button>
 </section>
