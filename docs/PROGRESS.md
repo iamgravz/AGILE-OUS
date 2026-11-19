@@ -1607,3 +1607,10 @@ Re-audit 10/10 (was 7/10). Details and evidence in [database-audit.md](database-
 - **Accessibility:** real `<button>` show/hide password with `aria-pressed`; the step tracker uses `aria-current="step"`; Iskobot is `aria-hidden`; all motion stops under `prefers-reduced-motion`.
 - **Files:** `layouts/auth.php` (an `auth_style` section set to `iskobot`), `partials/iskobot_page.php`, `partials/iskobot.php`, `auth/register*.php`, `css/register-robot.css`, `js/register-robot.js`.
 - **Results:** `composer test` OK, 330 tests. Checked in a browser at 1366 and 390 wide: no console errors and no sideways scrolling.
+
+### Design: PUP campus photos behind the landing hero (Nov 19, 2026)
+- Four PUP campus photos from Gravz crossfade behind the hero with a slow zoom, 7 seconds each, in pure CSS (`landing.css`, "Campus photos behind the hero"). A dark-to-maroon overlay keeps the text readable; the hero text stays on its glass panel.
+- Photos are WebP in `public/assets/img/campus/` (about 30–240 KB each; phones get smaller copies of the two large ones). The tall creek photo was cropped to a wide strip.
+- The hero's "Pause animation" button stops the slideshow; with reduced motion the first photo stays still. The photos are `aria-hidden` (decorative). No inline styles (CSP).
+- Photos 1 and 3 are only about 680px wide, so they look soft on large screens. Larger originals can replace them with the same file names.
+- **Results:** `composer test` OK, 330 tests. Checked at 1366 and 390 wide: no console errors and no sideways scrolling.

@@ -16,6 +16,12 @@ if ($term !== null) {
 }
 ?>
 <section class="hero hero--landing" data-hero>
+    <?php /* PUP campus photos, crossfading slowly behind the hero. Decorative, so hidden from screen readers. */ ?>
+    <div class="hero__campus" aria-hidden="true">
+        <?php foreach ([1, 2, 3, 4] as $photo) : ?>
+            <span class="hero__campus-slide hero__campus-slide--<?= $photo ?>"></span>
+        <?php endforeach; ?>
+    </div>
     <span class="glass-glows" aria-hidden="true"></span>
     <div class="container hero__inner">
         <div class="glass--dark hero__panel">

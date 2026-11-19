@@ -597,3 +597,86 @@ html:not(.js) .hero--landing .glass-glows {
         display: none;
     }
 }
+
+/* ---------- Campus photos behind the hero ----------
+   Four PUP campus photos crossfade with a slow zoom, 7 seconds each (28-second loop).
+   Backgrounds come from classes, not style attributes, because the Content Security Policy blocks inline styles.
+   The maroon-to-ink overlay keeps the hero text readable on every photo. */
+
+.hero__campus {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    overflow: hidden;
+    pointer-events: none;
+}
+
+.hero__campus::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background:
+        linear-gradient(100deg, rgba(13, 17, 23, 0.72) 0%, rgba(13, 17, 23, 0.45) 50%, rgba(92, 10, 16, 0.18) 100%),
+        linear-gradient(0deg, rgba(13, 17, 23, 0.55) 0%, rgba(13, 17, 23, 0) 35%);
+}
+
+.hero__campus-slide {
+    position: absolute;
+    inset: 0;
+    background-position: center;
+    background-size: cover;
+    opacity: 0;
+    animation: hero-campus 28s linear infinite;
+    will-change: opacity, transform;
+}
+
+.hero__campus-slide--1 { background-image: url("../img/campus/campus-1.webp"); animation-delay: 0s; }
+.hero__campus-slide--2 { background-image: url("../img/campus/campus-2.webp"); animation-delay: 7s; }
+.hero__campus-slide--3 { background-image: url("../img/campus/campus-3.webp"); animation-delay: 14s; }
+.hero__campus-slide--4 { background-image: url("../img/campus/campus-4.webp"); animation-delay: 21s; }
+
+@media (max-width: 767px) {
+    .hero__campus-slide--2 { background-image: url("../img/campus/campus-2-sm.webp"); }
+    .hero__campus-slide--4 { background-image: url("../img/campus/campus-4-sm.webp"); }
+}
+
+/* Each photo: fade in (2s), hold while zooming, fade out (2s) as the next one fades in. */
+@keyframes hero-campus {
+    0% { opacity: 0; transform: scale(1.04); }
+    7% { opacity: 1; }
+    25% { opacity: 1; }
+    32% { opacity: 0; transform: scale(1.14); }
+    100% { opacity: 0; transform: scale(1.14); }
+}
+
+/* The grid, glow and content sit above the photos. */
+.hero--landing::before {
+    z-index: 1;
+    opacity: 0.35;
+}
+
+.hero--landing .glass-glows,
+.hero--landing .hero__inner,
+.hero--landing .hero__pause {
+    z-index: 2;
+}
+
+.hero--landing .hero__inner {
+    position: relative;
+}
+
+/* The page's Pause animation button stops the slideshow where it is. */
+.motion-paused .hero__campus-slide {
+    animation-play-state: paused;
+}
+
+/* No motion: the first photo stays, still. */
+@media (prefers-reduced-motion: reduce) {
+    .hero__campus-slide {
+        animation: none;
+    }
+
+    .hero__campus-slide--1 {
+        opacity: 1;
+    }
+}
