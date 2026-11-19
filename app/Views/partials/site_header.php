@@ -9,7 +9,6 @@
                 </span>
             </a>
             <div class="site-header__tools">
-                <?= $this->partial('partials/theme_toggle') ?>
                 <button type="button" class="icon-btn nav-toggle" data-nav-toggle aria-controls="site-nav" aria-expanded="false" aria-label="Menu">
                     <?= icon('menu') ?>
                 </button>

@@ -1,4 +1,4 @@
-/* AGILE design tokens: fonts and every color, in one block, with light and dark values. */
+/* AGILE design tokens: fonts and every color, in one block. The site is light only. */
 
 @font-face { font-family: "IBM Plex Sans"; font-weight: 400; font-style: normal; font-display: swap; src: url("../fonts/ibm-plex-sans-latin-400-normal.woff2") format("woff2"); }
 @font-face { font-family: "IBM Plex Sans"; font-weight: 400; font-style: italic; font-display: swap; src: url("../fonts/ibm-plex-sans-latin-400-italic.woff2") format("woff2"); }
@@ -7,8 +7,7 @@
 @font-face { font-family: "IBM Plex Mono"; font-weight: 400; font-style: normal; font-display: swap; src: url("../fonts/ibm-plex-mono-latin-400-normal.woff2") format("woff2"); }
 @font-face { font-family: "IBM Plex Mono"; font-weight: 500; font-style: normal; font-display: swap; src: url("../fonts/ibm-plex-mono-latin-500-normal.woff2") format("woff2"); }
 
-:root,
-[data-theme="light"] {
+:root {
     color-scheme: light;
 
     --color-page: #f6f8fa;
@@ -103,60 +102,9 @@
     --sidebar-rail: 4rem;
 }
 
-[data-theme="dark"] {
-    color-scheme: dark;
-
-    --glass-bg: rgb(13 17 23 / 90%);
-    --glass-border: rgb(255 255 255 / 16%);
-    --glass-solid: #161b22;
-    --glass-fallback: rgb(22 27 34 / 95%);
-
-    --color-page: #0d1117;
-    --color-surface: #161b22;
-    --color-subtle: #1f252d;
-    --color-text: #e6edf3;
-    --color-text-muted: #9da7b3;
-    --color-link: #e5676d;
-    --color-link-hover: #f19a9e;
-    --card-hover-border: #8f4a4e;
-    --color-border: #30363d;
-    --color-border-input: #6e7681;
-    --color-focus: #d4a72c;
-    --color-focus-inner: #fff;
-
-    --primary: #8b1e24;
-    --primary-hover: #a3282f;
-    --primary-soft: #2a1719;
-    --on-primary: #fff;
-
-    --gold: #d4a72c;
-    --gold-soft: #2f2810;
-    --gold-text: #e3bf5b;
-    --on-gold: #0d1117;
-
-    --neutral-bg: #262c33;
-    --neutral-fg: #b1bac4;
-    --info-bg: #1b2a3a;
-    --info-fg: #8db8e0;
-    --warning-bg: #33240f;
-    --warning-fg: #ebb36f;
-    --success-bg: #14291e;
-    --success-fg: #6fcf9a;
-    --danger-bg: #33191a;
-    --danger-fg: #f19a9e;
-    --danger-solid: #a32620;
-    --danger-solid-hover: #bb2f28;
-
-    --shadow-card: 0 1px 2px rgb(0 0 0 / 30%);
-    --shadow-md: 0 4px 12px rgb(0 0 0 / 50%);
-    --shadow-lg: 0 12px 32px rgb(0 0 0 / 60%);
-    --scrim: rgb(0 0 0 / 70%);
-}
-
 /* A browser without blur, or someone who asked for less transparency: the same surfaces, solid. */
 @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
-    :root,
-    [data-theme="dark"] {
+    :root {
         --glass-bg: var(--glass-fallback);
         --glass-dark-bg: var(--glass-dark-fallback);
         --glass-filter: none;
@@ -165,8 +113,7 @@
 }
 
 @media (prefers-reduced-transparency: reduce) {
-    :root,
-    [data-theme="dark"] {
+    :root {
         --glass-bg: var(--glass-solid);
         --glass-dark-bg: var(--glass-dark-solid);
         --glass-filter: none;
@@ -177,8 +124,7 @@
 }
 
 @media (forced-colors: active) {
-    :root,
-    [data-theme="dark"] {
+    :root {
         --glass-bg: Canvas;
         --glass-dark-bg: Canvas;
         --glass-filter: none;

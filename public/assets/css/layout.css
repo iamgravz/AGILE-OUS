@@ -769,8 +769,7 @@
 @media (scripting: none) {
     .nav-toggle,
     .sidebar-toggle,
-    .sidebar__close,
-    [data-theme-toggle] {
+    .sidebar__close {
         display: none;
     }
 

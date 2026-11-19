@@ -6,7 +6,7 @@
  * @var string $layout public or dashboard
  */
 $swatches = [
-    'Theme: these change between light and dark' => ['color-page', 'color-surface', 'color-subtle', 'color-text', 'color-text-muted', 'color-link', 'color-border', 'color-border-input', 'primary', 'primary-hover', 'primary-soft', 'gold', 'gold-soft', 'gold-text'],
+    'Theme colors' => ['color-page', 'color-surface', 'color-subtle', 'color-text', 'color-text-muted', 'color-link', 'color-border', 'color-border-input', 'primary', 'primary-hover', 'primary-soft', 'gold', 'gold-soft', 'gold-text'],
     'Chrome: dark ink in both themes' => ['ink', 'ink-2', 'ink-3', 'ink-text', 'ink-muted', 'ink-active', 'ink-border'],
     'Status' => ['neutral-bg', 'neutral-fg', 'info-bg', 'info-fg', 'warning-bg', 'warning-fg', 'success-bg', 'success-fg', 'danger-bg', 'danger-fg'],
 ];
@@ -46,7 +46,7 @@ $rows = [
 
 <?php
 $sample = static function (string $theme, string $name): void { ?>
-    <div class="sg-panel" data-theme="<?= e($theme) ?>">
+    <div class="sg-panel">
         <p class="eyebrow"><?= e($name) ?></p>
         <div class="stat-grid sg-panel__stats">
             <div class="stat-card">
@@ -107,7 +107,7 @@ $sample = static function (string $theme, string $name): void { ?>
     <p class="sg-note">Only for the public header when scrolled, the home hero panel, the login, registration and Track Status cards, and the dashboard top bar. Backdrops of modals and menus blur too. Never on tables, form fields, reading text, welfare screens or credentials.</p>
     <div class="glass-stage sg-glass">
         <div class="sg-glass__row">
-            <div class="glass sg-glass__box" data-theme="light">
+            <div class="glass sg-glass__box">
                 <p class="eyebrow">.glass, light</p>
                 <p>Dark text on frosted white. <a href="#sg-glass">A link</a></p>
                 <input class="input" type="text" value="Fields stay solid" aria-label="Sample field">
@@ -122,11 +122,10 @@ $sample = static function (string $theme, string $name): void { ?>
 </section>
 
 <section class="sg-section" aria-labelledby="sg-both">
-    <h2 id="sg-both">Light and dark, side by side</h2>
-    <p class="sg-note">The moon button in the top bar switches this whole page. Sample numbers stay on this page.</p>
+    <h2 id="sg-both">Sample panel</h2>
+    <p class="sg-note">Sample numbers stay on this page.</p>
     <div class="sg-panels">
         <?php $sample('light', 'Light'); ?>
-        <?php $sample('dark', 'Dark'); ?>
     </div>
 </section>
 

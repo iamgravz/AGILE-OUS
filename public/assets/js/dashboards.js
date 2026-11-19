@@ -90,15 +90,4 @@
         });
     });
 
-    document.addEventListener('agile:themechange', () => {
-        made.forEach(({ chart, data, area }) => {
-            const { labels } = chart.data;
-            const values = chart.data.datasets[0].data;
-
-            chart.options = options(data, area);
-            chart.data.datasets[0] = { ...dataset(data, area), data: values };
-            chart.data.labels = labels;
-            chart.update();
-        });
-    });
 })();

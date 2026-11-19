@@ -70,7 +70,6 @@ TC-01 to TC-35 from `docs/PROJECT_CONTEXT.md` §13, and which test covers each b
 Tests cannot judge these, so go through them once on your real site:
 
 - [ ] **Look and layout:** home, application wizard, a dashboard and a welfare case at 360 and at 1366.
-- [ ] **Dark mode:** toggle it on those same pages.
 - [ ] **Keyboard:** press Tab through the login page and a form. The focus ring should always show.
 - [ ] **Real email:** set `MAIL_DRIVER=smtp`, send one email to yourself, and check the banner, button and footer in Gmail.
 - [ ] **PDFs:** open an approved ID and certificate, and scan the QR code with a phone.

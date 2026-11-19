@@ -2276,16 +2276,6 @@ kbd {
     color: inherit;
 }
 
-/* The moon shows in the light theme and the sun in the dark one. */
-[data-theme-toggle] .icon--sun,
-[data-theme="dark"] [data-theme-toggle] .icon--moon {
-    display: none;
-}
-
-[data-theme="dark"] [data-theme-toggle] .icon--sun {
-    display: inline-block;
-}
-
 /* ---------- Cards ---------- */
 
 .card,
@@ -2467,14 +2457,6 @@ kbd {
 
 .progress::-moz-progress-bar {
     background: var(--primary);
-}
-
-[data-theme="dark"] .progress::-webkit-progress-value {
-    background: var(--color-link);
-}
-
-[data-theme="dark"] .progress::-moz-progress-bar {
-    background: var(--color-link);
 }
 
 .sparkline {

@@ -40,28 +40,6 @@
         }
     }
 
-    /* ---------- Dark mode. theme-init.js applied the saved choice before paint ---------- */
-
-    function initThemeToggle() {
-        const root = document.documentElement;
-        const toggles = document.querySelectorAll('[data-theme-toggle]');
-        const show = () => toggles.forEach((toggle) => {
-            toggle.setAttribute('aria-pressed', String(root.getAttribute('data-theme') === 'dark'));
-        });
-
-        toggles.forEach((toggle) => {
-            toggle.addEventListener('click', () => {
-                const theme = root.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
-
-                root.setAttribute('data-theme', theme);
-                remember('agile-theme', theme);
-                show();
-                document.dispatchEvent(new CustomEvent('agile:themechange'));
-            });
-        });
-        show();
-    }
-
     /* ---------- Mobile navigation ---------- */
 
     function setExpanded(toggle, target, open) {
@@ -666,7 +644,6 @@
         });
     }
 
-    initThemeToggle();
         initMobileNav();
     initSidebar();
     initDropdowns();

@@ -103,7 +103,6 @@ $avatar = static function () use ($user, $account): string {
                     </form>
                 <?php endif; ?>
                 <div class="topbar__tools">
-                    <?= $this->partial('partials/theme_toggle') ?>
                     <?= $this->partial('partials/notification_dropdown', ['id' => 'topbar-notifications'] + $bell) ?>
                     <a class="icon-btn topbar__mail" href="/my-submissions" aria-label="My Submissions" title="My Submissions"><?= icon('inbox') ?></a>
                     <div class="dropdown">

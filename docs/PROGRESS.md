@@ -1614,3 +1614,9 @@ Re-audit 10/10 (was 7/10). Details and evidence in [database-audit.md](database-
 - The hero's "Pause animation" button stops the slideshow; with reduced motion the first photo stays still. The photos are `aria-hidden` (decorative). No inline styles (CSP).
 - Photos 1 and 3 are only about 680px wide, so they look soft on large screens. Larger originals can replace them with the same file names.
 - **Results:** `composer test` OK, 330 tests. Checked at 1366 and 390 wide: no console errors and no sideways scrolling.
+
+### Change: dark mode removed (Nov 19, 2026)
+- Gravz asked to remove the dark theme. The site is light only.
+- Removed: the moon/sun button (`partials/theme_toggle.php`) from the public header and the dashboard top bar, the dark color block in `tokens.css`, the toggle code in `app.js`, the chart recolor in `dashboards.js`, the dark progress-bar and icon rules in `components.css`, and the dark sample in the style guide.
+- `theme-init.js` now only restores the sidebar state, and deletes a dark choice saved earlier in `localStorage`.
+- Docs updated: `PROJECT_CONTEXT.md` §12, `sad-updates.md`, `test-cases.md`.
