@@ -8,7 +8,9 @@ use App\Core\Csrf;
 use App\Core\Database;
 use App\Core\Session;
 use App\Models\ApplicantRepository;
+use App\Models\CommitteeRepository;
 use App\Models\MemberRepository;
+use App\Models\PositionRepository;
 use App\Models\RoleRepository;
 use App\Models\TokenRepository;
 use App\Models\UserRepository;
@@ -69,8 +71,12 @@ final class AuthService
                 throw new DomainException('This email or student number already has an account. Please contact the MSW Committee.');
             }
 
+            // A member who already holds a position (an officer imported from AGILE's records, or appointed before
+            // registering) gets that position's role, not General Member.
+            $position = $member['position_id'] === null ? null : (new PositionRepository())->findWithCommittee((int) $member['position_id']);
+
             $userId = $this->users->insert([
-                'role_id' => $this->roles->findBySlug('general_member')['role_id'],
+                'role_id' => $this->roles->findBySlug(MembershipService::roleSlugFor($position))['role_id'],
                 'email' => $applicant['email'],
                 'password_hash' => $hash,
                 'first_name' => $applicant['first_name'],
@@ -82,6 +88,10 @@ final class AuthService
             ]);
             $applicants->update((int) $applicant['applicant_id'], ['user_id' => $userId]);
             $members->update($memberId, ['user_id' => $userId, 'registered_at' => date('Y-m-d H:i:s')]);
+
+            if (($position['role_type'] ?? null) === 'committee_head' && $position['head_user_id'] === null) {
+                (new CommitteeRepository())->update((int) $position['committee_id'], ['head_user_id' => $userId]);
+            }
 
             // Both sides proved this email with a code, so their earlier guest concerns join the account.
             (new WelfareService())->linkGuestCases($userId, $applicant['email']);
