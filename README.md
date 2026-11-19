@@ -1,1 +1,95 @@
-# AGILE-OUS
+# AGILE Membership and Student Welfare Management System
+
+Web application for the Academic Guild of IT Learners and Experts (AGILE), the BSIT student organization of the PUP Open University System. The full specification is in [docs/PROJECT_CONTEXT.md](docs/PROJECT_CONTEXT.md), and build progress is in [docs/PROGRESS.md](docs/PROGRESS.md).
+
+## Requirements
+
+- PHP 8.2 or newer with the `fileinfo`, `gd`, `mbstring`, `openssl`, `pdo_mysql` and `zip` extensions. `exif` is recommended, so sideways phone photos are straightened
+- `upload_max_filesize` and `post_max_size` in `php.ini` of at least 6M, because uploads can be up to 5 MB
+- Composer 2
+- MySQL 8 or MariaDB 10.6+ (used from the database step onward)
+
+## Install
+
+```
+composer install
+cp .env.example .env
+```
+
+On Windows Command Prompt or PowerShell, use `copy .env.example .env`. Then edit `.env` for your machine, including your MySQL password in `DB_PASS`.
+
+## Database
+
+```
+php database/setup.php
+```
+
+This creates the database if it is missing, applies `database/schema.sql`, seeds the data, and prints a report. Use `--fresh` to delete the database and rebuild it; this is refused when `APP_ENV=production`. To print the report again, run `php database/report.php`.
+
+To upgrade an existing database, run the same command without `--fresh`: it keeps your data and applies `database/migrations/`.
+
+Outside production, this also creates demo users with the password `Password123!`. See [docs/database.md](docs/database.md) for the table reference.
+
+## Run
+
+**PHP built-in server**
+
+```
+php -S localhost:8000 -t public
+```
+
+Open http://localhost:8000.
+
+**XAMPP virtual host**
+
+Point a virtual host at the `public` folder, which is the only folder that should be reachable from the web. `mod_rewrite` must be on and the folder must allow `.htaccess` overrides:
+
+```apache
+<VirtualHost *:80>
+    ServerName agile.test
+    DocumentRoot "C:/xampp/htdocs/agile/public"
+    <Directory "C:/xampp/htdocs/agile/public">
+        AllowOverride All
+        Require all granted
+    </Directory>
+</VirtualHost>
+```
+
+Add `127.0.0.1 agile.test` to your hosts file and set `APP_URL=http://agile.test` in `.env`.
+
+## Tests
+
+```
+composer test
+```
+
+This drops and rebuilds its own databases, `agile_ams_test` and `agile_ams_test_http_test`, and uses a temporary folder for files, so your data and `storage/` are not touched. It sends no email. `docs/test-cases.md` lists every test case, with manual steps for the ones a person has to check.
+
+## Email and background jobs
+
+Modules queue email through `NotificationService`, and `jobs/send_email_queue.php` sends it. Schedule that job every 5 minutes with Cron or Windows Task Scheduler.
+
+With `MAIL_DRIVER=log`, emails are written to `storage/mail/` as `.html` files instead of being sent. To try it:
+
+```
+php jobs/test_notify.php you@example.com
+php jobs/send_email_queue.php
+```
+
+Job activity is logged to `storage/logs/jobs.log`.
+
+## Encryption key
+
+Run `php jobs/generate_key.php` once and put the output in `ENCRYPTION_KEY` in `.env`. Keep a safe copy: encrypted welfare data cannot be read without this key.
+
+## Tests
+
+```
+vendor/bin/phpunit
+```
+
+`AccessMatrixTest` needs the seeded database and leaves no data behind. `EncryptionServiceTest` needs neither the database nor `.env`.
+
+## Style guide
+
+With `APP_ENV=local`, open `/styleguide`, `/styleguide/dashboard` and `/styleguide/auth` to see every component and status badge. These routes do not exist in any other environment.

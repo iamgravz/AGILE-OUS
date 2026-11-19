@@ -1,0 +1,811 @@
+/* The public home page. Everything is visible by default, and motion only ever adds to it. The one looping animation is the hero's grid. */
+
+.site-main:has(.landing) {
+    padding-block: 0;
+}
+
+.landing-band {
+    margin-inline: calc(var(--gutter) * -1);
+    padding-inline: var(--gutter);
+}
+
+.landing p {
+    max-width: 70ch;
+}
+
+.landing h2,
+.hero--landing h1 {
+    text-wrap: balance;
+}
+
+/* ---------- One spacing for every section ---------- */
+
+.landing-section {
+    margin-top: var(--section-space);
+}
+
+.landing > .landing-section:last-child {
+    margin-bottom: var(--section-space);
+}
+
+.landing-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: var(--space-2) var(--space-5);
+    margin-bottom: var(--space-5);
+}
+
+.landing-head h2 {
+    margin: 0;
+}
+
+.landing-head .eyebrow {
+    margin-bottom: var(--space-1);
+}
+
+.landing-head__intro {
+    margin: var(--space-1) 0 0;
+}
+
+.landing-head__links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2) var(--space-4);
+}
+
+/* ---------- Hero ---------- */
+
+.hero--landing {
+    overflow: hidden;
+    margin-bottom: 0;
+    padding-top: calc(var(--site-header-height) + var(--space-5));
+    padding-bottom: 2.75rem;
+    background-image: none;
+}
+
+.hero--landing::before {
+    content: "";
+    position: absolute;
+    inset: -48px;
+    background-image: url("../img/grid.svg");
+    pointer-events: none;
+}
+
+/* One soft glow. */
+.hero--landing .glass-glows::after {
+    content: none;
+}
+
+.hero--landing .hero__title {
+    margin-bottom: var(--space-1);
+}
+
+.hero__tagline {
+    margin: 0 0 var(--space-3);
+    color: var(--landing-tagline);
+    font-family: var(--font-mono);
+    font-size: 0.875rem;
+}
+
+.hero__logo {
+    display: block;
+    justify-self: end;
+    width: 6rem;
+    height: 6rem;
+    border-radius: 50%;
+}
+
+.hero__logo--photo {
+    object-fit: cover;
+}
+
+.hero__pause {
+    position: absolute;
+    right: var(--gutter);
+    bottom: var(--space-2);
+    min-height: 24px;
+    padding: 0;
+    border: 0;
+    background: none;
+    color: var(--ink-text);
+    font: inherit;
+    font-size: 0.875rem;
+    text-decoration: underline;
+    cursor: pointer;
+}
+
+.hero__pause:hover {
+    color: var(--ink-strong);
+}
+
+@media (max-width: 575.98px) {
+    .hero--landing .cluster {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .hero--landing .cluster .btn {
+        width: 100%;
+    }
+}
+
+@media (min-width: 768px) {
+    .hero__logo {
+        width: 11rem;
+        height: 11rem;
+    }
+}
+
+/* Without JavaScript the header can wrap to a height the hero cannot know, so they simply stack. */
+html:not(.js) .site-body:has(.hero--landing) .site-header {
+    background: var(--ink);
+}
+
+html:not(.js) .hero--landing {
+    margin-top: 0;
+    padding-top: var(--space-5);
+}
+
+html:not(.js) .hero--landing .glass-glows {
+    inset: 0;
+}
+
+/* ---------- Numbers: one slim row on the hero's dark edge ---------- */
+
+.landing-numbers {
+    border-top: 1px solid var(--ink-border);
+    background: var(--ink);
+    color: var(--ink-text);
+}
+
+.landing-numbers__grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    margin: 0;
+    padding-block: var(--space-3);
+}
+
+.landing-numbers__grid div {
+    display: flex;
+    flex-direction: column-reverse;
+    justify-content: flex-end;
+    margin: 0;
+    padding: var(--space-1) var(--space-4);
+    border-left: 1px solid var(--ink-border);
+}
+
+.landing-numbers__grid div:nth-child(odd) {
+    padding-left: 0;
+    border-left: 0;
+}
+
+.landing-numbers__grid dt {
+    color: var(--ink-text);
+    font-size: 0.875rem;
+    font-weight: 400;
+}
+
+.landing-numbers__grid dd {
+    margin: 0;
+    color: var(--ink-strong);
+    font-family: var(--font-mono);
+    font-size: 1.75rem;
+    font-weight: 500;
+    font-variant-numeric: tabular-nums;
+    line-height: 1.2;
+}
+
+@media (min-width: 768px) {
+    .landing-numbers__grid {
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+
+    .landing-numbers__grid div:nth-child(odd) {
+        padding-left: var(--space-4);
+        border-left: 1px solid var(--ink-border);
+    }
+
+    .landing-numbers__grid div:first-child {
+        padding-left: 0;
+        border-left: 0;
+    }
+}
+
+/* ---------- What AGILE does: flat tiles, so the announcements stay the page's only cards ---------- */
+
+.landing-tiles {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0 var(--space-5);
+}
+
+.landing-tile {
+    position: relative;
+    overflow: hidden;
+    padding-block: var(--space-4);
+    border-top: 1px solid var(--color-border);
+}
+
+.landing-tile::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(220px circle at var(--spot-x, 50%) var(--spot-y, 50%), var(--landing-spot), transparent 70%);
+    opacity: 0;
+    transition: opacity 200ms ease-out;
+    pointer-events: none;
+}
+
+.landing-tile:hover::before {
+    opacity: 1;
+}
+
+.landing-tile__initials {
+    display: block;
+    margin-bottom: var(--space-2);
+    color: var(--color-text-muted);
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    letter-spacing: 0.06em;
+}
+
+.landing-tile h3 {
+    margin-bottom: var(--space-1);
+    font-size: 1rem;
+}
+
+.landing-tile p {
+    margin: 0;
+    color: var(--color-text-muted);
+    font-size: 0.875rem;
+}
+
+@media (min-width: 1024px) {
+    .landing-tiles {
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+}
+
+/* ---------- How to join ---------- */
+
+.join-steps {
+    position: relative;
+    display: grid;
+    gap: var(--space-5);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.join-steps::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 1.0625rem;
+    width: 2px;
+    background: var(--gold);
+    transform-origin: top;
+}
+
+.join-steps__step {
+    position: relative;
+    margin: 0;
+    padding-left: 3.25rem;
+}
+
+.join-steps__marker {
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.25rem;
+    height: 2.25rem;
+    border: 2px solid var(--gold);
+    border-radius: 50%;
+    background: var(--color-page);
+    color: var(--color-text);
+    font-family: var(--font-mono);
+    font-weight: 500;
+}
+
+/* The line stops at the last marker. */
+.join-steps__step:last-child::after {
+    content: "";
+    position: absolute;
+    top: 2.25rem;
+    bottom: 0;
+    left: 0;
+    width: 2.25rem;
+    background: var(--color-page);
+}
+
+.join-steps__step h3 {
+    margin-bottom: var(--space-1);
+    font-size: 1rem;
+}
+
+.join-steps__step p {
+    margin: 0;
+    color: var(--color-text-muted);
+    font-size: 0.875rem;
+}
+
+@media (min-width: 768px) {
+    .join-steps {
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+
+    .join-steps::before {
+        top: 1.0625rem;
+        right: 25%;
+        bottom: auto;
+        left: 0;
+        width: auto;
+        height: 2px;
+        transform-origin: left;
+    }
+
+    .join-steps__step {
+        padding-top: 3rem;
+        padding-left: 0;
+    }
+
+    .join-steps__step:last-child::after {
+        content: none;
+    }
+}
+
+/* ---------- Open positions and upcoming events ---------- */
+
+.landing-columns {
+    display: grid;
+    gap: var(--space-6) var(--space-6);
+}
+
+.landing-columns__head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: var(--space-3);
+    margin-bottom: var(--space-2);
+}
+
+.landing-columns__head h3 {
+    margin: 0;
+    font-size: 1rem;
+}
+
+.landing-rows {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.landing-rows li {
+    margin: 0;
+    padding-block: var(--space-3);
+    border-top: 1px solid var(--color-border);
+}
+
+.landing-rows a {
+    font-weight: 500;
+}
+
+.landing-rows__meta {
+    display: block;
+    color: var(--color-text-muted);
+    font-size: 0.875rem;
+}
+
+@media (min-width: 768px) {
+    .landing-columns {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+/* ---------- Latest announcements ---------- */
+
+.landing-cards {
+    display: grid;
+    gap: var(--space-4);
+}
+
+.landing-cards .post-card__cover {
+    aspect-ratio: 21 / 9;
+}
+
+@media (min-width: 768px) {
+    .landing-cards {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+}
+
+/* ---------- Gallery, when it is on ---------- */
+
+.landing-gallery {
+    columns: 1;
+    gap: var(--space-3);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.landing-gallery li {
+    margin: 0 0 var(--space-3);
+    break-inside: avoid;
+}
+
+.landing-gallery a {
+    display: block;
+}
+
+.landing-gallery img {
+    display: block;
+    width: 100%;
+    height: auto;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+}
+
+@media (min-width: 640px) {
+    .landing-gallery {
+        columns: 2;
+    }
+}
+
+@media (min-width: 1024px) {
+    .landing-gallery {
+        columns: 3;
+    }
+}
+
+.landing-lightbox {
+    max-width: min(92vw, 75rem);
+    padding: var(--space-4);
+    border: 1px solid var(--ink-border);
+    border-radius: var(--radius-md);
+    background: var(--ink);
+    color: var(--ink-text);
+}
+
+.landing-lightbox::backdrop {
+    background: rgb(13 17 23 / 85%);
+}
+
+.landing-lightbox img {
+    display: block;
+    max-width: 100%;
+    max-height: 72vh;
+    width: auto;
+    height: auto;
+}
+
+.landing-lightbox p {
+    margin: var(--space-2) 0;
+    color: var(--ink-strong);
+}
+
+/* ---------- The closing band runs into the footer ---------- */
+
+.landing-cta {
+    --color-focus-inner: #fff;
+
+    margin-top: var(--section-space);
+    padding-block: var(--space-6);
+    border-bottom: 1px solid var(--ink-border);
+    background: var(--ink);
+    color: var(--ink-text);
+}
+
+.landing-cta h2 {
+    margin-bottom: var(--space-1);
+    color: var(--ink-strong);
+}
+
+.landing-cta__link {
+    color: var(--ink-strong);
+}
+
+/* ---------- Scroll progress, in the header ---------- */
+
+.landing-progress {
+    position: absolute;
+    top: calc(100% + 2px);
+    right: 0;
+    left: 0;
+    height: 2px;
+    background: var(--gold);
+    transform: scaleX(0);
+    transform-origin: left;
+    pointer-events: none;
+}
+
+/* ---------- Motion, only when wanted. Each hidden start state is added by landing.js, or ends visible by itself ---------- */
+
+@media (prefers-reduced-motion: no-preference) {
+    html:has(.landing) {
+        scroll-behavior: smooth;
+        scroll-padding-top: calc(var(--site-header-height) + var(--space-3));
+    }
+
+    .js .hero-rise {
+        animation: landing-rise 600ms ease-out both;
+    }
+
+    .js .hero--landing::before {
+        animation: landing-grid 48s linear infinite;
+    }
+
+    .reveal-pending {
+        opacity: 0;
+        transform: translateY(14px);
+    }
+
+    .reveal-active {
+        will-change: opacity, transform;
+        transition: opacity 500ms ease-out, transform 500ms ease-out;
+    }
+
+    .join-pending::before {
+        transform: scaleY(0);
+    }
+
+    .join-steps.is-drawn::before {
+        transition: transform 1200ms ease-out;
+    }
+
+    @media (min-width: 768px) {
+        .join-pending::before {
+            transform: scaleX(0);
+        }
+    }
+}
+
+/* Off screen, or stopped with the Pause button. */
+.motion-paused .hero--landing::before,
+.hero--landing.is-offscreen::before {
+    animation-play-state: paused !important;
+}
+
+@keyframes landing-rise {
+    from {
+        opacity: 0;
+        transform: translateY(14px);
+    }
+}
+
+@keyframes landing-grid {
+    to {
+        transform: translate(48px, 48px);
+    }
+}
+
+@media print {
+    .reveal-pending {
+        opacity: 1;
+        transform: none;
+    }
+
+    .hero__pause,
+    .landing-progress {
+        display: none;
+    }
+}
+
+/* ---------- Campus photos behind the hero ----------
+   Four PUP campus photos crossfade with a slow zoom, 7 seconds each (28-second loop).
+   Backgrounds come from classes, not style attributes, because the Content Security Policy blocks inline styles.
+   The maroon-to-ink overlay keeps the hero text readable on every photo. */
+
+.hero__campus {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    overflow: hidden;
+    pointer-events: none;
+}
+
+.hero__campus::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background:
+        linear-gradient(100deg, rgba(13, 17, 23, 0.72) 0%, rgba(13, 17, 23, 0.45) 50%, rgba(92, 10, 16, 0.18) 100%),
+        linear-gradient(0deg, rgba(13, 17, 23, 0.55) 0%, rgba(13, 17, 23, 0) 35%);
+}
+
+.hero__campus-slide {
+    position: absolute;
+    inset: 0;
+    background-position: center;
+    background-size: cover;
+    opacity: 0;
+    animation: hero-campus 28s linear infinite;
+    will-change: opacity, transform;
+}
+
+.hero__campus-slide--1 { background-image: url("../img/campus/campus-1.webp"); animation-delay: 0s; }
+.hero__campus-slide--2 { background-image: url("../img/campus/campus-2.webp"); animation-delay: 7s; }
+.hero__campus-slide--3 { background-image: url("../img/campus/campus-3.webp"); animation-delay: 14s; }
+.hero__campus-slide--4 { background-image: url("../img/campus/campus-4.webp"); animation-delay: 21s; }
+
+@media (max-width: 767px) {
+    .hero__campus-slide--2 { background-image: url("../img/campus/campus-2-sm.webp"); }
+    .hero__campus-slide--4 { background-image: url("../img/campus/campus-4-sm.webp"); }
+}
+
+/* Each photo: fade in (2s), hold while zooming, fade out (2s) as the next one fades in. */
+@keyframes hero-campus {
+    0% { opacity: 0; transform: scale(1.04); }
+    7% { opacity: 1; }
+    25% { opacity: 1; }
+    32% { opacity: 0; transform: scale(1.14); }
+    100% { opacity: 0; transform: scale(1.14); }
+}
+
+/* The grid, glow and content sit above the photos. */
+.hero--landing::before {
+    z-index: 1;
+    opacity: 0.35;
+}
+
+.hero--landing .glass-glows,
+.hero--landing .hero__inner,
+.hero--landing .hero__pause {
+    z-index: 2;
+}
+
+.hero--landing .hero__inner {
+    position: relative;
+}
+
+/* The page's Pause animation button stops the slideshow where it is. */
+.motion-paused .hero__campus-slide {
+    animation-play-state: paused;
+}
+
+/* No motion: the first photo stays, still. */
+@media (prefers-reduced-motion: reduce) {
+    .hero__campus-slide {
+        animation: none;
+    }
+
+    .hero__campus-slide--1 {
+        opacity: 1;
+    }
+}
+
+/* ---------- Full-screen hero, like the BHMS landing page ----------
+   The campus photos fill the whole first screen. The text sits in the middle on the photo itself (no box),
+   readable through the overlay and a soft text shadow. An arrow at the bottom scrolls to the rest of the page. */
+
+.hero--landing {
+    display: flex;
+    align-items: center;
+    min-height: 100vh;
+    min-height: 100svh;
+    padding-bottom: 5rem;
+}
+
+.hero--landing .hero__campus::after {
+    background:
+        radial-gradient(ellipse at center, rgba(13, 17, 23, 0.55) 0%, rgba(13, 17, 23, 0.2) 70%),
+        linear-gradient(180deg, rgba(13, 17, 23, 0.45) 0%, rgba(92, 10, 16, 0.25) 55%, rgba(13, 17, 23, 0.7) 100%);
+}
+
+.hero--landing .hero__inner {
+    display: flex;
+    justify-content: center;
+    width: 100%;
+}
+
+.hero--landing .hero__panel {
+    max-width: 46rem;
+    padding: 0;
+    text-align: center;
+}
+
+.hero--landing .hero__logo {
+    width: 5.5rem;
+    height: 5.5rem;
+    margin: 0 auto var(--space-3);
+    box-shadow: 0 6px 24px rgba(0, 0, 0, 0.35);
+}
+
+.hero--landing .hero__badge {
+    display: inline-block;
+    margin-bottom: var(--space-3);
+    padding: 0.35rem 1rem;
+    border: 1px solid rgba(255, 255, 255, 0.35);
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.14);
+    color: #fff;
+    -webkit-backdrop-filter: blur(8px);
+    backdrop-filter: blur(8px);
+}
+
+.hero--landing .hero__title {
+    max-width: none;
+    color: #fff;
+    font-size: clamp(2.25rem, 5.5vw, 4rem);
+    line-height: 1.1;
+    text-shadow: 0 2px 24px rgba(0, 0, 0, 0.55);
+}
+
+.hero--landing .hero__tagline {
+    color: var(--gold);
+    text-shadow: 0 1px 12px rgba(0, 0, 0, 0.6);
+}
+
+.hero--landing .hero__lead {
+    max-width: 34rem;
+    margin-inline: auto;
+    color: rgba(255, 255, 255, 0.9);
+    font-size: clamp(1rem, 1.8vw, 1.2rem);
+    text-shadow: 0 1px 12px rgba(0, 0, 0, 0.6);
+}
+
+.hero--landing .cluster {
+    justify-content: center;
+}
+
+.hero__scroll {
+    position: absolute;
+    left: 50%;
+    bottom: var(--space-4);
+    z-index: 2;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.75rem;
+    height: 2.75rem;
+    border: 1px solid rgba(255, 255, 255, 0.35);
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.12);
+    color: #fff;
+    transform: translateX(-50%);
+}
+
+.hero__scroll:hover {
+    background: rgba(255, 255, 255, 0.24);
+}
+
+.hero__scroll .icon {
+    width: 1.25rem;
+    height: 1.25rem;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+    .hero__scroll {
+        animation: hero-scroll-bob 2.4s ease-in-out infinite;
+    }
+
+    .motion-paused .hero__scroll {
+        animation-play-state: paused;
+    }
+}
+
+@keyframes hero-scroll-bob {
+    0%, 100% { transform: translate(-50%, 0); }
+    50% { transform: translate(-50%, 6px); }
+}
+
+#explore:focus {
+    outline: none;
+}
+
+html {
+    scroll-behavior: smooth;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    html {
+        scroll-behavior: auto;
+    }
+}

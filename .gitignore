@@ -1,0 +1,13 @@
+/vendor/
+.env
+node_modules/
+.idea/
+.vscode/
+.phpunit.cache/
+.phpunit.result.cache
+
+# Keep the storage folders, ignore everything written into them
+/storage/*
+!/storage/*/
+/storage/*/*
+!/storage/*/.gitkeep

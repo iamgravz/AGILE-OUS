@@ -1,0 +1,1 @@
+Quill 2.0.3 from https://registry.npmjs.org/quill/-/quill-2.0.3.tgz (sha1 752765a31d5a535cdc5717dc49d4e50099365eb1). BSD-3-Clause, see LICENSE.

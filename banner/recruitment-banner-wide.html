@@ -1,0 +1,165 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>AGILE-OUS Recruitment Cover</title>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@500;700;800;900&family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  /* 3:1 cover for the Teams Events page (1920x640) */
+  :root {
+    --navy: #0f1d4a;
+    --maroon: #7a0f1f;
+    --maroon-deep: #4a0a17;
+    --gold: #f5b915;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { width: 1920px; height: 640px; overflow: hidden; background: var(--navy); }
+  .banner {
+    position: relative; width: 1920px; height: 640px; overflow: hidden;
+    background: linear-gradient(115deg, #0d1a45 0%, #1c1745 35%, #4a0f2a 65%, #6e0d1d 100%);
+    font-family: 'Poppins', 'Segoe UI', sans-serif; color: #fff;
+  }
+
+  .building {
+    position: absolute; right: 0; top: 0; width: 1300px; height: 640px;
+    background: url('building.jpg') center 35% / cover no-repeat;
+    -webkit-mask-image: linear-gradient(90deg, transparent 0%, rgba(0,0,0,.55) 18%, #000 40%);
+            mask-image: linear-gradient(90deg, transparent 0%, rgba(0,0,0,.55) 18%, #000 40%);
+  }
+  .building-tint {
+    position: absolute; right: 0; top: 0; width: 1300px; height: 640px;
+    background:
+      linear-gradient(180deg, rgba(13,26,69,.35) 0%, rgba(13,26,69,0) 30%, rgba(74,10,23,.55) 75%, rgba(40,6,18,.92) 100%),
+      linear-gradient(90deg, rgba(28,23,69,1) 0%, rgba(28,23,69,0) 40%);
+    -webkit-mask-image: linear-gradient(90deg, transparent 0%, #000 25%);
+            mask-image: linear-gradient(90deg, transparent 0%, #000 25%);
+  }
+
+  .circuits { position: absolute; left: 0; top: 0; opacity: .5; }
+  .gold-arc { position: absolute; left: 0; top: 0; }
+
+  .content {
+    position: absolute; left: 60px; top: 34px; width: 640px;
+    display: flex; flex-direction: column; align-items: center; text-align: center;
+  }
+  .logos { display: flex; gap: 22px; }
+  .logo {
+    width: 116px; height: 116px; border-radius: 50%;
+    background: url('logo.jpg') center / 104% no-repeat #fff;
+    box-shadow: 0 0 0 4px rgba(245,185,21,.9), 0 0 0 9px rgba(255,255,255,.08), 0 12px 36px rgba(0,0,0,.55);
+  }
+  .logo.pup { background: url('pup-seal.svg') center / 92% no-repeat #fff; }
+  .eyebrow {
+    margin-top: 22px; font-family: 'Montserrat', sans-serif; font-weight: 700;
+    color: var(--gold); letter-spacing: 5px; font-size: 18px;
+  }
+  .title-1 {
+    font-family: 'Montserrat', sans-serif; font-weight: 900; font-size: 78px; line-height: 1;
+    margin-top: 6px; text-shadow: 0 6px 24px rgba(0,0,0,.45);
+  }
+  .title-2 {
+    font-family: 'Montserrat', sans-serif; font-weight: 900; font-size: 112px; line-height: .95;
+    background: linear-gradient(180deg, #ffe07a 0%, #f5b915 55%, #d68f00 100%);
+    -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
+    filter: drop-shadow(0 8px 20px rgba(0,0,0,.45));
+  }
+  .org { margin-top: 10px; font-size: 23px; font-weight: 600; }
+  .sub { font-size: 17px; opacity: .85; }
+  .cta {
+    margin-top: 18px; font-family: 'Montserrat', sans-serif; font-weight: 900; font-size: 24px;
+    color: var(--maroon-deep); background: linear-gradient(180deg, #ffd75e, #f5b915);
+    padding: 12px 40px; border-radius: 50px;
+    box-shadow: 0 8px 24px rgba(245,185,21,.35), inset 0 -3px 0 rgba(0,0,0,.12);
+  }
+
+  .students {
+    position: absolute; left: 690px; bottom: -110px; width: 880px;
+    filter: drop-shadow(0 18px 40px rgba(0,0,0,.55));
+    -webkit-mask-image: linear-gradient(180deg, #000 74%, transparent 90%), linear-gradient(90deg, transparent 0%, #000 6%, #000 94%, transparent 100%);
+    -webkit-mask-composite: source-in;
+            mask-image: linear-gradient(180deg, #000 74%, transparent 90%), linear-gradient(90deg, transparent 0%, #000 6%, #000 94%, transparent 100%);
+            mask-composite: intersect;
+  }
+  .students-fade {
+    position: absolute; right: 0; bottom: 0; width: 1300px; height: 110px;
+    background: linear-gradient(180deg, rgba(40,6,18,0), rgba(40,6,18,.95));
+    -webkit-mask-image: linear-gradient(90deg, transparent 0%, #000 25%);
+            mask-image: linear-gradient(90deg, transparent 0%, #000 25%);
+  }
+
+  .right-col {
+    position: absolute; right: 44px; top: 0; height: 640px; width: 300px;
+    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 20px;
+  }
+  .tag {
+    text-align: center; font-family: 'Montserrat', sans-serif; font-weight: 800; font-size: 25px; line-height: 1.15; white-space: nowrap;
+    text-shadow: 0 4px 18px rgba(0,0,0,.8);
+  }
+  .tag em { font-style: normal; color: var(--gold); }
+  .qr-card {
+    width: 250px; padding: 16px 16px 12px;
+    background: #fff; border-radius: 20px; text-align: center; color: var(--maroon-deep);
+    box-shadow: 0 0 0 5px var(--gold), 0 20px 50px rgba(0,0,0,.55);
+  }
+  .qr-card .scan { font-family: 'Montserrat', sans-serif; font-weight: 900; font-size: 22px; letter-spacing: 1px; margin-bottom: 8px; }
+  .qr-card #qr svg { display: block; width: 218px; height: 218px; }
+  .qr-card .link { font-size: 14px; font-weight: 600; margin-top: 6px; color: #1c2a5c; }
+  .star { position: absolute; }
+</style>
+</head>
+<body>
+<div class="banner">
+  <div class="building"></div>
+  <div class="building-tint"></div>
+
+  <svg class="circuits" width="1920" height="640" viewBox="0 0 1920 640" fill="none" stroke="#c98a1a" stroke-width="2.5">
+    <path d="M0 250 H30 L55 225 H90"/><circle cx="98" cy="225" r="7"/>
+    <path d="M0 310 H45"/><circle cx="53" cy="310" r="7"/>
+    <path d="M0 370 H25 L50 395 H80"/><circle cx="88" cy="395" r="7"/>
+    <path d="M0 560 H50 L75 535 H105"/><circle cx="113" cy="535" r="7"/>
+  </svg>
+
+  <svg class="gold-arc" width="1920" height="640" viewBox="0 0 1920 640" fill="none">
+    <path d="M640 640 C 860 520, 1250 470, 1920 460" stroke="#f5b915" stroke-width="4" opacity=".85"/>
+    <path d="M680 640 C 900 540, 1280 495, 1920 488" stroke="#f5b915" stroke-width="1.5" opacity=".45"/>
+  </svg>
+
+  <div class="content">
+    <div class="logos">
+      <div class="logo pup"></div>
+      <div class="logo"></div>
+    </div>
+    <div class="eyebrow">WE ARE NOW ACCEPTING MEMBERS</div>
+    <div class="title-1">RECRUITMENT</div>
+    <div class="title-2">DRIVE</div>
+    <div class="org">Academic Guild of IT Learners and Experts</div>
+    <div class="sub">Polytechnic University of the Philippines · Open University System</div>
+    <div class="cta">JOIN AGILE-OUS TODAY!</div>
+  </div>
+
+  <img class="students" src="students-cutout.png" alt="">
+  <div class="students-fade"></div>
+
+  <div class="right-col">
+    <div class="tag">Code. Collaborate.<br><em>Create the future.</em></div>
+    <div class="qr-card">
+      <div class="scan">SCAN TO APPLY</div>
+      <div id="qr"></div>
+      <div class="link">forms.gle/g2W5Ta6UqdLoXFfE9</div>
+    </div>
+  </div>
+
+  <svg class="star" style="left:720px;top:60px" width="28" height="28" viewBox="0 0 24 24"><path fill="#f5b915" d="M12 1.5l3.1 6.6 7.2.9-5.3 5 1.4 7.1L12 17.6 5.6 21.1 7 14l-5.3-5 7.2-.9z"/></svg>
+  <svg class="star" style="left:40px;top:590px" width="22" height="22" viewBox="0 0 24 24"><path fill="#c98a1a" d="M12 1.5l3.1 6.6 7.2.9-5.3 5 1.4 7.1L12 17.6 5.6 21.1 7 14l-5.3-5 7.2-.9z"/></svg>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js"></script>
+<script>
+  // Recruitment form link; error level M keeps it scannable when printed small
+  const qr = qrcode(0, 'M');
+  qr.addData('https://forms.gle/g2W5Ta6UqdLoXFfE9');
+  qr.make();
+  document.getElementById('qr').innerHTML = qr.createSvgTag({ cellSize: 8, margin: 0, scalable: true });
+</script>
+</body>
+</html>

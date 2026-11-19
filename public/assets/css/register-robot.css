@@ -1,0 +1,727 @@
+/* The registration steps with Iskobot. Loaded only when a view sets the auth_style section to "iskobot". */
+
+@font-face { font-family: "Fredoka"; font-weight: 400; font-style: normal; font-display: swap; src: url("../fonts/fredoka-latin-400-normal.woff2") format("woff2"); }
+@font-face { font-family: "Fredoka"; font-weight: 500; font-style: normal; font-display: swap; src: url("../fonts/fredoka-latin-500-normal.woff2") format("woff2"); }
+@font-face { font-family: "Fredoka"; font-weight: 600; font-style: normal; font-display: swap; src: url("../fonts/fredoka-latin-600-normal.woff2") format("woff2"); }
+
+.auth-page--iskobot {
+    /* Fixed colors for this page. */
+    --isk-maroon: #800000;
+    --isk-maroon-hover: #a31621;
+    --isk-gold: #f4c430;
+    --isk-ink: #222;
+    --isk-text: #333;
+    --isk-muted: #555;
+    --isk-paper: #fff;
+    --isk-cream: #fff9e6;
+    --isk-error: #b00020;
+    --isk-font: "Fredoka", "Segoe UI", Arial, sans-serif;
+
+    position: relative;
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    padding: 30px 16px;
+    overflow-x: hidden;
+    font-family: var(--isk-font);
+    color: var(--isk-text);
+    background: linear-gradient(135deg, #3d0205, #56070c, #800000, #2c0103);
+    background-size: 300% 300%;
+    animation: isk-gradient 15s ease infinite;
+}
+
+/* ---------- Background: moving motto rows and floating shapes ---------- */
+
+.iskobot-watermark {
+    position: fixed;
+    inset: -50%;
+    z-index: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-around;
+    opacity: 0.07;
+    transform: rotate(-15deg);
+    pointer-events: none;
+    user-select: none;
+}
+
+.iskobot-watermark__row {
+    white-space: nowrap;
+    font-size: 30px;
+    font-weight: 600;
+    letter-spacing: 6px;
+    color: var(--isk-gold);
+    animation: isk-slide 30s linear infinite;
+}
+
+.iskobot-watermark__row:nth-child(even) {
+    animation-direction: reverse;
+    animation-duration: 38s;
+}
+
+.iskobot-shapes {
+    position: fixed;
+    inset: 0;
+    z-index: 1;
+    overflow: hidden;
+    pointer-events: none;
+}
+
+.iskobot-shape {
+    position: absolute;
+    opacity: 0.12;
+}
+
+.iskobot-shape--cube {
+    top: 15%;
+    left: 10%;
+    width: 60px;
+    height: 60px;
+    border-radius: 16px;
+    background: var(--isk-gold);
+    animation: isk-float 22s linear infinite;
+}
+
+.iskobot-shape--frame {
+    bottom: 10%;
+    right: 12%;
+    width: 90px;
+    height: 90px;
+    border: 3px solid var(--isk-gold);
+    border-radius: 24px;
+    animation: isk-float 26s linear infinite reverse;
+}
+
+.iskobot-shape--glow {
+    top: 70%;
+    left: 15%;
+    width: 140px;
+    height: 140px;
+    border-radius: 50%;
+    background: radial-gradient(circle, var(--isk-gold) 0%, transparent 70%);
+    animation: isk-glow 8s ease-in-out infinite alternate;
+}
+
+/* Positions live here, not in style attributes: the Content Security Policy blocks inline styles. */
+.iskobot-shape--star1 { top: 18%; right: 18%; }
+.iskobot-shape--star2 { bottom: 22%; left: 10%; }
+.iskobot-shape--star3 { top: 52%; left: 6%; }
+
+.iskobot-shape--star {
+    font-size: 40px;
+    color: var(--isk-gold);
+    animation: isk-star 18s ease-in-out infinite;
+}
+
+/* ---------- Column: brand, Iskobot, banner, card ---------- */
+
+.iskobot-wrap {
+    position: relative;
+    z-index: 2;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+    max-width: 520px;
+}
+
+.iskobot-brand {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 14px;
+    color: #fff;
+    text-decoration: none;
+    text-shadow: 2px 2px 0 var(--isk-ink);
+}
+
+.iskobot-brand__logo {
+    width: 48px;
+    height: 48px;
+    border: 2.5px solid var(--isk-ink);
+    border-radius: 50%;
+    background: var(--isk-paper);
+    box-shadow: 3px 3px 0 var(--isk-ink);
+}
+
+.iskobot-brand__text {
+    display: flex;
+    flex-direction: column;
+}
+
+.iskobot-brand__title {
+    font-size: 24px;
+    font-weight: 600;
+    letter-spacing: 1.5px;
+    line-height: 1.1;
+}
+
+.iskobot-brand__sub {
+    font-size: 12px;
+    font-weight: 500;
+    letter-spacing: 0.5px;
+    color: var(--isk-gold);
+}
+
+.iskobot-brand:focus-visible,
+.iskobot-links a:focus-visible {
+    outline: 3px solid var(--isk-gold);
+    outline-offset: 4px;
+    border-radius: 6px;
+}
+
+.iskobot-main {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+}
+
+.iskobot-main:focus {
+    outline: none;
+}
+
+.iskobot-main > .flash,
+.iskobot-main > .alert,
+.iskobot-main > [role="alert"],
+.iskobot-main > [role="status"] {
+    width: 100%;
+    margin-bottom: 14px;
+    border: 2.5px solid var(--isk-ink);
+    border-radius: 14px;
+    box-shadow: 4px 4px 0 var(--isk-ink);
+}
+
+/* ---------- Iskobot ---------- */
+
+.iskobot {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-bottom: -10px;
+    z-index: 4;
+    animation: isk-hover 4s ease-in-out infinite;
+}
+
+.iskobot__bubble {
+    position: relative;
+    margin-bottom: 12px;
+    padding: 10px 18px;
+    border: 2.5px solid var(--isk-ink);
+    border-radius: 16px;
+    background: var(--isk-paper);
+    box-shadow: 3px 3px 0 var(--isk-ink);
+    color: var(--isk-ink);
+    font-size: 14px;
+    font-weight: 500;
+    text-align: center;
+}
+
+.iskobot__bubble::after {
+    content: "";
+    position: absolute;
+    bottom: -9px;
+    left: 50%;
+    transform: translateX(-50%);
+    border-left: 9px solid transparent;
+    border-right: 9px solid transparent;
+    border-top: 9px solid var(--isk-paper);
+}
+
+.iskobot__antenna {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.iskobot__bulb {
+    width: 10px;
+    height: 10px;
+    border: 2px solid var(--isk-ink);
+    border-radius: 50%;
+    background: var(--isk-gold);
+    box-shadow: 0 0 8px var(--isk-gold);
+    animation: isk-blink 1.5s ease-in-out infinite alternate;
+}
+
+.iskobot__stem {
+    width: 4px;
+    height: 14px;
+    background: var(--isk-ink);
+}
+
+.iskobot__head {
+    display: flex;
+    align-items: center;
+    justify-content: space-around;
+    width: 132px;
+    height: 64px;
+    padding: 0 16px;
+    border: 3px solid var(--isk-gold);
+    border-radius: 14px;
+    background: var(--isk-ink);
+    box-shadow: 4px 4px 0 rgba(0, 0, 0, 0.4);
+}
+
+.iskobot__eye {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    overflow: hidden;
+    border: 2px solid var(--isk-muted);
+    border-radius: 6px;
+    background: #111;
+}
+
+.iskobot__pupil {
+    width: 12px;
+    height: 12px;
+    border-radius: 3px;
+    background: var(--isk-gold);
+    box-shadow: 0 0 6px var(--isk-gold);
+    animation: isk-look 4s ease-in-out infinite;
+}
+
+/* The banner Iskobot holds, with its hands on the top corners. */
+.iskobot-banner {
+    position: relative;
+    z-index: 5;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    margin: 0 0 14px;
+    padding: 12px 20px;
+    border: 3px solid var(--isk-ink);
+    border-radius: 16px;
+    background: var(--isk-cream);
+    box-shadow: 6px 6px 0 var(--isk-ink);
+    color: var(--isk-maroon);
+    font-size: 15px;
+    font-weight: 600;
+}
+
+.iskobot-banner::before,
+.iskobot-banner::after {
+    content: "";
+    position: absolute;
+    top: -16px;
+    z-index: 6;
+    width: 32px;
+    height: 18px;
+    border: 2px solid var(--isk-gold);
+    border-radius: 8px;
+    background: var(--isk-ink);
+    box-shadow: 2px 2px 0 rgba(0, 0, 0, 0.3);
+}
+
+.iskobot-banner::before {
+    left: 24px;
+    transform: rotate(-15deg);
+}
+
+.iskobot-banner::after {
+    right: 24px;
+    transform: rotate(15deg);
+}
+
+.iskobot-banner__icon .icon {
+    width: 18px;
+    height: 18px;
+}
+
+/* Three dots under the banner: done, current, still to come. */
+.iskobot-steps {
+    display: flex;
+    gap: 8px;
+    width: 100%;
+    margin: 0 0 22px;
+    padding: 0;
+    list-style: none;
+}
+
+.iskobot-steps__item {
+    flex: 1 1 0;
+    padding: 6px 8px;
+    border: 2px solid rgba(255, 255, 255, 0.45);
+    border-radius: 999px;
+    color: rgba(255, 255, 255, 0.85);
+    font-size: 12px;
+    font-weight: 500;
+    text-align: center;
+}
+
+.iskobot-steps__item.is-done {
+    border-color: var(--isk-gold);
+    color: var(--isk-gold);
+}
+
+.iskobot-steps__item.is-done::before {
+    content: "✓ ";
+}
+
+.iskobot-steps__item.is-current {
+    border-color: var(--isk-ink);
+    background: var(--isk-gold);
+    box-shadow: 3px 3px 0 var(--isk-ink);
+    color: var(--isk-ink);
+    font-weight: 600;
+}
+
+/* ---------- The card ---------- */
+
+.iskobot-card {
+    width: 100%;
+    padding: 30px 28px;
+    border: 3px solid var(--isk-ink);
+    border-radius: 24px;
+    background: var(--isk-paper);
+    box-shadow: 8px 8px 0 var(--isk-ink), 0 15px 30px rgba(0, 0, 0, 0.35);
+    color: var(--isk-text);
+}
+
+.iskobot-card h1 {
+    margin: 0 0 6px;
+    font-family: var(--isk-font);
+    font-size: 24px;
+    font-weight: 600;
+    color: var(--isk-maroon);
+}
+
+.iskobot-card__lead {
+    margin: 0 0 16px;
+    font-size: 15px;
+    line-height: 1.45;
+    color: #444;
+}
+
+.iskobot-card a {
+    color: var(--isk-maroon);
+    font-weight: 600;
+}
+
+.iskobot-card a:focus-visible {
+    outline: 3px solid var(--isk-maroon);
+    outline-offset: 2px;
+    border-radius: 4px;
+}
+
+.iskobot-card__foot {
+    margin: 16px 0 0;
+    font-size: 14px;
+    text-align: center;
+}
+
+.iskobot-card__actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    margin-top: 16px;
+}
+
+.iskobot-note {
+    margin-bottom: 18px;
+    padding: 10px 14px;
+    border: 2px dashed var(--isk-maroon);
+    border-radius: 12px;
+    background: #f8f5f0;
+    font-size: 14px;
+    color: var(--isk-ink);
+}
+
+.iskobot-note__title {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin: 0 0 4px;
+    font-weight: 600;
+    color: var(--isk-maroon);
+}
+
+.iskobot-note ul {
+    margin: 0;
+    padding-left: 18px;
+    line-height: 1.45;
+}
+
+/* Fields: the shared partial, restyled for this card. */
+.iskobot-card .field {
+    margin-bottom: 16px;
+}
+
+.iskobot-card .field__label {
+    display: block;
+    margin-bottom: 6px;
+    font-family: var(--isk-font);
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--isk-ink);
+}
+
+.iskobot-card .field__required {
+    color: var(--isk-maroon);
+}
+
+.iskobot-card .input {
+    width: 100%;
+    padding: 12px 14px;
+    border: 2px solid var(--isk-ink);
+    border-radius: 12px;
+    background: var(--isk-paper);
+    color: var(--isk-ink);
+    font-family: var(--isk-font);
+    font-size: 16px;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.iskobot-card .input:focus {
+    outline: none;
+    border-color: var(--isk-maroon);
+    box-shadow: 3px 3px 0 var(--isk-gold);
+}
+
+.iskobot-card .field--error .input {
+    border-color: var(--isk-error);
+}
+
+.iskobot-card .field__help {
+    margin: 4px 0 0;
+    font-size: 13px;
+    color: var(--isk-muted);
+}
+
+.iskobot-card .field__error {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    margin: 4px 0 0;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--isk-error);
+}
+
+.iskobot-code .input {
+    font-size: 22px;
+    letter-spacing: 0.4em;
+    text-align: center;
+}
+
+/* Show / hide password, added by register-robot.js. */
+.iskobot-password {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.iskobot-password .input {
+    padding-right: 48px;
+}
+
+.iskobot-reveal {
+    position: absolute;
+    right: 6px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 38px;
+    height: 38px;
+    border: 0;
+    border-radius: 8px;
+    background: transparent;
+    color: var(--isk-muted);
+    cursor: pointer;
+}
+
+.iskobot-reveal:hover {
+    color: var(--isk-maroon);
+}
+
+.iskobot-reveal:focus-visible {
+    outline: 3px solid var(--isk-maroon);
+}
+
+.iskobot-reveal .icon {
+    width: 20px;
+    height: 20px;
+}
+
+.iskobot-consent {
+    padding: 12px 14px;
+    border: 2px solid var(--isk-ink);
+    border-radius: 12px;
+    background: #fdf8eb;
+    font-size: 14px;
+    line-height: 1.45;
+    color: var(--isk-ink);
+}
+
+.iskobot-consent .check {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+}
+
+.iskobot-consent input[type="checkbox"] {
+    flex-shrink: 0;
+    width: 18px;
+    height: 18px;
+    margin-top: 2px;
+    accent-color: var(--isk-maroon);
+    cursor: pointer;
+}
+
+/* Buttons */
+.iskobot-btn {
+    width: 100%;
+    padding: 14px;
+    border: 2px solid var(--isk-ink);
+    border-radius: 12px;
+    background: var(--isk-maroon);
+    box-shadow: 4px 4px 0 var(--isk-ink);
+    color: #fff;
+    font-family: var(--isk-font);
+    font-size: 16px;
+    font-weight: 600;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: transform 0.1s ease, box-shadow 0.1s ease, background-color 0.2s ease;
+}
+
+.iskobot-btn:hover {
+    background: var(--isk-maroon-hover);
+}
+
+.iskobot-btn:active {
+    transform: translate(2px, 2px);
+    box-shadow: 1px 1px 0 var(--isk-ink);
+}
+
+.iskobot-btn:focus-visible,
+.iskobot-link-btn:focus-visible {
+    outline: 3px solid var(--isk-gold);
+    outline-offset: 3px;
+}
+
+.iskobot-btn--light {
+    width: auto;
+    padding: 10px 16px;
+    background: var(--isk-cream);
+    color: var(--isk-maroon);
+    font-size: 14px;
+    box-shadow: 3px 3px 0 var(--isk-ink);
+}
+
+.iskobot-btn--light:hover {
+    background: #ffefc2;
+}
+
+.iskobot-link-btn {
+    padding: 6px 4px;
+    border: 0;
+    background: none;
+    color: var(--isk-maroon);
+    font-family: var(--isk-font);
+    font-size: 14px;
+    font-weight: 600;
+    text-decoration: underline;
+    cursor: pointer;
+}
+
+/* ---------- Below the card ---------- */
+
+.iskobot-motto {
+    margin: 18px 0 0;
+    font-size: 13px;
+    font-weight: 500;
+    letter-spacing: 0.5px;
+    text-align: center;
+    color: var(--isk-gold);
+    text-shadow: 1px 1px 0 var(--isk-ink);
+}
+
+.iskobot-links {
+    display: flex;
+    gap: 18px;
+    margin: 10px 0 0;
+    font-size: 14px;
+}
+
+.iskobot-links a {
+    color: #fff;
+}
+
+@media (max-width: 480px) {
+    .iskobot-card {
+        padding: 24px 18px;
+    }
+
+    .iskobot-banner {
+        font-size: 14px;
+    }
+
+    .iskobot-steps__item {
+        font-size: 11px;
+        padding: 6px 4px;
+    }
+}
+
+/* ---------- Motion ---------- */
+
+@keyframes isk-gradient {
+    0%, 100% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+}
+
+@keyframes isk-slide {
+    from { transform: translateX(0); }
+    to { transform: translateX(-25%); }
+}
+
+@keyframes isk-float {
+    0% { transform: translateY(0) rotate(0deg); }
+    50% { transform: translateY(-40px) rotate(180deg); }
+    100% { transform: translateY(0) rotate(360deg); }
+}
+
+@keyframes isk-star {
+    0%, 100% { transform: translateY(0) scale(1) rotate(0deg); }
+    50% { transform: translateY(-30px) scale(1.2) rotate(15deg); }
+}
+
+@keyframes isk-glow {
+    from { transform: scale(1); opacity: 0.08; }
+    to { transform: scale(1.3); opacity: 0.2; }
+}
+
+@keyframes isk-hover {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-4px); }
+}
+
+@keyframes isk-blink {
+    from { background: var(--isk-gold); box-shadow: 0 0 4px var(--isk-gold); }
+    to { background: #ff4d4d; box-shadow: 0 0 10px #ff4d4d; }
+}
+
+@keyframes isk-look {
+    0%, 100% { transform: translate(0, 0); }
+    25% { transform: translate(5px, 2px); }
+    50% { transform: translate(-4px, -2px); }
+    75% { transform: translate(2px, -3px); }
+}
+
+/* Everything stands still for people who turn motion off. */
+@media (prefers-reduced-motion: reduce) {
+    .auth-page--iskobot,
+    .auth-page--iskobot *,
+    .auth-page--iskobot *::before,
+    .auth-page--iskobot *::after {
+        animation: none !important;
+        transition: none !important;
+    }
+}
