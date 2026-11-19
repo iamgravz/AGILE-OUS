@@ -315,7 +315,8 @@ final class AdministrationTest extends TestCase
             $committeeId = (int) Database::connection()->query("SELECT committee_id FROM committees WHERE name = 'Academics and Training'")->fetchColumn();
 
             $this->assertGreaterThan($service->recipientCount('officers'), $service->recipientCount('all_members'));
-            $this->assertSame(1, $service->recipientCount("committee:{$committeeId}"));
+            // The demo head, plus the sample deputy and member from seeds/demo_organization.php.
+            $this->assertSame(3, $service->recipientCount("committee:{$committeeId}"));
             $this->assertGreaterThan(0, $service->recipientCount('applicants'));
             $this->assertSame(0, $service->recipientCount('everyone_else'));
         });

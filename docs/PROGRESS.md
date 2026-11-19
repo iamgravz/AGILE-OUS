@@ -1641,7 +1641,7 @@ Re-audit 10/10 (was 7/10). Details and evidence in [database-audit.md](database-
 ### Data: existing members imported (Nov 20, 2026)
 - `jobs/import_members.php` reads `storage/imports/members.csv` (local only, not committed), taken from the AGILE-OUS DIRECTORY sheet: 16 officers and members besides the 7 committee heads, each with their AGILE record ID as member number and their current position. With the heads, 23 active members.
 - They register at /register with their PUP student number. `AuthService::registerMember()` now gives a member who already holds a position that position's role (President, MSW member, and so on) instead of General Member, and sets a committee's head if it has none. The MSW Committee Head still approves each account (BR-21).
-- Not imported: the Assistant Secretary, Treasurer and Auditor have no PUP webmail or record ID in the sheet; the Finance Deputy Head is still pending; the 6 applicants still being evaluated wait for Waitlisted (#3). The Secretary is also Editor-in-Chief and the VP for Internal Affairs is also interim Managing Editor; the system holds one position per member, so both are imported with their Executive Committee position.
+- Not imported: Assistant Secretary (Gumapac), Treasurer (Cabugnason) and Auditor (Alvarez) have no PUP webmail or record ID in the sheet; the Finance Deputy Head is still "WHENG" (pending); the 6 applicants still being evaluated wait for Waitlisted (#3). Roseanne Fernandez is also Editor-in-Chief and Katherine Gozum also interim Managing Editor; the system holds one position per member, so they are imported with their Executive Committee position.
 - `composer test`: OK, 330 tests.
 
 ### Feature: Waitlisted decision (Nov 20, 2026)
@@ -1656,3 +1656,10 @@ Re-audit 10/10 (was 7/10). Details and evidence in [database-audit.md](database-
 - Database: 6 columns on `interviews` and `chk_interviews_checklist` (migration `2026_11_20_interview_checklist.php`, `schema.sql`). Upgraded and fresh databases have the same structure.
 - Files: `InterviewService::saveChecklist()`, `recordResult()`, `reschedule()`; `EvaluationService::submit()`; `InterviewRepository::hasConflict()`; `InterviewsController::checklist()`; route `applications.interviews.checklist`; `applications/_interviews.php`.
 - Tests: 4 new in `AppointmentFlowTest`. `composer test`: OK, 336 tests.
+
+### Change: sample people instead of real data (Nov 20, 2026)
+- No real person's details are kept in the project. `jobs/import_committee_heads.php` and `jobs/import_members.php` (which read a local CSV copied from AGILE's sheets) were removed, and the local CSVs were deleted.
+- New seeder `database/seeds/demo_organization.php` (not in production): made-up people for every real position, with accounts for the committee heads so BR-20 decisions can be tried. `demo_applicants.php` adds a waitlisted applicant.
+- Kept: a member who registers gets their position's role (`AuthService::registerMember()`).
+- Real members and officers are added through the app: officers by the MSW Committee Head (Administration › Users) and members through approved applications and /register.
+- `composer test`: OK, 336 tests.

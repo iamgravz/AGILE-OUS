@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-// Four people with no account (BR-18). Three have a submitted application at a different stage, and the third of those
+// People with no account (BR-18), including one on the waiting list. Three have a submitted application at a different stage, and the third of those
 // has its documents verified, so an approval can be tried without uploading anything. The fourth is already approved
 // and has a member number but has not registered, so /register can be tried at once.
 return static function (PDO $db): void {
@@ -35,6 +35,7 @@ return static function (PDO $db): void {
         ['maria.lim@agile.test', 'Maria', 'Lim', '2024-00113-OU-0', '09170001113', 'DEMAPPREVWD3', 'under_review', 'verified', null],
         ['lito.ramos@agile.test', 'Lito', 'Ramos', '2024-00114-OU-0', '09170001114', 'DEMAPPAPPRV4', 'approved', 'verified', 'Welcome to AGILE.'],
         ['rosa.garcia@agile.test', 'Rosa', 'Garcia', '2024-00115-OU-0', '09170001115', 'DEMAPPAPPRV5', 'approved', 'verified', 'Welcome to AGILE.'],
+        ['ana.villanueva@agile.test', 'Ana', 'Villanueva', '2024-00116-OU-0', '09170001116', 'DEMAPPWAIT06', 'waitlisted', 'verified', 'Qualified, but no slot is open yet.'],
     ];
 
     $answers = [

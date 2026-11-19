@@ -59,6 +59,7 @@ $seeders = [
 if (config('app.env') !== 'production') {
     $seeders['demo users'] = 'demo_users';
     $seeders['demo applicants'] = 'demo_applicants';
+    $seeders['demo organization'] = 'demo_organization';
     $seeders['demo content posts'] = 'content_posts';
 }
 

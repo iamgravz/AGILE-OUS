@@ -11,7 +11,7 @@ require __DIR__ . '/_bootstrap.php';
 
 $available = array_map(
     static fn (string $path): string => basename($path, '.php'),
-    array_filter(glob(__DIR__ . '/*.php') ?: [], static fn (string $path): bool => !in_array(basename($path), ['_bootstrap.php', 'run.php', 'create_user.php', 'import_committee_heads.php', 'import_members.php', 'generate_key.php', 'test_notify.php'], true))
+    array_filter(glob(__DIR__ . '/*.php') ?: [], static fn (string $path): bool => !in_array(basename($path), ['_bootstrap.php', 'run.php', 'create_user.php', 'generate_key.php', 'test_notify.php'], true))
 );
 $available[] = 'welfare_followups_urgent';
 sort($available);
