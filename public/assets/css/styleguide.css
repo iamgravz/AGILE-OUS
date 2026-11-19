@@ -1,0 +1,184 @@
+/* Loaded only by the local /styleguide pages. */
+
+.sg-section {
+    margin-bottom: var(--space-6);
+    scroll-margin-top: calc(var(--topbar-height) + var(--space-4));
+}
+
+.sg-note {
+    color: var(--color-text-muted);
+}
+
+.sg-swatches {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(8rem, 1fr));
+    gap: var(--space-2);
+    margin: 0 0 var(--space-4);
+    padding: 0;
+    list-style: none;
+}
+
+.sg-swatch {
+    overflow: hidden;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    background: var(--color-surface);
+    font-size: 0.875rem;
+}
+
+.sg-swatch__color {
+    display: block;
+    height: 3rem;
+}
+
+.sg-swatch__name {
+    display: block;
+    padding: var(--space-1) var(--space-2);
+}
+
+.sg-badge-groups {
+    display: grid;
+    gap: var(--space-4);
+    margin: 0;
+}
+
+.sg-badge-groups dt {
+    margin-bottom: var(--space-1);
+    font-weight: 600;
+}
+
+.sg-badge-groups dd {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+    margin: 0;
+}
+
+.sg-icons {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(7rem, 1fr));
+    gap: var(--space-3);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    font-size: 0.875rem;
+}
+
+.sg-icons li {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+}
+
+.sg-layout-links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+    margin-bottom: var(--space-5);
+}
+
+.sg-bg-color-page { background: var(--color-page); }
+.sg-bg-color-surface { background: var(--color-surface); }
+.sg-bg-color-subtle { background: var(--color-subtle); }
+.sg-bg-color-text { background: var(--color-text); }
+.sg-bg-color-text-muted { background: var(--color-text-muted); }
+.sg-bg-color-link { background: var(--color-link); }
+.sg-bg-color-border { background: var(--color-border); }
+.sg-bg-color-border-input { background: var(--color-border-input); }
+.sg-bg-primary { background: var(--primary); }
+.sg-bg-primary-hover { background: var(--primary-hover); }
+.sg-bg-primary-soft { background: var(--primary-soft); }
+.sg-bg-gold { background: var(--gold); }
+.sg-bg-gold-soft { background: var(--gold-soft); }
+.sg-bg-gold-text { background: var(--gold-text); }
+.sg-bg-ink { background: var(--ink); }
+.sg-bg-ink-2 { background: var(--ink-2); }
+.sg-bg-ink-3 { background: var(--ink-3); }
+.sg-bg-ink-text { background: var(--ink-text); }
+.sg-bg-ink-muted { background: var(--ink-muted); }
+.sg-bg-ink-active { background: var(--ink-active); }
+.sg-bg-ink-border { background: var(--ink-border); }
+.sg-bg-neutral-bg { background: var(--neutral-bg); }
+.sg-bg-neutral-fg { background: var(--neutral-fg); }
+.sg-bg-info-bg { background: var(--info-bg); }
+.sg-bg-info-fg { background: var(--info-fg); }
+.sg-bg-warning-bg { background: var(--warning-bg); }
+.sg-bg-warning-fg { background: var(--warning-fg); }
+.sg-bg-success-bg { background: var(--success-bg); }
+.sg-bg-success-fg { background: var(--success-fg); }
+.sg-bg-danger-bg { background: var(--danger-bg); }
+.sg-bg-danger-fg { background: var(--danger-fg); }
+
+.sg-panels {
+    display: grid;
+    gap: var(--space-4);
+}
+
+.sg-panel {
+    min-width: 0;
+    padding: var(--space-4);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    background: var(--color-page);
+    color: var(--color-text);
+}
+
+.sg-panel a {
+    color: var(--color-link);
+}
+
+.sg-panel__stats,
+.sg-panel__card,
+.sg-panel__row {
+    margin-bottom: var(--space-3);
+}
+
+.sg-panel .stat-grid {
+    grid-template-columns: minmax(0, 1fr);
+}
+
+@media (min-width: 1200px) {
+    .sg-panels {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+.sg-glass {
+    padding: var(--space-5);
+    border-radius: var(--radius-md);
+}
+
+.sg-glass__row {
+    display: grid;
+    gap: var(--space-4);
+}
+
+.sg-glass__box {
+    padding: var(--space-4);
+    color: var(--color-text);
+}
+
+.sg-glass__box.glass--dark {
+    color: var(--ink-text);
+}
+
+.sg-glass__box.glass--dark .eyebrow {
+    color: var(--ink-text);
+}
+
+/* Both samples are already two blurred surfaces, so the page's own bars stay solid here. */
+body:has(.sg-glass) :is(.site-header, .topbar) {
+    --glass-filter: none;
+    --glass-bg: var(--glass-solid);
+    --glass-dark-bg: var(--glass-dark-solid);
+}
+
+@media (min-width: 768px) {
+    .sg-glass__row {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+.sg-glass__box > .input {
+    max-width: 45rem;
+}

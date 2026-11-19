@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<phpunit xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:noNamespaceSchemaLocation="vendor/phpunit/phpunit/phpunit.xsd"
+         bootstrap="tests/bootstrap.php"
+         colors="true">
+    <testsuites>
+        <testsuite name="AGILE">
+            <directory>tests</directory>
+        </testsuite>
+    </testsuites>
+    <php>
+        <!-- tests/bootstrap.php drops and rebuilds this database before every run. Its name must end in _test. -->
+        <env name="DB_NAME_TEST" value="agile_ams_test" force="true"/>
+        <!-- Whatever .env says, tests send no email, call no AI provider and use their own encryption key. -->
+        <env name="APP_ENV" value="local" force="true"/>
+        <env name="APP_DEBUG" value="false" force="true"/>
+        <env name="APP_URL" value="http://localhost" force="true"/>
+        <env name="MAIL_DRIVER" value="log" force="true"/>
+        <env name="SMTP_HOST" value="invalid.invalid" force="true"/>
+        <env name="AI_PROVIDER" value="none" force="true"/>
+        <env name="AI_API_KEY" value="" force="true"/>
+        <env name="ENCRYPTION_KEY" value="dGVzdC1rZXktZm9yLXBocHVuaXQtb25seS0zMi1ieXQ=" force="true"/>
+    </php>
+</phpunit>
