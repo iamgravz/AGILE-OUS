@@ -38,7 +38,7 @@ final class SettingsService
             'landing.taglines' => ['label' => 'Taglines', 'type' => 'taglines', 'default' => LandingService::DEFAULT_TAGLINES, 'help' => 'Separate them with commas. They show as one small line under the headline.'],
             'landing.hero_image' => ['label' => 'Hero image', 'type' => 'image', 'help' => 'JPG or PNG. Shown in a circle in place of the AGILE logo. Leave empty to keep the logo.'],
             'landing.join_steps' => ['label' => 'How to join steps', 'type' => 'join_steps', 'default' => LandingService::DEFAULT_JOIN_STEPS, 'help' => 'Four lines, one for each step, written as Title | Description.'],
-            'landing.show_sections' => ['label' => 'Sections to show', 'type' => 'sections', 'help' => 'Gallery is off by default and shows up to 6 photos. A section with nothing to show stays hidden even when ticked.'],
+            'landing.show_sections' => ['label' => 'Sections to show', 'type' => 'sections', 'help' => 'Gallery and What AGILE does are off by default; committees are in the nav bar. Gallery shows up to 6 photos. A section with nothing to show stays hidden even when ticked.'],
         ],
     ];
 

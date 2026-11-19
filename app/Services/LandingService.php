@@ -24,7 +24,8 @@ final class LandingService
         'cta' => 'Closing band',
         'gallery' => 'Gallery',
     ];
-    public const OFF_BY_DEFAULT = ['gallery'];
+    // Committees moved to the nav bar (About, "Our committees"); Settings can still show them here.
+    public const OFF_BY_DEFAULT = ['gallery', 'committees'];
 
     public const DEFAULT_HEADLINE = 'Academic Guild of IT Learners and Experts';
     public const DEFAULT_SUBHEADLINE = 'The BSIT student organization of the PUP Open University System.';

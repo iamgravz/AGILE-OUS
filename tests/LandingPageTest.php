@@ -118,14 +118,16 @@ final class LandingPageTest extends TestCase
         $this->assertStringContainsString('css/landing.css', $body);
         $this->assertStringContainsString('js/landing.js', $body);
         $this->assertStringContainsString('Learn · Collaborate · Innovate · Grow', $body);
-        $this->assertStringContainsString('/about#section-our-mission', $body);
+        // Committees are in the nav bar now, not a home page section.
+        $this->assertStringContainsString('href="/about#committees"', $body);
+        $this->assertStringNotContainsString('home-committees', $body);
 
-        // Nothing moves by itself, and the page has six sections at most.
+        // Nothing moves by itself, and the page has five sections at most.
         foreach (['data-ticker', 'data-carousel', 'data-network', '<canvas', 'data-countdown', 'data-taglines', 'home-gallery', 'mission-vision'] as $gone) {
             $this->assertStringNotContainsString($gone, $body);
         }
 
-        $this->assertSame(6, substr_count($body, '<section'));
+        $this->assertSame(5, substr_count($body, '<section'));
 
         // Every count is in the HTML, so the page is complete without JavaScript.
         $db = TestServer::db();

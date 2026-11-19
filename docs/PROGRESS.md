@@ -1620,3 +1620,8 @@ Re-audit 10/10 (was 7/10). Details and evidence in [database-audit.md](database-
 - Removed: the moon/sun button (`partials/theme_toggle.php`) from the public header and the dashboard top bar, the dark color block in `tokens.css`, the toggle code in `app.js`, the chart recolor in `dashboards.js`, the dark progress-bar and icon rules in `components.css`, and the dark sample in the style guide.
 - `theme-init.js` now only restores the sidebar state, and deletes a dark choice saved earlier in `localStorage`.
 - Docs updated: `PROJECT_CONTEXT.md` §12, `sad-updates.md`, `test-cases.md`.
+
+### Change: committees in the nav bar (Nov 19, 2026)
+- "Committees" is in the public nav bar after About, linking to About, "Our committees" (`config/menu.php`).
+- The home page section "What AGILE does" is off by default (`LandingService::OFF_BY_DEFAULT`); Settings > Landing page can still show it. Migration `2026_11_19_committees_in_nav.php` unticks it once in a saved list.
+- `composer test`: OK, 330 tests.
