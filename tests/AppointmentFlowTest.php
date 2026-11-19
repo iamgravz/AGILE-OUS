@@ -82,7 +82,7 @@ final class AppointmentFlowTest extends TestCase
             ['Academics and Training', 'Committee Member', 'committee_member', 'general_member'],
             ['The Source Code', 'Writer', 'source_code', 'general_member'],
             [null, 'President', 'officer', 'president'],
-            [null, 'Vice President', 'officer', 'execomm'],
+            [null, 'Vice President for Internal Affairs', 'officer', 'execomm'],
         ];
     }
 

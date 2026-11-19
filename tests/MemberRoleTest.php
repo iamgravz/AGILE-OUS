@@ -161,7 +161,7 @@ final class MemberRoleTest extends TestCase
     {
         return [
             'President' => [null, 'President', 'president', 'officer'],
-            'Vice President' => [null, 'Vice President', 'execomm', 'officer'],
+            'Vice President' => [null, 'Vice President for Internal Affairs', 'execomm', 'officer'],
             'MSW head' => [self::MSW, 'Committee Head', 'msw_head', 'officer'],
             'MSW deputy' => [self::MSW, 'Deputy Committee Head', 'msw_member', 'officer'],
             'MSW member' => [self::MSW, 'Committee Member', 'msw_member', 'officer'],

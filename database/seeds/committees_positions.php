@@ -5,7 +5,11 @@ declare(strict_types=1);
 // AGILE's real structure (update R6): the Executive Committee, seven committees and The Source Code.
 // The 2026_11_18_real_committees migration renames the old sample rows first, so this only adds what is missing.
 return static function (PDO $db): void {
-    foreach (['President', 'Vice President', 'Secretary', 'Treasurer', 'Auditor'] as $title) {
+    // The Executive Committee as AGILE has it (AGILE-OUS Applicant Assessment Report, Positions Dashboard).
+    $executive = ['President', 'Vice President for Internal Affairs', 'Vice President for External Affairs', 'Secretary',
+        'Assistant Secretary', 'Treasurer', 'Auditor'];
+
+    foreach ($executive as $title) {
         seed_row($db, 'positions', 'position_id', ['committee_id' => null, 'title' => $title], ['role_type' => 'officer']);
     }
 
@@ -27,9 +31,10 @@ return static function (PDO $db): void {
         }
     }
 
-    // The Source Code is AGILE's publication. It has no committee head: the MSW Committee Head decides its applications.
+    // The Source Code is AGILE's publication, led by its Editor-in-Chief. It has no committee head in the system: the MSW
+    // Committee Head decides its applications (BR-20).
     $sourceCode = seed_row($db, 'committees', 'committee_id', ['name' => 'The Source Code'], ['description' => 'The official student publication of AGILE OUS.']);
-    $titles = ['Managing Editor', 'News Editor', 'Feature Editor', 'Writer', 'Head Cartoonist', 'Cartoonist',
+    $titles = ['Editor-in-Chief', 'Managing Editor', 'News Editor', 'Feature Editor', 'Writer', 'Head Cartoonist', 'Cartoonist',
         'Layout Editor', 'Head Photojournalist', 'Photojournalist', 'Videographer/Editor'];
 
     foreach ($titles as $title) {

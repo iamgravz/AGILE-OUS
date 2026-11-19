@@ -22,7 +22,7 @@ return static function (PDO $db): void {
         ['nomember@agile.test', 'general_member', 'Andrea', 'Santos', '2024-00101-OU-0', null, null],
         ['member@agile.test', 'general_member', 'Miguel', 'Reyes', '2023-00102-OU-0', null, null],
         ['head@agile.test', 'committee_head', 'Bianca', 'Cruz', '2022-00103-OU-0', 'Academics and Training', 'Committee Head'],
-        ['execomm@agile.test', 'execomm', 'Paolo', 'Garcia', '2022-00104-OU-0', null, 'Vice President'],
+        ['execomm@agile.test', 'execomm', 'Paolo', 'Garcia', '2022-00104-OU-0', null, 'Vice President for Internal Affairs'],
         ['mswmember@agile.test', 'msw_member', 'Carla', 'Mendoza', '2023-00105-OU-0', $msw, 'Committee Member'],
         ['mswdeputy@agile.test', 'msw_member', 'Dennis', 'Torres', '2022-00106-OU-0', $msw, 'Deputy Committee Head'],
         ['mswhead@agile.test', 'msw_head', 'Elena', 'Ramos', '2021-00107-OU-0', $msw, 'Committee Head'],

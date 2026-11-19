@@ -90,7 +90,11 @@ final class DatabaseIntegrityTest extends TestCase
             'Academics and Training', 'Creatives, Social Media and Communication', 'Events and External Relations',
             'Finance and Fund Raising', 'Logistics', 'Membership and Student Welfare', 'Research and Extensions', 'The Source Code',
         ], $committees);
-        $this->assertSame(10, (int) $db->query("SELECT COUNT(*) FROM positions p JOIN committees c ON c.committee_id = p.committee_id WHERE c.name = 'The Source Code' AND p.role_type = 'source_code'")->fetchColumn());
+        $this->assertSame(11, (int) $db->query("SELECT COUNT(*) FROM positions p JOIN committees c ON c.committee_id = p.committee_id WHERE c.name = 'The Source Code' AND p.role_type = 'source_code'")->fetchColumn());
+        $this->assertSame(
+            ['Assistant Secretary', 'Auditor', 'President', 'Secretary', 'Treasurer', 'Vice President for External Affairs', 'Vice President for Internal Affairs'],
+            $db->query('SELECT title FROM positions WHERE committee_id IS NULL ORDER BY title')->fetchAll(PDO::FETCH_COLUMN)
+        );
         $this->assertNull($db->query("SELECT head_user_id FROM committees WHERE name = 'The Source Code'")->fetchColumn() ?: null);
     }
 
