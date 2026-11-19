@@ -1600,3 +1600,10 @@ Re-audit 10/10 (was 7/10). Details and evidence in [database-audit.md](database-
 - **Tests:** `tests/DatabaseIntegrityTest.php` added; tests use the real committee names. `composer test`: OK, 330 tests, 3144 assertions.
 - **To apply on Laragon:** `php jobs/backup_database.php`, then `php database/setup.php` (not `--fresh`), then `php database/report.php` ends with three 0s.
 - **Still for R6:** the President deciding Executive Committee applications (permission matrix change). The landing page now has 8 committees to show.
+
+### Design: Iskobot on the registration steps (Nov 19, 2026)
+- The three `/register` steps (student number, email code, password) use Gravz's Iskobot design: animated maroon gradient, moving motto watermark, Iskobot holding the step banner, a step tracker, and a bold white card. The flow and rules are unchanged (R3).
+- **Own stack:** Fredoka is self-hosted (`public/assets/fonts/fredoka-latin-*.woff2`, OFL), icons come from `icons.svg`, and there is no CDN or inline style (the CSP blocks inline styles).
+- **Accessibility:** real `<button>` show/hide password with `aria-pressed`; the step tracker uses `aria-current="step"`; Iskobot is `aria-hidden`; all motion stops under `prefers-reduced-motion`.
+- **Files:** `layouts/auth.php` (an `auth_style` section set to `iskobot`), `partials/iskobot_page.php`, `partials/iskobot.php`, `auth/register*.php`, `css/register-robot.css`, `js/register-robot.js`.
+- **Results:** `composer test` OK, 330 tests. Checked in a browser at 1366 and 390 wide: no console errors and no sideways scrolling.
