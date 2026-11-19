@@ -18,25 +18,31 @@ foreach ($permissions as $permission) {
 }
 ?>
 <?php $this->start('title') ?><?= e($name) ?><?php $this->end() ?>
-<?php $this->start('page_eyebrow') ?>User account<?php $this->end() ?>
-<?php $this->start('page_title') ?><?= e($name) ?><?php $this->end() ?>
-<?php $this->start('page_actions') ?><?= status_badge($isLocked ? 'locked' : $user['status']) ?><?php $this->end() ?>
+<?php $this->start('page_eyebrow') ?>Administration<?php $this->end() ?>
+<?php $this->start('page_title') ?>User account<?php $this->end() ?>
 
-<div class="detail-layout">
-    <section class="card detail-layout__side" aria-labelledby="user-details">
-        <div class="card__header"><h2 class="card__title" id="user-details">Account</h2></div>
-        <div class="card__body">
-            <dl class="detail-list">
-                <div><dt>Email</dt><dd><?= e($user['email']) ?></dd></div>
-                <div><dt>Student number</dt><dd><?php if ($user['student_no'] !== null) : ?><code><?= e($user['student_no']) ?></code><?php else : ?>Not set<?php endif; ?></dd></div>
-                <div><dt>Role</dt><dd><?= e($user['role_name']) ?></dd></div>
-                <div><dt>Member number</dt><dd><?php if ($member !== null) : ?><a href="<?= e(route('members.show', ['id' => (int) $member['member_id']])) ?>"><code><?= e($member['member_no']) ?></code></a><?php else : ?>No member record<?php endif; ?></dd></div>
-                <div><dt>Last login</dt><dd><?= $user['last_login_at'] === null ? 'Never' : e(datetime_ph($user['last_login_at'])) ?></dd></div>
-                <?php if ($isLocked) : ?><div><dt>Locked until</dt><dd><?= e(datetime_ph($user['locked_until'])) ?></dd></div><?php endif; ?>
-            </dl>
-        </div>
-    </section>
+<?php
+$facts = [
+    ['Email', e($user['email'])],
+    ['Student number', $user['student_no'] !== null ? '<code>' . e($user['student_no']) . '</code>' : 'Not set'],
+    ['Role', e($user['role_name'])],
+    ['Member number', $member !== null ? '<a href="' . e(route('members.show', ['id' => (int) $member['member_id']])) . '"><code>' . e($member['member_no']) . '</code></a>' : 'No member record'],
+    ['Last login', $user['last_login_at'] === null ? 'Never' : e(datetime_ph($user['last_login_at']))],
+];
+if ($isLocked) {
+    $facts[] = ['Locked until', e(datetime_ph($user['locked_until']))];
+}
+?>
+<div class="account-page">
+    <?= $this->partial('partials/profile_hero', [
+        'name' => $name,
+        'photoUrl' => ($user['photo_path'] ?? null) !== null ? route('files.show', ['type' => 'avatar', 'id' => $id]) : null,
+        'headingId' => 'user-details',
+        'lines' => [e($user['role_name']), status_badge($isLocked ? 'locked' : $user['status'])],
+        'facts' => $facts,
+    ]) ?>
 
+<div class="account-forms">
     <section class="plain-section" aria-labelledby="user-role">
         <div class="card__header"><h2 class="card__title" id="user-role">Role</h2></div>
         <div class="card__body">
@@ -127,4 +133,5 @@ foreach ($permissions as $permission) {
             </details>
         </div>
     </section>
+</div>
 </div>

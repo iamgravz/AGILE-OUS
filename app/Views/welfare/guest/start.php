@@ -17,7 +17,7 @@ $consentError = field_error('privacy_consent');
         <div class="card__body">
             <?= $this->partial('partials/form_field', ['name' => 'name', 'label' => 'Full name', 'value' => (string) old('name'), 'autocomplete' => 'name']) ?>
             <?= $this->partial('partials/form_field', ['name' => 'email', 'label' => 'Email', 'type' => 'email', 'value' => (string) old('email'), 'autocomplete' => 'email']) ?>
-            <?= $this->partial('partials/form_field', ['name' => 'student_no', 'label' => 'PUP student number', 'value' => (string) old('student_no'), 'required' => false, 'autocomplete' => 'off', 'help' => 'Optional. For example, 2024-00101-OU-0.']) ?>
+            <?= $this->partial('partials/form_field', ['name' => 'student_no', 'label' => 'PUP student number', 'value' => (string) old('student_no'), 'required' => false, 'autocomplete' => 'off', 'help' => 'Optional. For example, 2024-xxxxx-MN-0.']) ?>
             <div class="hp-field" aria-hidden="true">
                 <label for="website">Leave this field empty</label>
                 <input id="website" name="website" type="text" tabindex="-1" autocomplete="off">

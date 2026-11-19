@@ -17,7 +17,7 @@ $roleError = field_error('role');
         <?= $this->partial('partials/form_field', ['name' => 'last_name', 'label' => 'Last name', 'value' => (string) old('last_name', '')]) ?>
     </div>
     <?= $this->partial('partials/form_field', ['name' => 'email', 'label' => 'Email', 'type' => 'email', 'value' => (string) old('email', '')]) ?>
-    <?= $this->partial('partials/form_field', ['name' => 'student_no', 'label' => 'PUP student number', 'value' => (string) old('student_no', ''), 'required' => false, 'help' => 'Optional. For example, 2024-00101-OU-0.']) ?>
+    <?= $this->partial('partials/form_field', ['name' => 'student_no', 'label' => 'PUP student number', 'value' => (string) old('student_no', ''), 'required' => false, 'help' => 'Optional. For example, 2024-xxxxx-MN-0.']) ?>
     <div class="field <?= $roleError !== null ? 'field--error' : '' ?>">
         <label class="field__label" for="role">Role <span class="field__required" aria-hidden="true">*</span></label>
         <select class="select" id="role" name="role" required>

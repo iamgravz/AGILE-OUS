@@ -133,7 +133,8 @@ final class FileAccessPolicy
         }
 
         return [
-            'previewable' => $mayReview,
+            // The owner may see it in a frame too: the small previews on My Account. They can already download it.
+            'previewable' => $mayReview || ($isOwner && $isReady),
             'absolute_path' => CredentialService::path($credential['file_path']),
             'download_name' => $credential['serial_no'] . '.pdf',
             'inline' => false,

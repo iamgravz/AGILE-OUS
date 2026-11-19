@@ -13,27 +13,49 @@ $name = $member['first_name'] . ' ' . $member['last_name'];
 $reasonError = field_error('reason');
 ?>
 <?php $this->start('title') ?><?= e($name) ?><?php $this->end() ?>
-<?php $this->start('page_title') ?><?= e($name) ?><?php $this->end() ?>
+<?php $this->start('page_title') ?>Member record<?php $this->end() ?>
 
-<div class="detail-layout">
-    <section class="card detail-layout__side" aria-labelledby="member-record">
-        <div class="card__header"><h2 class="card__title" id="member-record">Member record</h2></div>
+<?php
+$approvedCredentials = array_values(array_filter($activeCredentials, static fn (array $c): bool => $c['status'] === 'approved'));
+$facts = [
+    ['Email', e($member['email'])],
+    ['Student number', e($member['student_no'] ?? 'Not set')],
+    ['Member number', '<code>' . e($member['member_no']) . '</code>'],
+    ['Membership type', e(ucfirst($member['membership_type']))],
+    ['Joined', e(date_ph($member['joined_at']))],
+    ['Account', $member['user_id'] === null ? 'Not registered yet' : 'Registered'],
+];
+$resend = '';
+if ($member['user_id'] === null && can('admin.users')) {
+    $resend = '<form method="post" action="' . e(route('members.resend_registration', ['id' => (int) $member['member_id']])) . '">'
+        . csrf_field()
+        . '<button type="submit" class="btn btn--secondary btn--sm">Resend registration instructions</button></form>';
+}
+?>
+<div class="account-page">
+    <?= $this->partial('partials/profile_hero', [
+        'name' => $name,
+        'photoUrl' => $member['photo_path'] !== null ? route('files.show', ['type' => 'avatar', 'id' => (int) $member['user_id']]) : null,
+        'headingId' => 'member-record',
+        'lines' => [e($roleLabel), status_badge($member['status'])],
+        'facts' => $facts,
+        'extra' => $resend,
+    ]) ?>
+
+    <?php // Only the MSW Committee Head may open these files (FileAccessPolicy::credential). ?>
+    <?php if ($approvedCredentials !== [] && can('credential.approve')) : ?>
+        <section class="card" aria-labelledby="member-current-credentials">
+            <div class="card__body">
+                <h2 class="member-section" id="member-current-credentials">Current ID and certificate</h2>
+                <?= $this->partial('members/_credential_cards', ['credentials' => $approvedCredentials, 'forOwner' => false, 'headingLevel' => 3]) ?>
+            </div>
+        </section>
+    <?php endif; ?>
+
+<div class="account-columns">
+    <section class="card" aria-labelledby="member-history">
         <div class="card__body">
-            <?php if ($member['photo_path'] !== null) : ?>
-                <img class="avatar avatar--large" src="<?= e(route('files.show', ['type' => 'avatar', 'id' => (int) $member['user_id']])) ?>" alt="Photo of <?= e($name) ?>" width="120" height="120">
-            <?php endif; ?>
-            <dl class="detail-list member-details">
-                <div><dt>Email</dt><dd><?= e($member['email']) ?></dd></div>
-                <div><dt>Student number</dt><dd><?= e($member['student_no'] ?? 'Not set') ?></dd></div>
-                <div><dt>Membership type</dt><dd><?= e(ucfirst($member['membership_type'])) ?></dd></div>
-                <div><dt>Account</dt><dd><?= $member['user_id'] === null ? 'Not registered yet' : 'Registered' ?></dd></div>
-            </dl>
-            <?php if ($member['user_id'] === null && can('admin.users')) : ?>
-                <form method="post" action="<?= e(route('members.resend_registration', ['id' => (int) $member['member_id']])) ?>">
-                    <?= csrf_field() ?>
-                    <button type="submit" class="btn btn--secondary btn--sm">Resend registration instructions</button>
-                </form>
-            <?php endif; ?>
+            <h2 class="sr-only" id="member-history">History</h2>
             <?= $this->partial('members/_profile', [
                 'member' => $member,
                 'roleLabel' => $roleLabel,
@@ -43,6 +65,7 @@ $reasonError = field_error('reason');
                 'withDownloads' => false,
                 'notice' => $notice,
                 'headingLevel' => 3,
+                'parts' => ['history', 'applications'],
             ]) ?>
         </div>
     </section>
@@ -100,4 +123,5 @@ $reasonError = field_error('reason');
             <?php endif; ?>
         </div>
     </section>
+</div>
 </div>

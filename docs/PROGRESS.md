@@ -1630,3 +1630,29 @@ Re-audit 10/10 (was 7/10). Details and evidence in [database-audit.md](database-
 - The home hero fills the first screen (`100svh`); the campus photos cover it, and the logo, a pill badge, the title, taglines, lead and buttons sit centered on the photo with no box. A round arrow at the bottom scrolls to the rest of the page (`#explore`).
 - Files: `portal/landing/hero.php`, `portal/home.php`, `css/landing.css` ("Full-screen hero"). Reduced motion stops the arrow and smooth scrolling.
 - `composer test`: OK, 330 tests. Checked at 1366 and 390 wide with no console errors.
+
+### Change: AGILE's real positions (Nov 20, 2026)
+- From the AGILE-OUS Applicant Assessment Report (Positions Dashboard): the Executive Committee is President, Vice President for Internal Affairs, Vice President for External Affairs, Secretary, Assistant Secretary, Treasurer and Auditor; The Source Code adds Editor-in-Chief (11 positions).
+- Migration `2026_11_20_real_positions.php` renames the old "Vice President" to "Vice President for Internal Affairs", keeping its holder; the seeder adds the rest.
+- The Source Code still has no committee head in the system: the MSW Committee Head decides its applications (BR-20). The sheet has the Editor-in-Chief reviewing them; that rule waits for AGILE's decision.
+- Target headcounts per position (the sheet's TARGET column) come with the positions dashboard.
+- `composer test`: OK, 330 tests.
+
+### Data: existing members imported (Nov 20, 2026)
+- `jobs/import_members.php` reads `storage/imports/members.csv` (local only, not committed), taken from the AGILE-OUS DIRECTORY sheet: 16 officers and members besides the 7 committee heads, each with their AGILE record ID as member number and their current position. With the heads, 23 active members.
+- They register at /register with their PUP student number. `AuthService::registerMember()` now gives a member who already holds a position that position's role (President, MSW member, and so on) instead of General Member, and sets a committee's head if it has none. The MSW Committee Head still approves each account (BR-21).
+- Not imported: the Assistant Secretary, Treasurer and Auditor have no PUP webmail or record ID in the sheet; the Finance Deputy Head is still pending; the 6 applicants still being evaluated wait for Waitlisted (#3). The Secretary is also Editor-in-Chief and the VP for Internal Affairs is also interim Managing Editor; the system holds one position per member, so both are imported with their Executive Committee position.
+- `composer test`: OK, 330 tests.
+
+### Feature: Waitlisted decision (Nov 20, 2026)
+- From the Applicant Evaluation sheet's final decisions (Accepted, Waitlisted, Not Accepted). The decider under BR-20 can Waitlist an application that is Under Review, with remarks; the applicant gets the APP_WAITLISTED email and Track Status explains it. A waitlisted application can later be approved or rejected by the same decider.
+- Waitlisted counts as an active application (one per person, BR-02), shows on vacancy pages and as a card on the MSW dashboard.
+- Files: `ApplicationStatus.php`, `MembershipService::waitlist()`, `ApplicationsController::waitlist()`, route `applications.waitlist`, `applications/show.php`, `portal/track.php`, `config/statuses.php`, `DashboardService.php`, `MembershipApplicationRepository.php`, `recruitment/vacancies/show.php`, seed `email_template_text.php`, migration `2026_11_20_waitlisted_status.php`, `schema.sql`.
+- Tests: 2 new (waitlist then approve; transitions). `composer test`: OK, 332 tests.
+
+### Feature: interview checklist, BR-25 (Nov 20, 2026)
+- From the INTERVIEW_CONTROL sheet. On a pending interview, MSW staff confirm: identity and AGILE record verified, role confirmed, privacy reminder given, and whether the interviewer has a conflict of interest. Who confirmed it and when is saved and shown in the interview list.
+- Passed or Failed can only be recorded after the checklist; No show needs none. A declared conflict blocks the result and stops that interviewer from scoring the applicant; rescheduling (with another interviewer) starts a new checklist.
+- Database: 6 columns on `interviews` and `chk_interviews_checklist` (migration `2026_11_20_interview_checklist.php`, `schema.sql`). Upgraded and fresh databases have the same structure.
+- Files: `InterviewService::saveChecklist()`, `recordResult()`, `reschedule()`; `EvaluationService::submit()`; `InterviewRepository::hasConflict()`; `InterviewsController::checklist()`; route `applications.interviews.checklist`; `applications/_interviews.php`.
+- Tests: 4 new in `AppointmentFlowTest`. `composer test`: OK, 336 tests.

@@ -60,7 +60,7 @@ final class AuthController
             'student_no' => [
                 'label' => 'PUP student number',
                 'rules' => ['required', 'regex:' . Validator::STUDENT_NO_PATTERN],
-                'message' => 'Enter your student number in this format: 2024-00101-OU-0.',
+                'message' => 'Enter your student number in this format: 2024-xxxxx-MN-0.',
             ],
         ]);
 
@@ -163,7 +163,7 @@ final class AuthController
     {
         $devUsers = dev_tools_allowed() ? (new UserRepository())->activeDemoUsers() : [];
 
-        return $this->page('auth/login', ['devUsers' => $devUsers, 'robotPage' => true]);
+        return $this->page('auth/login', ['devUsers' => $devUsers]);
     }
 
     /** The route exists only when APP_ENV=local, and the service refuses it otherwise too. */

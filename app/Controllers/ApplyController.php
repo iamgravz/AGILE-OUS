@@ -72,7 +72,7 @@ final class ApplyController
             'student_no' => [
                 'label' => 'PUP student number',
                 'rules' => ['required', 'regex:' . Validator::STUDENT_NO_PATTERN],
-                'message' => 'Enter your student number in this format: 2024-00101-OU-0.',
+                'message' => 'Enter your student number in this format: 2024-xxxxx-MN-0.',
             ],
             'privacy_consent' => ['label' => 'Your consent', 'rules' => ['accepted']],
         ]);
@@ -551,7 +551,7 @@ final class ApplyController
             'student_no' => [
                 'label' => 'PUP student number',
                 'rules' => ['required', 'regex:' . Validator::STUDENT_NO_PATTERN],
-                'message' => 'Enter your student number in this format: 2024-00101-OU-0.',
+                'message' => 'Enter your student number in this format: 2024-xxxxx-MN-0.',
             ],
         ]);
     }

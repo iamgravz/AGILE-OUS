@@ -36,23 +36,9 @@ $parts ??= ['summary', 'credentials', 'history', 'applications'];
     <?php elseif ($activeCredentials === []) : ?>
         <p class="text-muted">Your credentials have not been issued yet. Please contact the MSW Committee.</p>
     <?php endif; ?>
-    <?php if ($approved !== []) : ?><div class="card-grid card-grid--pair"><?php endif; ?>
-    <?php foreach ($approved as $credential) : ?>
-        <article class="card credential-card">
-            <div class="credential-card__preview" aria-hidden="true">
-                <img src="<?= e(asset('img/logo.png')) ?>" alt="" width="32" height="32" loading="lazy">
-                <span><?= e(\App\Services\CredentialService::TYPES[$credential['type']]) ?></span>
-            </div>
-            <div class="card__body">
-                <dl class="detail-list">
-                    <div><dt>Issued</dt><dd><?= e(date_ph($credential['issued_at'])) ?></dd></div>
-                    <div><dt>Serial number</dt><dd><code><?= e($credential['serial_no']) ?></code></dd></div>
-                </dl>
-                <a class="btn btn--secondary btn--sm" href="<?= e(route('files.show', ['type' => 'credential', 'id' => (int) $credential['credential_id']])) ?>">Download<span class="sr-only"> <?= e(\App\Services\CredentialService::TYPES[$credential['type']]) ?></span></a>
-            </div>
-        </article>
-    <?php endforeach; ?>
-    <?php if ($approved !== []) : ?></div><?php endif; ?>
+    <?php if ($approved !== []) : ?>
+        <?= $this->partial('members/_credential_cards', ['credentials' => array_values($approved), 'forOwner' => true, 'headingLevel' => $headingLevel + 1]) ?>
+    <?php endif; ?>
 <?php endif; ?>
 
 <?php if (in_array('history', $parts, true)) : ?>

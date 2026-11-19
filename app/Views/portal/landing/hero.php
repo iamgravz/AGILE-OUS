@@ -9,11 +9,6 @@
  * @var bool $canApply
  */
 $eyebrow = 'PUP Open University System';
-
-if ($term !== null) {
-    $semester = $term['semester'] === 'summer' ? 'Summer' : $term['semester'] . ' Semester';
-    $eyebrow .= ' · AY ' . str_replace('-', '–', (string) $term['academic_year']) . ', ' . $semester;
-}
 ?>
 <section class="hero hero--landing" data-hero>
     <?php /* PUP campus photos, crossfading slowly behind the hero. Decorative, so hidden from screen readers. */ ?>

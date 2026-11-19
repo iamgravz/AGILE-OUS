@@ -1,12 +1,10 @@
 <?php
 /**
  * @var \App\Core\View $this
- * @var bool $robotPage (optional) the page draws its own card: the robot on the login page
  */
-$robotPage ??= false;
 // Registration pages ask for the glass card by setting this section.
 $glassPage = $this->section('auth_glass') !== '';
-// The registration steps ask for Iskobot: a maroon page, the robot holding the step banner, and their own card.
+// The login page and the registration steps ask for Iskobot: a maroon page, the robot holding the step banner, and their own card.
 $iskobotPage = $this->section('auth_style') === 'iskobot';
 ?>
 <!doctype html>
@@ -24,7 +22,7 @@ $iskobotPage = $this->section('auth_style') === 'iskobot';
     <?php if ($iskobotPage) : ?>
         <?= $this->partial('partials/iskobot_page', ['content' => $this->section('content')]) ?>
     <?php else : ?>
-    <div class="auth-page<?= $robotPage ? ' auth-page--robot' : '' ?><?= $glassPage ? ' auth-page--glass' : '' ?>">
+    <div class="auth-page<?= $glassPage ? ' auth-page--glass' : '' ?>">
         <div class="auth-page__grid">
         <main id="main" class="auth-card" tabindex="-1">
             <div class="auth-card__brand">
@@ -34,15 +32,11 @@ $iskobotPage = $this->section('auth_style') === 'iskobot';
                 </a>
             </div>
             <?= $this->partial('partials/flash') ?>
-            <?php if ($robotPage) : ?>
-                <?= $this->section('content') ?>
-            <?php else : ?>
-                <div class="card<?= $glassPage ? ' glass' : '' ?>">
-                    <div class="card__body">
-                        <?= $this->section('content') ?>
-                    </div>
+            <div class="card<?= $glassPage ? ' glass' : '' ?>">
+                <div class="card__body">
+                    <?= $this->section('content') ?>
                 </div>
-            <?php endif; ?>
+            </div>
         </main>
         <aside class="form-layout__side" aria-label="About logging in"><?= $this->partial('partials/side_panel', ['blocks' => [
             ['title' => 'Who can log in', 'text' => 'AGILE members and officers. You do not need an account to apply for membership, ask for help or track a status.'],

@@ -22,7 +22,7 @@ $action = $application === null ? route('apply.new') : route('apply.step', ['id'
             </dl>
             <?= $this->partial('partials/form_field', ['name' => 'first_name', 'label' => 'First name', 'value' => old('first_name', $user['first_name']), 'autocomplete' => 'given-name']) ?>
             <?= $this->partial('partials/form_field', ['name' => 'last_name', 'label' => 'Last name', 'value' => old('last_name', $user['last_name']), 'autocomplete' => 'family-name']) ?>
-            <?= $this->partial('partials/form_field', ['name' => 'student_no', 'label' => 'PUP student number', 'value' => old('student_no', $user['student_no']), 'autocomplete' => 'off', 'help' => 'For example, 2024-00101-OU-0.']) ?>
+            <?= $this->partial('partials/form_field', ['name' => 'student_no', 'label' => 'PUP student number', 'value' => old('student_no', $user['student_no']), 'autocomplete' => 'off', 'help' => 'For example, 2024-xxxxx-MN-0.']) ?>
         <?php else : ?>
             <p class="text-muted">These details come from your account. To correct your name or email, contact the MSW Committee.</p>
             <dl class="detail-list wizard-details">

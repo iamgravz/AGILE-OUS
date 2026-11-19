@@ -13,8 +13,17 @@
 // My welfare cases has its own section below, so it does not need a card too.
 $dash['cards'] = array_values(array_filter($dash['cards'], static fn (array $card): bool => $card['label'] !== 'My welfare cases'));
 $profile = $dash['profile'];
+$approvedCredentials = $profile === null ? [] : array_values(array_filter($profile['activeCredentials'] ?? [], static fn (array $c): bool => $c['status'] === 'approved'));
 ?>
 <?= $this->partial('dashboard/_cards', ['user' => $user, 'dash' => $dash]) ?>
+<?php if ($approvedCredentials !== []) : ?>
+    <section class="card dashboard-section" aria-labelledby="dashboard-credentials">
+        <div class="card__header"><h2 class="card__title" id="dashboard-credentials">Your digital ID and certificate</h2></div>
+        <div class="card__body">
+            <?= $this->partial('members/_credential_cards', ['credentials' => $approvedCredentials, 'forOwner' => true, 'headingLevel' => 3]) ?>
+        </div>
+    </section>
+<?php endif; ?>
 <div class="grid grid--2 dashboard-section">
     <section class="card" aria-labelledby="dashboard-member-card">
         <div class="card__header"><h2 class="card__title" id="dashboard-member-card">Membership details</h2></div>
@@ -28,7 +37,9 @@ $profile = $dash['profile'];
                     <div><dt>Status</dt><dd><?= status_badge($profile['member']['status']) ?></dd></div>
                     <div><dt>Role and position</dt><dd><?= e($profile['roleLabel']) ?></dd></div>
                 </dl>
-                <p class="member-section"><a href="<?= e(route('account')) ?>">Digital ID and certificate</a></p>
+                <?php if ($approvedCredentials === []) : ?>
+                    <p class="member-section"><a href="<?= e(route('account')) ?>">Digital ID and certificate</a></p>
+                <?php endif; ?>
             <?php endif; ?>
         </div>
     </section>

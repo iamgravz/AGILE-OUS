@@ -895,10 +895,6 @@ button.notification {
     .auth-page__grid {
         grid-template-columns: minmax(0, 45rem) minmax(18rem, 1fr);
     }
-
-    .auth-page--robot .auth-page__grid {
-        grid-template-columns: minmax(0, 26rem) minmax(18rem, 1fr);
-    }
 }
 
 .auth-card__brand {
@@ -3744,6 +3740,225 @@ form .grid--2 {
 @media (min-width: 1200px) {
     .profile-layout {
         grid-template-columns: 340px minmax(0, 1fr);
+    }
+}
+
+/* ---------- My Account: one profile card across the top, credentials, then the forms ---------- */
+
+.account-page {
+    display: grid;
+    gap: var(--space-5);
+}
+
+.account-page > * {
+    min-width: 0;
+}
+
+.account-hero {
+    display: grid;
+    gap: var(--space-4) var(--space-6);
+    align-items: center;
+    padding: var(--space-5);
+}
+
+.account-hero__who {
+    display: flex;
+    align-items: center;
+    gap: var(--space-4);
+    min-width: 0;
+}
+
+.account-hero__avatar,
+.account-hero__avatar .avatar {
+    flex: none;
+    width: 6rem;
+    height: 6rem;
+    border-radius: 50%;
+}
+
+.account-hero__avatar .avatar {
+    font-size: 1.75rem;
+}
+
+.account-hero__name {
+    min-width: 0;
+}
+
+.account-hero__name h2 {
+    margin: 0 0 var(--space-1);
+    font-size: 1.375rem;
+}
+
+.account-hero__name p {
+    margin: 0 0 var(--space-1);
+    color: var(--color-text-muted);
+}
+
+.account-hero__facts {
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 13rem), 1fr));
+    gap: var(--space-3) var(--space-5);
+}
+
+/* Labels above their values, like the rest of the card. */
+.account-hero__facts > div {
+    display: block;
+}
+
+.account-page .member-section:first-child,
+.account-page .sr-only:first-child + .member-section {
+    margin-top: 0;
+}
+
+/* Below the profile card: the remaining sections side by side when there is room. */
+.account-columns {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 28rem), 1fr));
+    gap: var(--space-5);
+    align-items: start;
+}
+
+.account-columns > * {
+    min-width: 0;
+}
+
+/* Forms under the profile card: one column each, side by side, no rules between them. */
+.account-forms {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 24rem), 1fr));
+    gap: var(--space-5) var(--space-6);
+    align-items: start;
+}
+
+.account-forms > * {
+    min-width: 0;
+}
+
+.account-forms > .plain-section ~ .plain-section {
+    padding-top: 0;
+    border-top: 0;
+}
+
+.account-hero__note {
+    grid-column: 1 / -1;
+    margin: 0;
+}
+
+@media (min-width: 992px) {
+    .account-hero {
+        grid-template-columns: minmax(16rem, auto) minmax(0, 1fr);
+    }
+}
+
+/* Credentials: a small look at the real file beside its details. */
+.credential-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 28rem), 1fr));
+    gap: var(--space-4);
+}
+
+.credential-card {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+}
+
+.credential-card__thumb {
+    position: relative;
+    display: block;
+    overflow: hidden;
+    border-bottom: 1px solid var(--color-border);
+    background: var(--color-subtle);
+    text-decoration: none;
+    /* The ID card is 85.6 by 54 mm. */
+    aspect-ratio: 242.65 / 153.01;
+}
+
+.credential-card--certificate .credential-card__thumb {
+    /* The certificate is A4 landscape. */
+    aspect-ratio: 841.89 / 595.28;
+}
+
+.credential-card__thumb iframe {
+    display: block;
+    width: 100%;
+    height: 100%;
+    border: 0;
+    pointer-events: none;
+}
+
+.credential-card__thumb:focus-visible {
+    outline-offset: -3px;
+}
+
+.credential-card__fallback {
+    display: none;
+}
+
+/* Phones and touch tablets cannot draw a PDF in a frame: a tile that opens the file instead. */
+@media (max-width: 575.98px), (hover: none) and (pointer: coarse) {
+    .credential-card__thumb iframe {
+        display: none;
+    }
+
+    .credential-card__fallback {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: var(--space-1);
+        height: 100%;
+        background: var(--ink);
+        color: var(--ink-strong);
+        font-weight: 500;
+        text-align: center;
+    }
+
+    .credential-card__tap {
+        color: var(--ink-muted);
+        font-size: 0.875rem;
+        font-weight: 400;
+    }
+}
+
+.credential-card__body {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+    min-width: 0;
+    padding: var(--space-4);
+}
+
+.credential-card__title {
+    margin: 0;
+    font-size: 1rem;
+}
+
+.credential-card__body .detail-list {
+    margin: 0;
+}
+
+/* Labels above values here, even inside a dashboard section that sets them side by side. */
+.credential-card__body .detail-list > div {
+    display: block;
+}
+
+.credential-card__body .cluster {
+    margin-top: auto;
+}
+
+@media (min-width: 576px) {
+    .credential-card {
+        grid-template-columns: 14rem minmax(0, 1fr);
+    }
+
+    .credential-card__thumb {
+        align-self: start;
+        margin: var(--space-4) 0 var(--space-4) var(--space-4);
+        border: 1px solid var(--color-border);
+        border-radius: var(--radius-sm);
+    }
+
+    .credential-card__body {
+        padding-left: var(--space-4);
     }
 }
 

@@ -82,7 +82,7 @@ final class GuestWelfareController
             'student_no' => [
                 'label' => 'PUP student number',
                 'rules' => ['regex:/^\d{4}-\d{5}-[A-Z]{2}-\d$/'],
-                'message' => 'Enter your student number in this format: 2024-00101-OU-0.',
+                'message' => 'Enter your student number in this format: 2024-xxxxx-MN-0.',
             ],
             'privacy_consent' => ['label' => 'Your consent', 'rules' => ['accepted']],
         ]);

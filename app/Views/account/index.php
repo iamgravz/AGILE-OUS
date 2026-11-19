@@ -5,36 +5,45 @@
  * @var array<string, mixed>|null $membership
  */
 $tabs = $membership === null ? ['details' => 'Details'] : ['details' => 'Details', 'history' => 'Membership history', 'applications' => 'Applications'];
-$memberPart = static fn (array $parts): array => $membership + ['withDownloads' => true, 'headingLevel' => 3, 'parts' => $parts];
+$memberPart = static fn (array $parts): array => $membership + ['withDownloads' => true, 'headingLevel' => 2, 'parts' => $parts];
 ?>
 <?php $this->start('title') ?>My account<?php $this->end() ?>
 <?php $this->start('page_title') ?>My account<?php $this->end() ?>
-<div class="profile-layout">
-    <div class="profile-layout__side detail-stack">
-    <section class="card" aria-labelledby="account-details">
-        <div class="card__header"><h2 class="card__title" id="account-details">Account details</h2></div>
-        <div class="card__body">
-            <dl class="detail-list">
-                <div><dt>Name</dt><dd><?= e($account['first_name'] . ' ' . $account['last_name']) ?></dd></div>
-                <div><dt>Email</dt><dd><?= e($account['email']) ?></dd></div>
-                <div><dt>Student number</dt><dd><?= e($account['student_no'] ?? 'Not set') ?></dd></div>
-                <div><dt>Role</dt><dd><?= e($account['role_name']) ?></dd></div>
-                <?php if (!empty($account['last_login_at'])) : ?>
-                    <div><dt>Last login</dt><dd><?= e(datetime_ph($account['last_login_at'])) ?></dd></div>
-                <?php endif; ?>
-            </dl>
-            <p class="field__help">Contact the MSW Committee to correct your name, email or student number.</p>
-        </div>
-    </section>
-        <?php if ($membership !== null) : ?>
-            <section class="card" id="membership" aria-labelledby="account-member">
-                <div class="card__header"><h2 class="card__title" id="account-member">Membership</h2></div>
-                <div class="card__body">
-                    <?= $this->partial('members/_profile', $memberPart(['summary', 'credentials'])) ?>
-                </div>
-            </section>
-        <?php endif; ?>
-    </div>
+<?php
+$fullName = trim($account['first_name'] . ' ' . $account['last_name']);
+$member = $membership['member'] ?? null;
+?>
+<div class="account-page">
+    <?php
+    $facts = [
+        ['Email', e($account['email'])],
+        ['Student number', e($account['student_no'] ?? 'Not set')],
+        ['Role', e($account['role_name'])],
+    ];
+    if ($member !== null) {
+        $facts[] = ['Member number', '<code>' . e($member['member_no']) . '</code>'];
+        $facts[] = ['Joined', e(date_ph($member['joined_at']))];
+    }
+    if (!empty($account['last_login_at'])) {
+        $facts[] = ['Last login', e(datetime_ph($account['last_login_at']))];
+    }
+    ?>
+    <?= $this->partial('partials/profile_hero', [
+        'name' => $fullName,
+        'photoUrl' => $account['photo_path'] !== null ? route('files.show', ['type' => 'avatar', 'id' => $account['user_id']]) : null,
+        'headingId' => 'account-details',
+        'lines' => array_filter([e($membership['roleLabel'] ?? $account['role_name']), $member !== null ? status_badge($member['status']) : null]),
+        'facts' => $facts,
+        'note' => 'Contact the MSW Committee to correct your name, email or student number.',
+    ]) ?>
+
+    <?php if ($membership !== null) : ?>
+        <section class="card" id="membership" aria-label="Digital ID and certificate">
+            <div class="card__body">
+                <?= $this->partial('members/_profile', $memberPart(['credentials'])) ?>
+            </div>
+        </section>
+    <?php endif; ?>
 
     <div data-tabs>
         <div class="tabs__list" role="tablist" aria-label="Account sections">
@@ -47,9 +56,6 @@ $memberPart = static fn (array $parts): array => $membership + ['withDownloads' 
     <section class="plain-section" aria-labelledby="account-photo">
         <div class="card__header"><h2 class="card__title" id="account-photo">Profile photo</h2></div>
         <div class="card__body">
-            <?php if ($account['photo_path'] !== null) : ?>
-                <img class="avatar avatar--large" src="<?= e(route('files.show', ['type' => 'avatar', 'id' => $account['user_id']])) ?>" alt="Your current profile photo" width="120" height="120">
-            <?php endif; ?>
             <form method="post" action="<?= e(route('account.photo')) ?>" enctype="multipart/form-data">
                 <?= csrf_field() ?>
                 <?= $this->partial('partials/upload_field', [

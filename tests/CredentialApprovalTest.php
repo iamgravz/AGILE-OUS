@@ -192,6 +192,7 @@ final class CredentialApprovalTest extends TestCase
 
             $this->signIn('member@agile.test');
             $this->assertStringEndsWith('.pdf', $policy->credential($id)['absolute_path']);
+            $this->assertTrue($policy->credential($id)['previewable'], 'The owner previews an approved copy on My Account.');
 
             $this->signIn('mswmember@agile.test');
             $this->assertRefused($policy, $id);
