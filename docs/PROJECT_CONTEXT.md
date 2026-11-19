@@ -185,7 +185,7 @@ Validation defaults: uploads PDF/JPG/PNG, max 5 MB each (setting `upload.max_mb`
 
 | Record | Transitions |
 |---|---|
-| Membership application | draft→submitted→under_review→approved / rejected / for_revision ; for_revision→submitted ; submitted→withdrawn (applicant) |
+| Membership application | draft→submitted→under_review→approved / rejected / for_revision / waitlisted ; waitlisted→approved / rejected ; for_revision→submitted ; submitted→withdrawn (applicant) |
 | Applicant document | pending→verified / needs_correction / rejected ; needs_correction→pending (re-upload) |
 | HR request | submitted→approved / returned ; returned→submitted ; submitted→cancelled |
 | Vacancy | draft→open→closed / filled ; closed→open (reopen) ; closed→filled *(addition, the last slot taken by an appointment)* ; draft/open→cancelled |
@@ -227,7 +227,7 @@ Implement each lifecycle as a small transition map in the related service, e.g. 
 - `hr_requests` (request_id PK, committee_id FK, position_id FK, requested_by FK users, slots TINYINT >0, justification TEXT, qualifications TEXT *(addition)*, status ENUM('submitted','approved','returned','cancelled'), remarks TEXT NULL *(addition)*, approved_by NULL, approved_at NULL)
 - `vacancies` (vacancy_id PK, request_id FK, position_id FK, title VARCHAR(150), description TEXT, qualifications TEXT NULL, slots TINYINT *(addition)*, slots_filled TINYINT DEFAULT 0, opens_at, closes_at, status ENUM('draft','open','closed','filled','cancelled')) — CHECK slots > 0, slots_filled <= slots, closes_at > opens_at
 - `applicants` *(addition, BR-18)* (applicant_id PK, email VARCHAR(150) UNIQUE, first_name, last_name, student_no VARCHAR(20) NULL UNIQUE (BR-02), contact_no NULL, year_level NULL, email_verified_at, user_id FK users NULL (set when they register)) — people without accounts
-- `membership_applications` (application_id PK, applicant_id FK applicants NULL *(addition)*, user_id FK users NULL (set when a logged-in member applies for a vacancy; exactly one of applicant_id / user_id is set, enforced by a CHECK constraint), vacancy_id FK NULL (NULL = general membership), tracking_code CHAR(12) UNIQUE, status ENUM('draft','submitted','under_review','for_revision','approved','rejected','withdrawn'), decision_remarks TEXT NULL, decided_by NULL, decided_at NULL, consent_at NULL (required at submit), submitted_at NULL, wizard_step TINYINT *(addition)*, enrollment_confirmed_at NULL *(addition, BR-01)*)
+- `membership_applications` (application_id PK, applicant_id FK applicants NULL *(addition)*, user_id FK users NULL (set when a logged-in member applies for a vacancy; exactly one of applicant_id / user_id is set, enforced by a CHECK constraint), vacancy_id FK NULL (NULL = general membership), tracking_code CHAR(12) UNIQUE, status ENUM('draft','submitted','under_review','for_revision','waitlisted','approved','rejected','withdrawn'), decision_remarks TEXT NULL, decided_by NULL, decided_at NULL, consent_at NULL (required at submit), submitted_at NULL, wizard_step TINYINT *(addition)*, enrollment_confirmed_at NULL *(addition, BR-01)*)
 - `application_status_history` *(addition)* (id PK, application_id FK, old_status, new_status, remarks TEXT NULL, changed_by FK users NULL, changed_at) — powers the status timeline
 - `application_questions` (question_id PK, role_type VARCHAR(30) — use `common` for questions everyone gets, input_type ENUM('text','textarea','select','checkbox','file'), options_json JSON NULL *(addition)*, question_text, is_required BOOL DEFAULT 1, sort_order)
 - `application_answers` (answer_id PK, application_id FK, question_id FK, answer_text TEXT NULL)
@@ -308,7 +308,7 @@ APP_APPROVED for someone without an account says: "Create your AGILE account at 
 
 - Brand: **maroon** primary (#8B1E24), **gold** highlight (#D4A72C), very light gray canvas with white cards (§12.1 tokens), AGILE logo on every page and email. Body text ≥ 16px. Contrast ≥ 4.5:1 (WCAG 2.1 AA).
 - Public area: top navigation. Restricted area: left sidebar (items shown by permission), top bar with notification bell + user menu. Collapsible sidebar on mobile.
-- Status badges always **color + text**: Draft, Submitted, Under Review, For Revision, Approved, Rejected, Withdrawn, Open, Closed, Filled, In Progress, Referred, Resolved, Closed, Flagged, Eligible, etc.
+- Status badges always **color + text**: Draft, Submitted, Under Review, For Revision, Waitlisted, Approved, Rejected, Withdrawn, Open, Closed, Filled, In Progress, Referred, Resolved, Closed, Flagged, Eligible, etc.
 - Confirmation dialog (custom modal, not `confirm()`) for reject, close case, remove role, delete.
 - Forms: labels on every field, inline validation messages, keep old input on error, required markers.
 - Tables: search + filters + pagination (20), empty states, responsive (stack into cards on mobile).

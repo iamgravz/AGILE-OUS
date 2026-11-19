@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use App\Core\Database;
 use App\Core\ForbiddenException;
+use DomainException;
 use App\Models\ApplicantRepository;
 use App\Models\MemberRepository;
 use App\Models\MembershipApplicationRepository;
@@ -71,6 +72,55 @@ final class AccountsAndDecisionsTest extends TestCase
             $service->approve($id, 'Good fit');
             $this->assertSame('approved', (new MembershipApplicationRepository())->find($id)['status']);
         });
+    }
+
+    public function testTheDeciderCanWaitlistAndDecideLater(): void
+    {
+        $this->inRollback(function (): void {
+            $id = $this->application($this->vacancyIn('Academics and Training'), $this->userId('nomember@agile.test'), null);
+            $repository = new MembershipApplicationRepository();
+
+            // Someone who is not the decider cannot waitlist.
+            $this->signInId($this->userId('mswhead@agile.test'));
+
+            try {
+                (new MembershipService())->waitlist($id, 'No slot');
+                $this->fail('Only the decider may waitlist.');
+            } catch (ForbiddenException) {
+                $this->addToAssertionCount(1);
+            }
+
+            $this->signInId($this->userId('head@agile.test'));
+            $service = new MembershipService();
+
+            try {
+                $service->waitlist($id, '   ');
+                $this->fail('Remarks are required.');
+            } catch (DomainException) {
+                $this->addToAssertionCount(1);
+            }
+
+            $service->waitlist($id, 'Qualified, but all slots are filled for now.');
+            $this->assertSame('waitlisted', $repository->find($id)['status']);
+            $this->assertSame(1, (int) Database::connection()->query(
+                "SELECT COUNT(*) FROM notifications n JOIN email_templates t ON t.template_id = n.template_id WHERE t.code = 'APP_WAITLISTED' AND n.channel = 'email'"
+            )->fetchColumn());
+
+            // Waitlisted is not final: the same decider approves it when a slot opens.
+            $this->assertTrue($service->canDecide($repository->findDetailed($id)));
+            $service->approve($id, 'A slot opened.');
+            $this->assertSame('approved', $repository->find($id)['status']);
+            $this->assertSame(['waitlisted', 'approved'], array_slice(array_column($repository->historyWithActors($id), 'new_status'), -2));
+        });
+    }
+
+    public function testAWaitlistedApplicationCannotBeWaitlistedAgainOrReturned(): void
+    {
+        $this->assertTrue(\App\Services\ApplicationStatus::canTransition('under_review', 'waitlisted'));
+        $this->assertTrue(\App\Services\ApplicationStatus::canTransition('waitlisted', 'rejected'));
+        $this->assertFalse(\App\Services\ApplicationStatus::canTransition('waitlisted', 'waitlisted'));
+        $this->assertFalse(\App\Services\ApplicationStatus::canTransition('waitlisted', 'for_revision'));
+        $this->assertFalse(\App\Services\ApplicationStatus::canTransition('submitted', 'waitlisted'));
     }
 
     public function testDeciderNamesWhoMustDecide(): void

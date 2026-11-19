@@ -12,14 +12,16 @@ final class ApplicationStatus
     private const TRANSITIONS = [
         'draft' => ['submitted'],
         'submitted' => ['under_review', 'withdrawn'],
-        'under_review' => ['approved', 'rejected', 'for_revision'],
+        'under_review' => ['approved', 'rejected', 'for_revision', 'waitlisted'],
+        // Qualified, but no slot now: the decider can still approve or reject later (AGILE's Waitlisted decision).
+        'waitlisted' => ['approved', 'rejected'],
         'for_revision' => ['submitted'],
         'approved' => [],
         'rejected' => [],
         'withdrawn' => [],
     ];
 
-    public const ALL = ['draft', 'submitted', 'under_review', 'for_revision', 'approved', 'rejected', 'withdrawn'];
+    public const ALL = ['draft', 'submitted', 'under_review', 'for_revision', 'waitlisted', 'approved', 'rejected', 'withdrawn'];
 
     public static function canTransition(string $from, string $to): bool
     {

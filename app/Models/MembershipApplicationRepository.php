@@ -103,7 +103,7 @@ final class MembershipApplicationRepository extends BaseRepository
         $statement = $this->pdo()->prepare(
             "SELECT * FROM membership_applications
              WHERE user_id = ? AND application_id <> ?
-               AND status IN ('submitted', 'under_review', 'for_revision', 'approved')
+               AND status IN ('submitted', 'under_review', 'for_revision', 'waitlisted', 'approved')
                AND " . ($vacancyId === null ? 'vacancy_id IS NULL' : 'vacancy_id = ?') . ' LIMIT 1'
         );
         $statement->execute($vacancyId === null ? [$userId, $exceptId] : [$userId, $exceptId, $vacancyId]);
@@ -176,7 +176,7 @@ final class MembershipApplicationRepository extends BaseRepository
              LEFT JOIN applicants ap ON ap.applicant_id = a.applicant_id
              LEFT JOIN users u ON u.user_id = a.user_id
              WHERE a.application_id <> ? AND a.vacancy_id IS NULL
-               AND a.status IN ('submitted', 'under_review', 'for_revision', 'approved')
+               AND a.status IN ('submitted', 'under_review', 'for_revision', 'waitlisted', 'approved')
                AND (COALESCE(ap.email, u.email) = ? OR COALESCE(ap.student_no, u.student_no) = ?)
              LIMIT 1"
         );
@@ -234,7 +234,7 @@ final class MembershipApplicationRepository extends BaseRepository
         // Committee heads review approved applications, those already evaluated, and position applications they can evaluate (BR-05).
         if (($filters['reviewed_only'] ?? false) === true) {
             $conditions[] = "(a.status = 'approved'
-                OR (a.vacancy_id IS NOT NULL AND a.status IN ('submitted', 'under_review', 'for_revision'))
+                OR (a.vacancy_id IS NOT NULL AND a.status IN ('submitted', 'under_review', 'for_revision', 'waitlisted'))
                 OR EXISTS (SELECT 1 FROM evaluations e WHERE e.application_id = a.application_id))";
         }
 
@@ -298,7 +298,7 @@ final class MembershipApplicationRepository extends BaseRepository
              LEFT JOIN evaluations e ON e.application_id = a.application_id
              WHERE a.vacancy_id = ? AND a.status <> 'draft'
              GROUP BY a.application_id, a.tracking_code, a.status, a.submitted_at, u.first_name, u.last_name
-             HAVING a.status IN ('approved', 'submitted', 'under_review', 'for_revision') OR evaluation_count > 0
+             HAVING a.status IN ('approved', 'submitted', 'under_review', 'for_revision', 'waitlisted') OR evaluation_count > 0
              ORDER BY a.submitted_at DESC, a.application_id DESC"
         );
         $statement->execute([$vacancyId]);

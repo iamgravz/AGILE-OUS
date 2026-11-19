@@ -10,7 +10,7 @@ $status = $vacancy['status'];
 $isLivePublicly = $status === 'open' && $vacancy['opens_at'] <= date('Y-m-d H:i:s') && $vacancy['closes_at'] > date('Y-m-d H:i:s');
 $remarksError = field_error('remarks');
 $closesError = field_error('closes_at');
-$active = count(array_filter($applications, static fn (array $application): bool => in_array($application['status'], ['submitted', 'under_review', 'for_revision'], true)));
+$active = count(array_filter($applications, static fn (array $application): bool => in_array($application['status'], ['submitted', 'under_review', 'for_revision', 'waitlisted'], true)));
 ?>
 <?php $this->start('title') ?><?= e($vacancy['title']) ?><?php $this->end() ?>
 <?php $this->start('page_title') ?><?= e($vacancy['title']) ?><?php $this->end() ?>

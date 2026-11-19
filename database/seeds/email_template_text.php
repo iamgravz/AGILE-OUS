@@ -99,6 +99,10 @@ return [
         'Your AGILE application was approved',
         $body('We are pleased to inform you that your application was approved. {next_step}', ['Tracking code' => '{tracking_code}', 'Member number' => '{member_no}', 'Status' => 'Approved'], ['{link_text}']),
     ],
+    'APP_WAITLISTED' => [
+        'You are on the AGILE waiting list ({tracking_code})',
+        $body('Thank you for your application. You qualified, but there is no open slot right now, so you are on our waiting list. We will email you as soon as a decision is made. You do not need to apply again.', ['Tracking code' => '{tracking_code}', 'Status' => 'Waitlisted', 'Remarks' => '{remarks}']),
+    ],
     'APP_REJECTED' => [
         'An update on your AGILE application ({tracking_code})',
         $body('After review, we are unable to approve your application at this time. Thank you for your interest in AGILE.', ['Tracking code' => '{tracking_code}', 'Status' => 'Rejected', 'Remarks' => '{remarks}']),

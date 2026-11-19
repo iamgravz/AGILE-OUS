@@ -66,7 +66,7 @@ final class DashboardService
             'cards' => [
                 ['label' => 'Members', 'value' => $this->data->memberCount()],
                 ['label' => 'Active officers', 'value' => $this->data->activeOfficerCount()],
-                ['label' => 'Applications being processed', 'value' => $this->sum($applications, ['submitted', 'under_review', 'for_revision'])],
+                ['label' => 'Applications being processed', 'value' => $this->sum($applications, ['submitted', 'under_review', 'for_revision', 'waitlisted'])],
                 ['label' => 'Open vacancies', 'value' => $this->data->openVacancyCount()],
                 ['label' => 'Slots filled', 'value' => $this->data->filledSlotCount()],
                 ['label' => 'Welfare cases not closed', 'value' => array_sum($welfare) - ($welfare['closed'] ?? 0)],
@@ -174,6 +174,7 @@ final class DashboardService
             'cards' => [
                 ['label' => 'New applications', 'value' => $applications['submitted'] ?? 0, 'url' => route('applications') . '?status=submitted'],
                 ['label' => 'Under review', 'value' => $applications['under_review'] ?? 0, 'url' => route('applications') . '?status=under_review'],
+                ['label' => 'Waitlisted', 'value' => $applications['waitlisted'] ?? 0, 'url' => route('applications') . '?status=waitlisted'],
                 ['label' => 'Documents to verify', 'value' => $documents, 'url' => route('applications')],
                 ['label' => 'Interviews this week', 'value' => count($interviews), 'url' => route('interviews')],
                 ['label' => 'Appointments to prepare', 'value' => count($ready), 'url' => route('appointments')],

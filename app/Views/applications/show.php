@@ -19,7 +19,8 @@ $isOwn = (int) $application['user_id'] === current_user_id();
 
 $canMarkReview = !$isOwn && $status === 'submitted' && can('application.update_status');
 $canReturn = !$isOwn && $status === 'under_review' && can('application.return');
-$canDecide = !$isOwn && $status === 'under_review' && $mayDecide;
+$canDecide = !$isOwn && in_array($status, ['under_review', 'waitlisted'], true) && $mayDecide;
+$canWaitlist = $canDecide && $status === 'under_review';
 $hasActions = $canMarkReview || $canReturn || $canDecide;
 $decisionWord = $decider['committee'] ? 'Accept' : 'Approve';
 
@@ -77,7 +78,7 @@ $actionLabels = [
 <?php endif; ?>
 <?php $this->end() ?>
 
-<?php if (in_array($status, ['submitted', 'under_review', 'for_revision'], true)) : ?>
+<?php if (in_array($status, ['submitted', 'under_review', 'for_revision', 'waitlisted'], true)) : ?>
     <p>Decision by: <strong><?= e($decider['label']) ?></strong></p>
 <?php endif; ?>
 <div class="detail-layout">
@@ -91,7 +92,7 @@ $actionLabels = [
                 <div class="field <?= $remarksError !== null ? 'field--error' : '' ?>">
                     <label class="field__label" for="remarks">Remarks <span class="field__required" aria-hidden="true">*</span></label>
                     <textarea class="textarea applications-actions__remarks" id="remarks" name="remarks" maxlength="2000" required aria-describedby="remarks-help<?= $remarksError !== null ? ' remarks-error' : '' ?>"></textarea>
-                    <p class="field__help" id="remarks-help">Required for every action. Applicants see these remarks when an application is returned, approved or rejected.</p>
+                    <p class="field__help" id="remarks-help">Required for every action. Applicants see these remarks when an application is returned, approved, rejected or waitlisted.</p>
                     <?php if ($remarksError !== null) : ?>
                         <p class="field__error" id="remarks-error"><?= icon('alert') ?> <?= e($remarksError) ?></p>
                     <?php endif; ?>
@@ -139,6 +140,17 @@ $actionLabels = [
                             data-confirm-title="Reject this application?"
                             data-confirm-action="Reject"
                         >Reject</button>
+                    <?php endif; ?>
+                    <?php if ($canWaitlist) : ?>
+                        <button
+                            type="submit"
+                            class="btn btn--secondary"
+                            formaction="<?= e(route('applications.waitlist', ['id' => $id])) ?>"
+                            data-confirm="The applicant is told they are on the waiting list, with your remarks. You can still approve or reject this application later."
+                            data-confirm-title="Waitlist this application?"
+                            data-confirm-action="Waitlist"
+                            data-confirm-tone="primary"
+                        >Waitlist</button>
                     <?php endif; ?>
                 </div>
             </form>

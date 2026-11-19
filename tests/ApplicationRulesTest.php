@@ -18,6 +18,9 @@ final class ApplicationRulesTest extends TestCase
             ['under_review', 'approved'],
             ['under_review', 'rejected'],
             ['under_review', 'for_revision'],
+            ['under_review', 'waitlisted'],
+            ['waitlisted', 'approved'],
+            ['waitlisted', 'rejected'],
             ['for_revision', 'submitted'],
         ];
 

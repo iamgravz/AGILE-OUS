@@ -789,6 +789,26 @@ final class MembershipService
         });
     }
 
+    /**
+     * AGILE's Waitlisted decision: the applicant qualifies but there is no slot now. The same decider (BR-20) can approve
+     * or reject the application later, for example when a slot opens.
+     */
+    public function waitlist(int $id, string $remarks): void
+    {
+        $this->authorizeDecision($id);
+        $this->requireRemarks($remarks);
+
+        Database::transaction(function () use ($id, $remarks): void {
+            $row = $this->lockForStaff($id);
+            $this->changeStatus($row, 'waitlisted', ['decision_remarks' => trim($remarks)], $remarks);
+            AuditService::log('application.waitlisted', 'membership_application', $id, ['from' => $row['status'], 'to' => 'waitlisted']);
+            $this->notifyOwner($row, 'APP_WAITLISTED', [
+                'tracking_code' => $row['tracking_code'],
+                'remarks' => $remarks,
+            ]);
+        });
+    }
+
     public function reject(int $id, string $remarks): void
     {
         $this->authorizeDecision($id);

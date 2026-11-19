@@ -8,6 +8,7 @@ return [
     'submitted' => ['Submitted', 'info'],
     'under_review' => ['Under Review', 'gold'],
     'for_revision' => ['For Revision', 'warning'],
+    'waitlisted' => ['Waitlisted', 'info'],
     'approved' => ['Approved', 'success'],
     'rejected' => ['Rejected', 'danger'],
     'withdrawn' => ['Withdrawn', 'neutral'],

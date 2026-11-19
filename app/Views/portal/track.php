@@ -82,6 +82,8 @@ $fields = [
                 <input type="hidden" name="email" value="<?= e($email ?? '') ?>">
                 <button type="submit" class="btn btn--secondary">Email me a withdrawal link</button>
             </form>
+        <?php elseif ($result['type'] === 'Membership application' && $result['status'] === 'waitlisted') : ?>
+            <p>You are on the waiting list: you qualified, but there is no open slot right now. We will email you when a decision is made. You do not need to apply again.</p>
         <?php elseif ($result['type'] === 'Membership application' && $result['status'] === 'for_revision') : ?>
             <p>This application was returned for revision. <a href="<?= e(route('login')) ?>">Log in</a> and open My Applications to change it.</p>
         <?php endif; ?>

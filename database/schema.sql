@@ -318,7 +318,7 @@ CREATE TABLE IF NOT EXISTS membership_applications (
     user_id INT UNSIGNED NULL,
     vacancy_id INT UNSIGNED NULL,
     tracking_code CHAR(12) NOT NULL,
-    status ENUM('draft','submitted','under_review','for_revision','approved','rejected','withdrawn') NOT NULL DEFAULT 'draft',
+    status ENUM('draft','submitted','under_review','for_revision','waitlisted','approved','rejected','withdrawn') NOT NULL DEFAULT 'draft',
     wizard_step TINYINT UNSIGNED NOT NULL DEFAULT 1,
     decision_remarks TEXT NULL,
     decided_by INT UNSIGNED NULL,

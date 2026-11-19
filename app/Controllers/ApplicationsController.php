@@ -131,6 +131,11 @@ final class ApplicationsController
         return $this->act($request, $id, 'reject', 'The application was rejected, and the applicant was notified.');
     }
 
+    public function waitlist(Request $request, string $id): Response
+    {
+        return $this->act($request, $id, 'waitlist', 'The application was waitlisted, and the applicant was notified. You can still approve or reject it later.');
+    }
+
     private function act(Request $request, string $id, string $method, string $message): Response
     {
         $remarks = $request->text('remarks');

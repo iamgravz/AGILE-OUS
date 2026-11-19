@@ -70,6 +70,7 @@ return static function (Router $router): void {
     $router->post('/applications/{id}/return', 'ApplicationsController@returnForRevision', 'applications.return')->middleware('perm:application.return');
     $router->post('/applications/{id}/approve', 'ApplicationsController@approve', 'applications.approve')->middleware('perm:application.decide');
     $router->post('/applications/{id}/reject', 'ApplicationsController@reject', 'applications.reject')->middleware('perm:application.decide');
+    $router->post('/applications/{id}/waitlist', 'ApplicationsController@waitlist', 'applications.waitlist')->middleware('perm:application.decide');
 
     $router->get('/credentials/approvals', 'CredentialApprovalsController@index', 'credentials.approvals')->middleware('perm:credential.approve');
     $router->post('/credentials/approvals/approve', 'CredentialApprovalsController@approve', 'credentials.approve')->middleware('perm:credential.approve');
