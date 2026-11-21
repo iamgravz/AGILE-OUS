@@ -19,6 +19,10 @@
         <?= $this->partial('partials/flash') ?>
         <div class="form-layout">
             <div class="form-layout__main login-page">
+                <h1>Log in to AGILE</h1>
+                <p class="portal-lead">For AGILE members and officers. Use the email and password of your AGILE account.</p>
+
+                <?php /* Iskobot sits on the card, and its hands (the card's ::before and ::after) hold the top corners. */ ?>
                 <div class="robot" aria-hidden="true">
                     <div class="robot__bubble">Mabuhay! I'm Iskobot. Welcome back to AGILE!</div>
                     <div class="robot__antenna"><span class="robot__bulb"></span><span class="robot__stem"></span></div>
@@ -28,10 +32,7 @@
                     </div>
                 </div>
 
-                <h1>Log in to AGILE</h1>
-                <p class="portal-lead">For AGILE members and officers. Use the email and password of your AGILE account.</p>
-
-                <form class="card glass" method="post" action="<?= e(route('login')) ?>">
+                <form class="card glass login-card" method="post" action="<?= e(route('login')) ?>">
                     <?= csrf_field() ?>
                     <div class="card__body">
                         <?= $this->partial('partials/form_field', ['name' => 'email', 'label' => 'Email', 'type' => 'email', 'value' => (string) old('email'), 'autocomplete' => 'username']) ?>
