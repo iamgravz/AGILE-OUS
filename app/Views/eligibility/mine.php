@@ -9,7 +9,6 @@ use App\Services\EligibilityService;
 $consentError = field_error('privacy_consent');
 ?>
 <?php $this->start('title') ?>My eligibility<?php $this->end() ?>
-<?php $this->start('form_side') ?><?= $this->partial('partials/side_panel', ['blocks' => [['title' => 'What to submit', 'items' => ['Your grades for the term', 'Your proof of enrollment', 'PDF, JPG or PNG files']], ['title' => 'How you are judged', 'text' => 'You are eligible with no failed subject and official enrollment for the whole semester. A person always reviews this.'], ['title' => 'Need help?', 'text' => 'Email the MSW Committee and we will get back to you.', 'contact' => true]]]) ?><?php $this->end() ?>
 <?php $this->start('page_title') ?>My eligibility<?php $this->end() ?>
 
 <?php if ($mine === null) : ?>

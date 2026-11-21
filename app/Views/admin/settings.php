@@ -13,7 +13,6 @@ $rubricError = field_error('rubric');
 $weightTotal = array_sum(array_column($rows, 'weight'));
 ?>
 <?php $this->start('title') ?>Settings<?php $this->end() ?>
-<?php $this->start('form_side') ?><?= $this->partial('partials/side_panel', ['blocks' => [['title' => 'When changes apply', 'text' => 'Everything here applies right away. Each change is saved in the audit log with before and after.'], ['title' => 'Contact email', 'text' => 'Emails and the docs pages use this one. The footer and error pages use ORG_CONTACT_EMAIL in .env, so keep the two the same.'], ['title' => 'Evaluation rubric', 'text' => 'Weights must add up to 100. Evaluations already saved keep their scores.'], ['title' => 'Landing page', 'text' => 'Only the wording, hero image and sections are set here. Numbers, positions, committees, events and news come from the system.']]]) ?><?php $this->end() ?>
 <?php $this->start('page_title') ?>Settings<?php $this->end() ?>
 <?php $this->start('head') ?><script src="<?= e(asset('js/rubric-total.js')) ?>" defer></script><?php $this->end() ?>
 

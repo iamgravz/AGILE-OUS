@@ -7,7 +7,6 @@
 $id = (int) $position['position_id'];
 ?>
 <?php $this->start('title') ?><?= e($position['title']) ?><?php $this->end() ?>
-<?php $this->start('form_side') ?><?= $this->partial('partials/side_panel', ['blocks' => [['title' => 'About positions', 'items' => ['The type decides which role a holder gets.', 'A position in use cannot change its type or be deleted.', 'Add a new position instead when the duties really change.']]]]) ?><?php $this->end() ?>
 <?php $this->start('page_eyebrow') ?><?= e($position['committee_name'] ?? 'Executive') ?> position<?php $this->end() ?>
 <?php $this->start('page_title') ?><?= e($position['title']) ?><?php $this->end() ?>
 

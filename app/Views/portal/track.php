@@ -130,11 +130,6 @@ $fields = [
         </form>
     <?php endif; ?>
 </div>
-<aside class="form-layout__side" aria-label="What each status means"><?= $this->partial('partials/side_panel', ['blocks' => [
-    ['title' => 'Application statuses', 'items' => ['Submitted: we received it.', 'Under review: the committee is checking it.', 'For revision: please correct what is asked. We email you a link.', 'Approved: you can register your account.', 'Rejected: the email says why.', 'Withdrawn: you cancelled it.']],
-    ['title' => 'Welfare statuses', 'items' => ['Submitted: we received your concern.', 'In progress: a handler is working on it.', 'Referred: it was passed to the right office.', 'Resolved: action was taken.', 'Closed: the case is finished.']],
-    ['title' => 'Lost your code?', 'text' => 'It is in the email we sent when you submitted. Ask the MSW Committee if you cannot find it.', 'contact' => true],
-]]) ?></aside>
 </div>
 <?php if ($glassForm) : ?>
         </div>

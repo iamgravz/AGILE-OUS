@@ -23,7 +23,7 @@ $consentError = $errors['privacy_consent'] ?? null;
 ?>
 <div class="alert alert--info welfare-notice" role="note">
     <?= icon('info') ?>
-    <p class="alert__text"><strong>Your concern is confidential.</strong> Only the MSW Committee Head and the President can see it.</p>
+    <p class="alert__text"><strong>Your concern is confidential.</strong> Only the MSW Committee Head and the President can see it. In immediate danger? Contact emergency services first: this form is not monitored around the clock.</p>
 </div>
 
 <?php if (isset($errors['form'])) : ?>

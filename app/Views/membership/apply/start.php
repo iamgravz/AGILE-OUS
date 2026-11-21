@@ -6,7 +6,6 @@
 $consentError = field_error('privacy_consent');
 ?>
 <?php $this->start('title') ?>Apply for membership<?php $this->end() ?>
-<?php $this->start('form_side') ?><?= $this->partial('partials/side_panel', ['blocks' => [['title' => 'What you need', 'items' => ['Your PUP student number', 'Your current COR', 'For a committee: your previous semester copy of grades (not for 1st years in their 1st semester)', 'PDF, JPG or PNG files, up to 5 MB each']], ['title' => 'How it works', 'items' => ['Confirm your email with a 6-digit code.', 'Choose General Membership or the committee you want to join.', 'Fill in your details and upload your documents.', 'Get a tracking code, and follow your application on Track Status.']], ['title' => 'Need help?', 'text' => 'Email the MSW Committee and we will get back to you.', 'contact' => true]]]) ?><?php $this->end() ?>
 <?php $this->start('description') ?>Apply for AGILE membership. You do not need an account. We confirm your email with a one-time code.<?php $this->end() ?>
 <div class="welfare-page">
     <h1>Apply for membership</h1>

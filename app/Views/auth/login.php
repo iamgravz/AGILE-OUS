@@ -63,11 +63,6 @@
                     </details>
                 <?php endif; ?>
             </div>
-            <aside class="form-layout__side" aria-label="About logging in"><?= $this->partial('partials/side_panel', ['blocks' => [
-                ['title' => 'With your account, you can', 'items' => ['See and download your digital ID and certificate.', 'Apply for committee and officer positions.', 'Follow your welfare concerns from your dashboard.']],
-                ['title' => 'How registration works', 'items' => ['Your membership application is approved.', 'Enter your PUP student number on the registration page.', 'We send a code to the email on your application.', 'Choose a password. The MSW Committee Head then approves your account.']],
-                ['title' => 'Without an account', 'links' => [['Apply for membership', route('apply')], ['Track Status', route('track')], ['Ask for Help', route('ask_for_help')]]],
-            ]]) ?></aside>
         </div>
     </div>
 </section>

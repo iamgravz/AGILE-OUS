@@ -38,11 +38,6 @@ $iskobotPage = $this->section('auth_style') === 'iskobot';
                 </div>
             </div>
         </main>
-        <aside class="form-layout__side" aria-label="About logging in"><?= $this->partial('partials/side_panel', ['blocks' => [
-            ['title' => 'Who can log in', 'text' => 'AGILE members and officers. You do not need an account to apply for membership, ask for help or track a status.'],
-            ['title' => 'How registration works', 'items' => ['Your membership application is approved.', 'Enter your PUP student number on the registration page.', 'We send a code to the email on your application.', 'Choose a password. The MSW Committee Head then approves your account.']],
-            ['title' => 'Without an account', 'links' => [['Apply for membership', route('apply')], ['Track Status', route('track')], ['Ask for Help', route('ask_for_help')]]],
-        ]]) ?></aside>
         </div>
         <p class="auth-page__links">
             <a href="/">Back to home</a>

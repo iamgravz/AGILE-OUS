@@ -1,8 +1,5 @@
 <?php /** @var \App\Core\View $this */ ?>
 <?php $this->start('title') ?>Something went wrong<?php $this->end() ?>
-<?php $this->start('form_side') ?>
-<?= $this->partial('errors/_next') ?>
-<?php $this->end() ?>
 <div class="error-page">
     <p class="error-page__code">500</p>
     <h1>Something went wrong</h1>

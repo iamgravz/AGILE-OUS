@@ -5,7 +5,6 @@
  */
 ?>
 <?php $this->start('title') ?>Withdraw your application<?php $this->end() ?>
-<?php $this->start('form_side') ?><?= $this->partial('partials/side_panel', ['blocks' => [['title' => 'What withdrawing does', 'text' => 'Your application stops being reviewed. You can apply again at any time.'], ['title' => 'Need help?', 'text' => 'Email the MSW Committee and we will get back to you.', 'contact' => true]]]) ?><?php $this->end() ?>
 <div class="welfare-page">
     <h1>Withdraw your application</h1>
     <p>If you withdraw, the MSW Committee stops reviewing this application. This cannot be undone, but you can apply again later.</p>

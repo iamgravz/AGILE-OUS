@@ -6,7 +6,6 @@
 $roleError = field_error('role');
 ?>
 <?php $this->start('title') ?>Create officer account<?php $this->end() ?>
-<?php $this->start('form_side') ?><?= $this->partial('partials/side_panel', ['blocks' => [['title' => 'About officer accounts', 'items' => ['The account is active at once.', 'We email a link to set the password. It works for 72 hours.', 'Applicants do not need this page: they register after approval.']], ['title' => 'Committee heads', 'text' => 'Create the account first, then set them as head under Committees and positions.']]]) ?><?php $this->end() ?>
 <?php $this->start('page_title') ?>Create officer account<?php $this->end() ?>
 
 <form class="admin-form" method="post" action="<?= e(route('admin.users.create')) ?>">

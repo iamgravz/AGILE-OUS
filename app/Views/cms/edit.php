@@ -19,7 +19,6 @@ $bodyError = field_error('body');
 $heading = $post === null ? 'New post' : 'Edit post';
 ?>
 <?php $this->start('title') ?><?= e($heading) ?><?php $this->end() ?>
-<?php $this->start('form_side') ?><?= $this->partial('partials/side_panel', ['blocks' => [['title' => 'Before you publish', 'items' => ['Nothing is public until the MSW Committee Head approves it.', 'Use a cover image in JPG or PNG.', 'Leave the address blank to make one from the title.']], ['title' => 'Events', 'text' => 'Events need a start date. Add a venue, or a full link for an online event.']]]) ?><?php $this->end() ?>
 <?php $this->start('page_title') ?><?= e($heading) ?><?php $this->end() ?>
 <?php $this->start('head') ?>
 <link rel="stylesheet" href="<?= e(asset('vendor/quill/quill.snow.css')) ?>">

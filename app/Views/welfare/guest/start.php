@@ -3,7 +3,6 @@
 $consentError = field_error('privacy_consent');
 ?>
 <?php $this->start('title') ?>Ask for help as a guest<?php $this->end() ?>
-<?php $this->start('form_side') ?><?= $this->partial('partials/side_panel', ['blocks' => [['title' => 'Your concern is confidential', 'text' => 'Only the MSW Committee Head and the President can read it. It is stored encrypted, and every view is logged.'], ['title' => 'What happens next', 'items' => ['You get a case code by email.', 'A handler reviews your concern. Urgent and harassment cases are acknowledged within 24 hours.', 'You can follow its status with your case code.']], ['title' => 'In immediate danger?', 'text' => 'Please contact emergency services or your local authorities first. This form is not monitored around the clock.']]]) ?><?php $this->end() ?>
 <?php $this->start('description') ?>Submit a confidential concern to AGILE without an account. We confirm your email with a one-time code.<?php $this->end() ?>
 <div class="welfare-page">
     <h1>Ask for help as a guest</h1>

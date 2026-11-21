@@ -10,7 +10,6 @@ $positionError = field_error('position_id');
 $action = $hrRequest === null ? route('hr_requests.create') : route('hr_requests.edit', ['id' => (int) $hrRequest['request_id']]);
 ?>
 <?php $this->start('title') ?><?= e($heading) ?><?php $this->end() ?>
-<?php $this->start('form_side') ?><?= $this->partial('partials/side_panel', ['blocks' => [['title' => 'What happens next', 'items' => ['The MSW Committee Head reads your request.', 'If approved, a vacancy can be created from it.', 'If returned, fix what is asked and send it again.']]]]) ?><?php $this->end() ?>
 <?php $this->start('page_title') ?><?= e($heading) ?><?php $this->end() ?>
 
 <?php if ($positions === []) : ?>

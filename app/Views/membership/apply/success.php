@@ -6,7 +6,6 @@
 $id = (int) $application['application_id'];
 ?>
 <?php $this->start('title') ?>Application submitted<?php $this->end() ?>
-<?php $this->start('form_side') ?><?= $this->partial('partials/side_panel', ['blocks' => [['title' => 'What happens next', 'items' => ['The MSW Committee checks your documents.', 'We email you when your status changes.', 'Once approved, you register your account.']], ['title' => 'Follow your application', 'links' => [['Track Status', route('track')]]], ['title' => 'Need help?', 'text' => 'Email the MSW Committee and we will get back to you.', 'contact' => true]]]) ?><?php $this->end() ?>
 <?php $this->start('page_title') ?>Application submitted<?php $this->end() ?>
 <div class="card wizard-form">
     <div class="card__body">
