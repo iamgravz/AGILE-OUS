@@ -14,7 +14,7 @@ $left = max(0, (int) $position['slots'] - (int) $position['slots_filled']);
         <span class="post-card__line"><?= e($position['committee_name'] ?? 'Executive') ?></span>
         <span class="post-card__line"><?= e($left) ?> <?= $left === 1 ? 'slot' : 'slots' ?> left</span>
         <span class="post-card__meta">Apply by <?= e(date_ph($position['closes_at'])) ?></span>
-        <span class="post-card__line post-card__docs">Required: <?= e(MembershipService::documentLabel('school_id')) ?>, <?= e(MembershipService::documentLabel('cor')) ?></span>
+        <span class="post-card__line post-card__docs">Required: Current COR and previous semester copy of grades</span>
         <span class="btn btn--primary btn--sm post-card__action">Apply</span>
     </span>
 </a>

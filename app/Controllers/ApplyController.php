@@ -292,6 +292,7 @@ final class ApplyController
             'step' => $number,
             'reached' => (int) $application['wizard_step'],
             'vacancies' => $number === 3 ? $this->membership->openVacancies() : [],
+            'committees' => $number === 3 ? $this->membership->joinableCommittees() : [],
             'preselected' => $number === 3 ? Session::get(self::VACANCY_KEY) : null,
         ] + $this->membership->details($application));
     }
@@ -482,7 +483,18 @@ final class ApplyController
                     return $request->text('intent') === 'save' ? [] : ['membership_type' => 'Please choose a membership type.'];
                 }
 
-                $this->membership->chooseType($id, $choice === 'general' ? null : (int) $choice);
+                // "general", "committee" with a committee_id, or an open vacancy's id.
+                if ($choice === 'committee') {
+                    $committeeId = (int) $request->text('committee_id');
+
+                    if ($committeeId <= 0) {
+                        return ['membership_type' => 'Please choose the committee you want to join.'];
+                    }
+
+                    $this->membership->chooseType($id, null, $committeeId);
+                } else {
+                    $this->membership->chooseType($id, $choice === 'general' ? null : (int) $choice);
+                }
                 // Recorded right away, because "no vacancy" alone cannot show that general membership was chosen.
                 $this->membership->advance($id, 4);
                 Session::set(self::VACANCY_KEY, null);
@@ -634,6 +646,8 @@ final class ApplyController
         return $this->page($view, $data + [
             'user' => $this->membership->person($data['application']),
             'mayChooseGeneral' => current_user_id() === null || !(new \App\Models\UserRepository())->hasMemberRecord(current_user_id()),
+            // Joining a committee is for people without a position yet (MembershipService::assertCommitteeChoice).
+            'mayChooseCommittee' => current_user_id() === null || ((new \App\Models\MemberRepository())->findByUser(current_user_id())['position_id'] ?? null) === null,
             'breadcrumbs' => [['label' => 'Dashboard', 'url' => route('dashboard')], ['label' => 'My Applications', 'url' => route('my_applications')], ['label' => 'Apply']],
         ]);
     }

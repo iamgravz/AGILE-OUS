@@ -1697,3 +1697,19 @@ Re-audit 10/10 (was 7/10). Details and evidence in [database-audit.md](database-
 - `public/.htaccess` compression and caching only work under Apache with `mod_deflate` and `mod_headers`; `php -S` ignores them. Not tested under Apache.
 - `AI_API_KEY` is forced empty in `phpunit.xml`, which Windows also removes, so child processes see the key from `.env`. Harmless while `AI_PROVIDER=none` is forced, which it is.
 - The Step 3 to Step 23 browser suites were not rerun; only the header and committee pages were measured.
+
+### After Step 24 (Nov 22, 2026)
+- **Footer:** one thin line from 1200px, with AGILE's real contacts from `.env` (`ORG_CONTACT_EMAIL`, `ORG_MSW_EMAIL`, `ORG_FACEBOOK_URL`).
+- **Login:** in the site's own layout like Track Status, with Iskobot standing on the card and holding its corners; the demo switcher folds away.
+
+### Feature: membership requirements and choosing a committee (Nov 22, 2026)
+- **Requirements (from AGILE):** General Membership needs the current COR only. Joining a committee, or any position, needs the current COR and the previous semester copy of grades. 1st years in a 1st semester give the COR only; 1st years joining in the 2nd semester give their 1st semester grades. School ID is no longer asked for (old uploads still show).
+- **Where:** `MembershipService::requiredDocuments()`, `documentsToAsk()`, `needsGrades()`, `isFirstYearFirstSemester()` (year level from step 2, semester from the current academic term; with no current term, grades are asked for). The documents step, the approval check and uploads all follow it. `membership/_requirements.php` shows AGILE's table on the apply page and in step 3.
+- **Choosing a committee (step 3):** General Membership, or Committee Member with a committee to choose, for people without an account and for members who hold no position. Open positions stay for logged-in members. The Source Code has no Committee Member position, so it is not listed; its positions open as vacancies.
+- **Who decides:** that committee's head (BR-20), or the MSW Committee Head for the MSW committee. The application shows as "Committee Member, <committee>" in every list, and in the committee head's list. Staff can filter by Committee Member.
+- **On approval:** the member becomes that committee's Committee Member (`membership_type` officer). With an account, they get the position's role at once; without one, `/register` gives it later. Someone who meanwhile got a position keeps it.
+- **Database:** `membership_applications.committee_id` with a CHECK that a vacancy and a committee are never both set (migration `2026_11_22_committee_applications.php`, `schema.sql`). Applied to `agile_ams` after a backup.
+- **Demo data:** demo applicants give a COR only; with `DEMO_BULK=true`, every third applicant not yet approved applies to a committee (on fresh seeds).
+- **Tests:** `tests/MembershipRequirementsTest.php` (8). Test data for position applications now has COR and grades. `composer test`: OK, 349 tests, 3236 assertions.
+- **Checked in the browser** as `nomember@agile.test`: the apply page's table, step 3 (no committee chosen gives "Please choose the committee you want to join."), and step 5 asking for COR and grades for Logistics. This left one draft application for that demo account.
+- **Not built:** Year-Level Representative is in AGILE's table but is not a position in the system yet.

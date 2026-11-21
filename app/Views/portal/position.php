@@ -28,8 +28,8 @@ $canApply = current_user_id() === null || can('application.submit');
         </dl>
         <h3 class="docs-card__heading">Required documents</h3>
         <ul class="docs-card__list">
-            <li><?= e(MembershipService::documentLabel('school_id')) ?></li>
             <li><?= e(MembershipService::documentLabel('cor')) ?></li>
+            <li><?= e(MembershipService::documentLabel('grades')) ?> (1st years in their 1st semester: not needed)</li>
         </ul>
         <?php if ($canApply && current_user_id() === null) : ?>
             <p>Positions are open to AGILE members.</p>

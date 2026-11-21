@@ -15,6 +15,6 @@
     </div>
 </section>
 <?= $this->partial('partials/side_panel', ['blocks' => [
-    ['title' => 'What you need', 'items' => ['Your PUP student number', 'A clear copy of your school ID', 'Your proof of enrollment (COR)', 'PDF, JPG or PNG files, up to 5 MB each']],
+    ['title' => 'What you need', 'items' => ['Your PUP student number', 'Your current COR', 'For a committee or position: your previous semester copy of grades (not for 1st years in their 1st semester)', 'PDF, JPG or PNG files, up to 5 MB each']],
     ['title' => 'Need help?', 'text' => 'Your answers are saved as you go. Email the MSW Committee if you get stuck.', 'contact' => true],
 ]]) ?>

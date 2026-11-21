@@ -39,12 +39,13 @@ final class HttpWholeFlowsTest extends TestCase
         $browser->follow($browser->post("/apply/{$id}/step/3", ['membership_type' => 'general', 'intent' => 'next']));
         $browser->follow($browser->post("/apply/{$id}/step/4", $this->answers('common', '5 hours a week') + ['intent' => 'next']));
 
+        // General Membership: the current COR only. A School ID is no longer asked for, so its upload is refused.
         foreach (['school_id', 'cor'] as $type) {
             $browser->get("/apply/{$id}/step/5");
             $browser->upload("/apply/{$id}/documents/{$type}", [], 'document', "{$type}.pdf", self::PDF, 'application/pdf');
         }
 
-        $this->assertSame(2, $this->rowCount('application_documents', 'application_id = ?', [$id]));
+        $this->assertSame(1, $this->rowCount('application_documents', 'application_id = ?', [$id]));
         $browser->get("/apply/{$id}/step/5");
         $browser->follow($browser->post("/apply/{$id}/step/5", ['intent' => 'next']));
 

@@ -164,7 +164,12 @@ return static function (PDO $db): void {
 
     // Applications: general members (approved) and applicants at every other stage.
     $pdfPath = static fn (string $type): string => 'applications/demo/' . md5("demo-{$type}") . '.pdf';
-    $pdfSize = (int) @filesize(App\Core\Config::basePath('storage/uploads/' . $pdfPath('school_id')));
+    $pdfSize = (int) @filesize(App\Core\Config::basePath('storage/uploads/' . $pdfPath('cor')));
+    // Every third applicant who is not yet approved applies to join a committee as a Committee Member, so committee
+    // heads have their own applicants to decide. They give their grades too; the demo reuses the COR file for it.
+    $committeeIds = array_map('intval', $db->query(
+        "SELECT c.committee_id FROM committees c JOIN positions p ON p.committee_id = c.committee_id AND p.role_type = 'committee_member' ORDER BY c.committee_id"
+    )->fetchAll(PDO::FETCH_COLUMN));
     $answers = [
         'What is your current year level?' => null,
         'Why do you want to join AGILE?' => 'I want to learn with other BSIT-OU students and help run AGILE activities.',
@@ -213,9 +218,11 @@ return static function (PDO $db): void {
             $submittedAt = date('Y-m-d H:i:s', strtotime("-{$i} hours", strtotime('-' . ($i % 30) . ' days')));
             $isDraft = $status === 'draft';
             $isDecided = in_array($status, ['approved', 'waitlisted', 'rejected'], true);
+            $committeeId = $status !== 'approved' && $committeeIds !== [] && $n % 3 === 0 ? $committeeIds[$i % count($committeeIds)] : null;
 
             $applicationId = seed_row($db, 'membership_applications', 'application_id', ['tracking_code' => $code], [
                 'applicant_id' => $applicantId,
+                'committee_id' => $committeeId,
                 'status' => $status,
                 'wizard_step' => $isDraft ? 3 : 6,
                 'decision_remarks' => $isDecided ? $remarks : null,
@@ -241,11 +248,13 @@ return static function (PDO $db): void {
 
             $verified = !in_array($status, ['submitted', 'withdrawn', 'for_revision'], true);
 
-            foreach (['school_id', 'cor'] as $type) {
+            $types = $committeeId !== null ? ['cor', 'grades'] : ['cor'];
+
+            foreach ($types as $type) {
                 $needsFix = $status === 'for_revision' && $type === 'cor';
                 seed_row($db, 'application_documents', 'document_id', ['application_id' => $applicationId, 'doc_type' => $type], [
                     'original_name' => "{$type}.pdf",
-                    'stored_path' => $pdfPath($type),
+                    'stored_path' => $pdfPath('cor'),
                     'mime_type' => 'application/pdf',
                     'size_bytes' => $pdfSize,
                     'verification_status' => $needsFix ? 'needs_correction' : ($verified || $status === 'for_revision' ? 'verified' : 'pending'),

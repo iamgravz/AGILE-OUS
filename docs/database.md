@@ -124,6 +124,7 @@ The database has 46 tables (45 for the system and `schema_migrations`), 76 forei
 | `membership_applications.status` value `waitlisted` | AGILE's Waitlisted decision: qualified but no slot yet; the decider can approve or reject later. |
 | `membership_applications.wizard_step` | Lets an applicant leave the wizard and resume at the same step, even after logging out. |
 | `membership_applications.enrollment_confirmed_at` | Records when the applicant confirmed current enrollment (BR-01). |
+| `membership_applications.committee_id` | The committee chosen when applying to join as a Committee Member, without a vacancy (Nov 22, 2026). `chk_membership_applications_one_choice` allows a vacancy or a committee, never both; neither means General Membership. Migration `2026_11_22_committee_applications.php`. |
 | `digital_credentials.status`, `reason`, `approved_by`, `approved_at`, `review_remarks`, `replaces_credential_id` | BR-19: a new credential waits for the MSW Committee Head, and a manual reissue says what it replaces. |
 | `digital_credentials.revoked_at` | A credential must stop verifying when it is replaced, such as after a role expires. |
 | `hr_requests.qualifications` | FR-REC-01 requires qualifications on each HR request. |

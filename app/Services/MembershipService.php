@@ -34,13 +34,19 @@ final class MembershipService
 {
     public const LAST_STEP = 6;
 
-    /** Fixed requirements of the documents step. doc_type => label. */
+    /**
+     * Every document type an application can hold. doc_type => label. Which ones the documents step asks for depends on
+     * what the person applies for: see requiredDocuments(). School ID is no longer asked for (Nov 22, 2026); it stays
+     * here so documents uploaded before then still show their name.
+     */
     public const DOCUMENT_TYPES = [
-        'school_id' => 'School ID',
-        'cor' => 'Proof of enrollment (COR)',
+        'cor' => 'Current COR (Certificate of Registration)',
+        'grades' => 'Previous semester copy of grades',
         'certificate' => 'Certificates (optional)',
+        'school_id' => 'School ID',
     ];
-    private const REQUIRED_DOCUMENTS = ['school_id', 'cor'];
+    /** The year level answer that, in a 1st semester, means there are no grades yet. */
+    private const FIRST_YEAR = '1st Year';
 
     // No 0/O, 1/I or L, so a code can be read aloud or retyped without mistakes.
     private const CODE_ALPHABET = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789';
@@ -263,7 +269,7 @@ final class MembershipService
      *
      * @throws DomainException with a message to show the applicant
      */
-    public function chooseType(int $id, ?int $vacancyId): void
+    public function chooseType(int $id, ?int $vacancyId, ?int $committeeId = null): void
     {
         $application = $this->editable($id);
 
@@ -271,10 +277,15 @@ final class MembershipService
             throw new DomainException('The membership type cannot be changed during a revision.');
         }
 
-        $this->assertAllowedChoice($application, $vacancyId);
+        if ($vacancyId !== null && $committeeId !== null) {
+            throw new DomainException('Please choose either a committee or an open position, not both.');
+        }
 
-        Database::transaction(function () use ($id, $vacancyId): void {
-            $this->applications->update($id, ['vacancy_id' => $vacancyId]);
+        $this->assertAllowedChoice($application, $vacancyId, $committeeId);
+        $this->assertCommitteeChoice($application, $committeeId);
+
+        Database::transaction(function () use ($id, $vacancyId, $committeeId): void {
+            $this->applications->update($id, ['vacancy_id' => $vacancyId, 'committee_id' => $committeeId]);
             $application = $this->applications->findDetailed($id);
             $keep = array_map(static fn (array $q): int => (int) $q['question_id'], [
                 ...$this->questions->forRoleTypes(['academic']),
@@ -328,11 +339,11 @@ final class MembershipService
      */
     public function uploadDocument(int $id, string $docType, array $file): array
     {
-        if (!isset(self::DOCUMENT_TYPES[$docType])) {
-            throw new DomainException('Unknown document type.');
-        }
-
         $application = $this->editable($id);
+
+        if (!in_array($docType, $this->documentsToAsk($this->applications->findDetailed($id)), true)) {
+            throw new DomainException('This document is not asked for in your application.');
+        }
 
         return $docType === 'certificate'
             ? $this->addDocument($application, $docType, $file)
@@ -402,9 +413,11 @@ final class MembershipService
             }
 
             $vacancyId = $application['vacancy_id'] === null ? null : (int) $application['vacancy_id'];
+            $committeeId = $application['committee_id'] === null ? null : (int) $application['committee_id'];
 
             if ($row['status'] === 'draft') {
-                $this->assertAllowedChoice($application, $vacancyId);
+                $this->assertAllowedChoice($application, $vacancyId, $committeeId);
+                $this->assertCommitteeChoice($application, $committeeId);
             }
 
             $from = $row['status'];
@@ -460,6 +473,9 @@ final class MembershipService
             'questions' => $this->stepFourQuestions($application),
             'answers' => $this->answers->forApplication($id),
             'documents' => $this->documents->forApplication($id),
+            'requiredDocuments' => $this->requiredDocuments($application),
+            'documentsToAsk' => $this->documentsToAsk($application),
+            'firstYearFirstSemester' => $this->isFirstYearFirstSemester($application),
         ];
     }
 
@@ -764,6 +780,10 @@ final class MembershipService
             $accountId = $row['user_id'] ?? $applicant['user_id'] ?? null;
             $member = $accountId !== null ? $this->ensureMember((int) $accountId, $remarks) : $this->ensureApplicantMember((int) $row['applicant_id'], $remarks);
 
+            if ($row['committee_id'] !== null) {
+                $this->assignCommitteeMember((int) $member['member_id'], (int) $row['committee_id'], $remarks);
+            }
+
             AuditService::log('application.approved', 'membership_application', $id, [
                 'from' => $row['status'],
                 'to' => 'approved',
@@ -828,6 +848,126 @@ final class MembershipService
     public static function documentLabel(string $docType): string
     {
         return self::DOCUMENT_TYPES[$docType] ?? 'Attachment';
+    }
+
+    /**
+     * AGILE's membership requirements. General Membership: the current COR. A committee or officer position (a vacancy,
+     * or joining a committee as a Committee Member): the current COR and the previous semester's copy of grades, except
+     * for 1st years in their 1st semester, who have no grades yet. 1st years joining in the 2nd semester give their 1st
+     * semester grades, which is the same "previous semester" document.
+     *
+     * @param array<string, mixed> $application A row from findDetailed().
+     * @return list<string> doc_types
+     */
+    public function requiredDocuments(array $application): array
+    {
+        return $this->needsGrades($application) ? ['cor', 'grades'] : ['cor'];
+    }
+
+    /**
+     * The upload slots on the documents step: the required ones, then optional certificates.
+     *
+     * @param array<string, mixed> $application A row from findDetailed().
+     * @return list<string>
+     */
+    public function documentsToAsk(array $application): array
+    {
+        return [...$this->requiredDocuments($application), 'certificate'];
+    }
+
+    /** @param array<string, mixed> $application A row from findDetailed(). */
+    public function needsGrades(array $application): bool
+    {
+        $forPosition = $application['vacancy_id'] !== null || ($application['committee_id'] ?? null) !== null;
+
+        return $forPosition && !$this->isFirstYearFirstSemester($application);
+    }
+
+    /**
+     * A 1st year applying in a 1st semester: the year level from step 2, and the current academic term set by the MSW
+     * Committee Head. With no current term set, grades are asked for, so nothing is skipped by mistake.
+     *
+     * @param array<string, mixed> $application
+     */
+    public function isFirstYearFirstSemester(array $application): bool
+    {
+        $academic = $this->questions->forRoleTypes(['academic']);
+        $yearLevel = $academic === [] ? '' : (string) ($this->answers->forApplication((int) $application['application_id'])[(int) $academic[0]['question_id']] ?? '');
+        $term = (new \App\Models\AcademicTermRepository())->current();
+
+        return $yearLevel === self::FIRST_YEAR && ($term['semester'] ?? null) === '1st';
+    }
+
+    /**
+     * Committees someone can apply to join as a Committee Member: those with a Committee Member position. The Source
+     * Code has none; its positions open as vacancies.
+     *
+     * @return list<array{committee_id: int, name: string, position_id: int}>
+     */
+    public function joinableCommittees(): array
+    {
+        return array_map(static fn (array $row): array => [
+            'committee_id' => (int) $row['committee_id'],
+            'name' => (string) $row['name'],
+            'position_id' => (int) $row['position_id'],
+        ], Database::connection()->query(
+            "SELECT c.committee_id, c.name, p.position_id FROM committees c
+             JOIN positions p ON p.committee_id = c.committee_id AND p.role_type = 'committee_member'
+             ORDER BY c.name"
+        )->fetchAll());
+    }
+
+    /**
+     * An approved committee application: the member becomes that committee's Committee Member, with the role the
+     * position gives (config/role_mapping.php) if they have an account. Without one, /register gives it later. The
+     * caller holds the transaction and has checked who may decide (BR-20).
+     *
+     * @throws DomainException
+     */
+    private function assignCommitteeMember(int $memberId, int $committeeId, string $reason): void
+    {
+        $positionId = $this->committeeMemberPosition($committeeId) ?? throw new DomainException('This committee no longer has a Committee Member position, so the application cannot be approved.');
+        $members = new MemberRepository();
+        $before = $members->findDetailed($memberId) ?? throw new DomainException('This member no longer exists.');
+
+        // Someone who meanwhile got a position keeps it; the committee choice does not replace a role quietly.
+        if ($before['position_id'] !== null) {
+            return;
+        }
+
+        $members->update($memberId, ['position_id' => $positionId, 'membership_type' => 'officer', 'role_status' => 'active', 'role_expired_at' => null]);
+
+        if ($before['user_id'] !== null) {
+            $position = (new PositionRepository())->findWithCommittee($positionId);
+            $this->users->update((int) $before['user_id'], ['role_id' => (new RoleRepository())->findBySlug(self::roleSlugFor($position))['role_id']]);
+            RbacService::clearCache();
+        }
+
+        // Written out, because roleLabel() needs an account's role and someone without one has not registered yet.
+        $committee = (string) ($this->joinableCommitteeName($committeeId) ?? 'the committee');
+        $members->addHistory($memberId, 'General Member', 'Committee Member, ' . $committee, trim($reason), (int) current_user_id());
+    }
+
+    private function joinableCommitteeName(int $committeeId): ?string
+    {
+        foreach ($this->joinableCommittees() as $committee) {
+            if ($committee['committee_id'] === $committeeId) {
+                return $committee['name'];
+            }
+        }
+
+        return null;
+    }
+
+    private function committeeMemberPosition(int $committeeId): ?int
+    {
+        foreach ($this->joinableCommittees() as $committee) {
+            if ($committee['committee_id'] === $committeeId) {
+                return $committee['position_id'];
+            }
+        }
+
+        return null;
     }
 
     /**
@@ -1043,7 +1183,7 @@ final class MembershipService
     {
         $required = [];
 
-        foreach (self::REQUIRED_DOCUMENTS as $type) {
+        foreach ($this->requiredDocuments($application) as $type) {
             $required[$type] = self::documentLabel($type);
         }
 
@@ -1207,8 +1347,9 @@ final class MembershipService
     {
         $errors = [];
         $documents = $this->documents->forApplication((int) $application['application_id']);
+        $asked = $this->documentsToAsk($application);
 
-        foreach (self::REQUIRED_DOCUMENTS as $type) {
+        foreach ($this->requiredDocuments($application) as $type) {
             $usable = array_filter($documents, static fn (array $d): bool => $d['doc_type'] === $type && $d['verification_status'] !== 'rejected');
 
             if ($usable === []) {
@@ -1216,8 +1357,9 @@ final class MembershipService
             }
         }
 
+        // Only what the step still asks for can be corrected there. An older School ID is the reviewer's to settle.
         foreach ($documents as $document) {
-            if ($document['verification_status'] === 'needs_correction' && !isset($errors[$document['doc_type']])) {
+            if ($document['verification_status'] === 'needs_correction' && in_array($document['doc_type'], $asked, true) && !isset($errors[$document['doc_type']])) {
                 $errors[$document['doc_type']] = 'This document needs correction. Please upload a new copy.';
             }
         }
@@ -1332,7 +1474,33 @@ final class MembershipService
      *
      * @param array<string, mixed> $application
      */
-    private function assertAllowedChoice(array $application, ?int $vacancyId): void
+    /**
+     * Joining a committee as a Committee Member: open to people without an account and to members with no position
+     * yet. Someone who already holds a position applies for an open position instead, so no role is replaced quietly.
+     *
+     * @param array<string, mixed> $application
+     * @throws DomainException
+     */
+    private function assertCommitteeChoice(array $application, ?int $committeeId): void
+    {
+        if ($committeeId === null) {
+            return;
+        }
+
+        if ($this->committeeMemberPosition($committeeId) === null) {
+            throw new DomainException('Please choose one of the committees listed.');
+        }
+
+        if ($application['user_id'] !== null) {
+            $member = (new MemberRepository())->findByUser((int) $application['user_id']);
+
+            if ($member !== null && $member['position_id'] !== null) {
+                throw new DomainException('You already hold a position. To join another committee, apply for one of its open positions.');
+            }
+        }
+    }
+
+    private function assertAllowedChoice(array $application, ?int $vacancyId, ?int $committeeId = null): void
     {
         $id = (int) $application['application_id'];
 
@@ -1346,6 +1514,18 @@ final class MembershipService
 
         if ($vacancyId !== null && $this->vacancies->findOpen($vacancyId) === null) {
             throw new DomainException('This position is no longer open. Please choose another.');
+        }
+
+        // A member joining a committee: their approved general membership does not count, only another committee
+        // application still waiting for a decision (BR-02).
+        if ($committeeId !== null && $this->users->hasMemberRecord($userId)) {
+            $pending = $this->applications->findPendingCommittee($userId, $id);
+
+            if ($pending !== null) {
+                throw new DomainException(sprintf('You already have a committee application waiting for a decision (%s). Only one is allowed.', $pending['tracking_code']));
+            }
+
+            return;
         }
 
         if ($vacancyId === null && $this->users->hasMemberRecord($userId)) {

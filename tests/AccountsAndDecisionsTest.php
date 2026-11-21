@@ -576,7 +576,8 @@ final class AccountsAndDecisionsTest extends TestCase
             'wizard_step' => 6,
         ]);
 
-        foreach (['school_id', 'cor'] as $type) {
+        // The current COR, and the grades a position also needs (AGILE's membership requirements).
+        foreach (['cor', 'grades'] as $type) {
             $this->insert('application_documents', [
                 'application_id' => $id,
                 'doc_type' => $type,

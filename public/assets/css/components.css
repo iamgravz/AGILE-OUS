@@ -1181,6 +1181,37 @@ a.tabs__tab {
     margin-top: var(--space-2);
 }
 
+/* Committee Member: the radio, then the committee to choose, inside the same box. */
+.wizard-choice--with-field .check {
+    margin: 0;
+}
+
+.wizard-choice__field {
+    margin: var(--space-3) 0 0;
+    padding-left: 1.75rem;
+}
+
+.wizard-requirements {
+    margin-top: var(--space-4);
+}
+
+.wizard-requirements > summary {
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.wizard-requirements[open] > summary {
+    margin-bottom: var(--space-3);
+}
+
+.apply-requirements {
+    margin-top: var(--space-6);
+}
+
+.requirements-table td:first-child {
+    font-weight: 600;
+}
+
 .wizard-doc,
 .wizard-docs-intro {
     margin-bottom: var(--space-4);
