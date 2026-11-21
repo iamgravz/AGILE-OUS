@@ -773,15 +773,19 @@
         display: none;
     }
 
-    .site-nav {
-        display: block;
-    }
-
     .sidebar {
         position: static;
         width: auto;
         transform: none;
         visibility: visible;
+    }
+}
+
+/* Below 1200px the menu sits behind the toggle, so without JavaScript it is shown as a block. From 1200px it is
+   already a row in the header, and display: block here would push the log-in buttons onto a second line. */
+@media (scripting: none) and (max-width: 1199.98px) {
+    .site-nav {
+        display: block;
     }
 }
 

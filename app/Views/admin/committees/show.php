@@ -43,9 +43,12 @@ $id = (int) $committee['committee_id'];
         </div>
     </form>
 
-    <form method="post" action="<?= e(route('admin.committees.delete', ['id' => $id])) ?>" data-confirm="This cannot be undone." data-confirm-title="Delete this committee?" data-confirm-action="Delete committee">
+    <form class="plain-section" method="post" action="<?= e(route('admin.committees.delete', ['id' => $id])) ?>" data-confirm="This cannot be undone." data-confirm-title="Delete this committee?" data-confirm-action="Delete committee">
         <?= csrf_field() ?>
-        <p class="field__help">A committee with a head, positions or HR requests cannot be deleted.</p>
-        <button type="submit" class="btn btn--danger btn--sm">Delete committee</button>
+        <div class="card__header"><h2 class="card__title">Delete</h2></div>
+        <div class="card__body">
+            <p class="field__help">A committee with a head, positions or HR requests cannot be deleted.</p>
+            <button type="submit" class="btn btn--danger btn--sm">Delete committee</button>
+        </div>
     </form>
 </div>

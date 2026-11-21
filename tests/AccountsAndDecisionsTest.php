@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 use App\Core\Database;
 use App\Core\ForbiddenException;
-use DomainException;
 use App\Models\ApplicantRepository;
 use App\Models\MemberRepository;
 use App\Models\MembershipApplicationRepository;

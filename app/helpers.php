@@ -27,10 +27,17 @@ function route(string $name, array $params = []): string
     return Router::instance()->urlFor($name, $params);
 }
 
-/** Root-relative so the CSP 'self' check passes on any host name used in development. */
+/**
+ * Root-relative so the CSP 'self' check passes on any host name used in development. The file's change time is added
+ * as ?v=, so browsers may cache assets for a long time (public/.htaccess) and still get a changed file at once.
+ */
 function asset(string $path): string
 {
-    return '/assets/' . ltrim($path, '/');
+    [$path, $fragment] = array_pad(explode('#', ltrim($path, '/'), 2), 2, null);
+    $file = Config::basePath('public/assets/' . $path);
+    $version = !str_contains($path, '?') && is_file($file) ? (int) filemtime($file) : 0;
+
+    return '/assets/' . $path . ($version > 0 ? "?v={$version}" : '') . ($fragment !== null ? "#{$fragment}" : '');
 }
 
 function redirect(string $to, int $status = Response::HTTP_FOUND): Response

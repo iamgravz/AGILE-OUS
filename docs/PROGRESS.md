@@ -1663,3 +1663,37 @@ Re-audit 10/10 (was 7/10). Details and evidence in [database-audit.md](database-
 - Kept: a member who registers gets their position's role (`AuthService::registerMember()`).
 - Real members and officers are added through the app: officers by the MSW Committee Head (Administration › Users) and members through approved applications and /register.
 - `composer test`: OK, 336 tests.
+
+### Data: 100 more sample people (Nov 20–21, 2026)
+- `database/seeds/demo_bulk.php`, on with `DEMO_BULK=true` in `.env` (off by default, never in production, forced off in tests): 7 former Executive Committee officers, 3 deputies, 7 Source Code staff, 21 committee members, 22 approved general members (6 registered) and 40 applicants at every stage. Details in `docs/database.md`.
+- Checked on a throwaway database, run twice: the stage counts match and nothing is added twice. No single-holder position gets two people.
+
+## Step 24 of 24: Going live (Nov 21, 2026)
+
+### What was built
+- **`database/remove_demo.php`** with `App\Services\DemoDataRemover`: removes every `@agile.test` account and applicant and what belongs to them, for a database that was used for testing. Without `--yes` it only lists what it would do. With `--yes` it needs `APP_ENV=production` (or `--any-env`), makes a backup first (unless `--no-backup`), and works in one transaction that is rolled back if any link would break.
+  - The foreign keys are read from `information_schema`, so tables from later migrations are covered.
+  - Real records are never deleted. A demo account's name in a who-did-it column that may be empty (approved by, decided by, the audit log's user) is cleared. If it may not be empty and the row belongs to a real record, such as a demo evaluation of a real applicant, nothing is removed and the row is listed.
+  - It refuses if no real MSW Committee Head account would be left (`--allow-no-admin` overrides).
+  - Files only those rows used are moved to `storage/removed-demo/<time>/`, never deleted.
+- **`docs/deployment.md`:** the go-live steps in order: server, files, production `.env`, database, the first MSW Committee Head (`jobs/create_user.php ... msw_head`), scheduled jobs, backups and last checks. Linked from the README, whose second, outdated Tests section was replaced.
+- **Compression and caching** in `public/.htaccess` (`mod_deflate`, a week's `Cache-Control` on assets). `asset()` adds `?v=<file time>`, so a changed CSS or JS file is fetched at once.
+
+### Fixes
+- **Public header without JavaScript (1200px and up):** the `@media (scripting: none)` rule set `.site-nav` to `display: block`, which beat the desktop row and put Member log in and Apply on a second line (98px tall instead of 73px). It now applies only below 1200px, where the menu sits behind the toggle. Measured at 1366: one row, 73px, the same as with JavaScript.
+- **Committee page (`/admin/committees/{id}`):** the Delete form was a bare third column with no heading. It is now a section like the other two. The 40px measured at 2560 was the 80ch reading limit on its one-line help text, which is intended, not a layout fault.
+- **`cms-editor.js`:** Quill's link box and the heading select it hides now have labels, as in `email-editor.js`.
+- **`phpunit.xml`:** `APP_DEBUG` and `DEMO_BULK` are forced with `"0"`, not `"false"`. PHPUnit turns `"false"` into an empty value, Windows removes an empty variable, and the database rebuild and test server then read `.env` instead. With `DEMO_BULK=true` in `.env`, the 100 sample people reached the test database and two tests failed.
+- **4 PHP warnings in the test run:** `use DomainException;` in `tests/AccountsAndDecisionsTest.php` does nothing in the global namespace and printed a warning first, so the session tests found headers already sent. Removed.
+
+### Test results
+- `composer test`: OK, 341 tests, 3216 assertions, no warnings. Includes `tests/DemoDataRemoverTest.php` (5 tests: the plan covers every demo person and no reference data, it refuses with no real MSW Head, removal leaves no broken links, a real application decided by a demo account is kept with the name cleared, a demo evaluation of a real application stops everything).
+- The real `storage/` was listed before and after the run: the same 73 files.
+
+### Checked on the real database (read-only)
+`php database/remove_demo.php` on `agile_ams` lists only demo data and stops because no real MSW Committee Head exists yet, as intended. Nothing was changed.
+
+### Known issues
+- `public/.htaccess` compression and caching only work under Apache with `mod_deflate` and `mod_headers`; `php -S` ignores them. Not tested under Apache.
+- `AI_API_KEY` is forced empty in `phpunit.xml`, which Windows also removes, so child processes see the key from `.env`. Harmless while `AI_PROVIDER=none` is forced, which it is.
+- The Step 3 to Step 23 browser suites were not rerun; only the header and committee pages were measured.

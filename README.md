@@ -28,7 +28,7 @@ This creates the database if it is missing, applies `database/schema.sql`, seeds
 
 To upgrade an existing database, run the same command without `--fresh`: it keeps your data and applies `database/migrations/`.
 
-Outside production, this also creates demo users with the password `Password123!`. See [docs/database.md](docs/database.md) for the table reference.
+Outside production, this also creates demo users with the password `Password123!`. Set `DEMO_BULK=true` in `.env` first to add 100 more sample people at every stage, for trying lists, filters and reports. See [docs/database.md](docs/database.md) for the table reference.
 
 ## Run
 
@@ -82,13 +82,9 @@ Job activity is logged to `storage/logs/jobs.log`.
 
 Run `php jobs/generate_key.php` once and put the output in `ENCRYPTION_KEY` in `.env`. Keep a safe copy: encrypted welfare data cannot be read without this key.
 
-## Tests
+## Going live
 
-```
-vendor/bin/phpunit
-```
-
-`AccessMatrixTest` needs the seeded database and leaves no data behind. `EncryptionServiceTest` needs neither the database nor `.env`.
+Follow [docs/deployment.md](docs/deployment.md): production `.env`, a database with no demo data (`php database/remove_demo.php` cleans one that was used for testing), the first MSW Committee Head account, scheduled jobs and backups.
 
 ## Style guide
 
