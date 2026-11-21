@@ -163,7 +163,8 @@ final class AuthController
     {
         $devUsers = dev_tools_allowed() ? (new UserRepository())->activeDemoUsers() : [];
 
-        return $this->page('auth/login', ['devUsers' => $devUsers]);
+        // The site's own layout, so login looks like the other public pages. The registration steps keep layouts/auth.
+        return Response::html(View::render('auth/login', ['devUsers' => $devUsers], 'layouts/public'));
     }
 
     /** The route exists only when APP_ENV=local, and the service refuses it otherwise too. */
