@@ -10,6 +10,8 @@ return [
     // Read from .env, not the settings table, because error pages must render when the database is down.
     'contact_email' => env('ORG_CONTACT_EMAIL', 'contact@agile.test'),
     'timezone' => env('APP_TIMEZONE', 'Asia/Manila'),
+    // Adds database/seeds/demo_bulk.php (100 more made-up people) when seeding outside production.
+    'demo_bulk' => env('DEMO_BULK', false),
     'session_idle_minutes' => (int) env('SESSION_IDLE_MINUTES', 30),
     'encryption_key' => env('ENCRYPTION_KEY', ''),
     'ai' => [
