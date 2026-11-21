@@ -9,6 +9,9 @@ return [
     'url' => env('APP_URL', ''),
     // Read from .env, not the settings table, because error pages must render when the database is down.
     'contact_email' => env('ORG_CONTACT_EMAIL', 'contact@agile.test'),
+    // The public footer's other contacts, also from .env for the same reason. Empty hides them.
+    'msw_email' => (string) env('ORG_MSW_EMAIL', ''),
+    'facebook_url' => (string) env('ORG_FACEBOOK_URL', ''),
     'timezone' => env('APP_TIMEZONE', 'Asia/Manila'),
     // Adds database/seeds/demo_bulk.php (100 more made-up people) when seeding outside production.
     'demo_bulk' => env('DEMO_BULK', false),

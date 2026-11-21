@@ -9,11 +9,15 @@
                 </div>
                 <div>
                     <h2 class="site-footer__heading">Contact</h2>
-                    <?php /* TODO: replace with the PUP OUS street address and the real Facebook page link. */ ?>
+                    <?php /* From .env (ORG_*), not Settings: error pages use this footer and must render with the database down. */ ?>
                     <div class="site-footer__contact">
-                        <p>TODO: PUP OUS address</p>
                         <p><a href="mailto:<?= e(config('app.contact_email')) ?>"><?= e(config('app.contact_email')) ?></a></p>
-                        <p>TODO: Facebook page link</p>
+                        <?php if (config('app.msw_email') !== '') : ?>
+                            <p>MSW Committee: <a href="mailto:<?= e(config('app.msw_email')) ?>"><?= e(config('app.msw_email')) ?></a></p>
+                        <?php endif; ?>
+                        <?php if (config('app.facebook_url') !== '') : ?>
+                            <p><a href="<?= e(config('app.facebook_url')) ?>" rel="noopener">Facebook</a></p>
+                        <?php endif; ?>
                     </div>
                 </div>
                 <div>
