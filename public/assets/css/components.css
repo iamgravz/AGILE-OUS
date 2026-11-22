@@ -1991,6 +1991,16 @@ a.tabs__tab {
     margin-bottom: var(--space-4);
 }
 
+/* Ask for Help for members: the form in the middle of the page, with its heading over it (like the public pages). */
+.welfare-page--centered {
+    margin-inline: auto;
+}
+
+.app-main:has(.welfare-page--centered) .page-header {
+    max-width: 42rem;
+    margin-inline: auto;
+}
+
 /* Off screen rather than display:none, because some bots skip fields that are not rendered. */
 
 .hp-field {

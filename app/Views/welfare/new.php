@@ -15,7 +15,7 @@
 <script src="<?= e(asset('js/welfare-form.js')) ?>" defer></script>
 <?php $this->end() ?>
 
-<div class="welfare-page">
+<div class="welfare-page welfare-page--centered">
     <?= $this->partial('welfare/_concern_form', [
         'action' => route('welfare.new'),
         'input' => $input,
