@@ -103,7 +103,7 @@ foreach ($positions as $position) {
             </fieldset>
 
             <?php if (current_user_id() === null) : ?>
-                <p class="field__help">Executive Committee positions are for AGILE members. You can apply for one after you are approved.</p>
+                <p class="field__help">The Executive Board and Year-Level Representatives are chosen by election, not by application (Constitution, Article VI).</p>
             <?php endif; ?>
 
             <details class="wizard-requirements">

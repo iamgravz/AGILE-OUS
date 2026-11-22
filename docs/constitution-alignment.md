@@ -26,7 +26,7 @@ Status: **Aligned**, **Partly** (works, but differs in a detail), **Gap** (the b
 | Candidate qualifications | Partly | Year level is now recorded; the 3rd-year and 2nd-year minimums are not checked. |
 | Term of office, term limits | Partly | Officer roles expire; the two-consecutive-terms limit is not checked. |
 | Incompatible offices (4-A) | Partly | One position per person is enforced. Members cannot hold two committee memberships, which the by-laws allow. |
-| Vacancies and succession | **Conflict** | The by-laws: the President appoints, with 2/3 Board confirmation. The system: the MSW Committee Head approves appointments. |
+| Who decides, who is elected | Aligned (decided Nov 22) | Committee heads approve or reject applicants; the MSW team sets interview dates; the Executive Board and Year-Level Representatives are elected, never applied for. |
 | Transition and handover | Gap (outside the system) | Turnover packets and account handover are manual. |
 | Meetings, quorum, notices | Partly | Announcements and email exist; no meeting or quorum records. |
 | Financial management | **Gap** | No budget, disbursement or liquidation records. |
@@ -91,9 +91,16 @@ Migration `2026_11_22_constitution_alignment.php` (applied to `agile_ams` after 
 - **C4** Vision, mission (as a list) and objectives (new setting `org.objectives`) from Article II, on About. Edited wording is never overwritten.
 - **P1** "General Secretary"; "Research and Extension"; "Finance and Fundraising".
 
+### Decisions on November 22, 2026 (C6)
+
+- **Committee Heads approve or reject applicants** for their committees (BR-20, as built). A Committee Head position and The Source Code still go to the MSW Committee Head.
+- **The MSW team sets the interview dates** (`interview.manage`, as built).
+- **The Executive Board and the Year-Level Representatives are chosen by election** (Article VI), not by application. The system already cannot open them: an HR request must be for a position in the requester's own committee, Executive positions have no committee, and Open for application covers Committee Head to The Source Code only. The apply page now says so.
+- Vacancy succession (Article VI Section 5) and the elections themselves stay outside the system until G6 (COMELEC and online voting) is built; Year-Level Representatives (G3) belong with it.
+
 ## 4. Recommended order
 
 1. Done: C1 to C4 and P1 (see section 3).
-2. **Decisions for the Board:** C5 (The Source Code) and C6 (who appoints).
+2. **Decision for the Board:** C5 (The Source Code). C6 is decided (section 3).
 3. **Next features, if wanted:** G3 Year-Level Representatives, G4 Faculty Adviser, P2 candidate checks, P3 term limits, P5 retention, G1 member categories.
 4. **Separate projects:** G6 elections, G7 finance, G2 fees, G8 to G9.
