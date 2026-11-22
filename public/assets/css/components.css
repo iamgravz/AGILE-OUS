@@ -1991,13 +1991,16 @@ a.tabs__tab {
     margin-bottom: var(--space-4);
 }
 
-/* Ask for Help for members: the form in the middle of the page, with its heading over it (like the public pages). */
-.welfare-page.welfare-page--centered {
+/* A one-column page in the middle, with its heading over it (like the public pages): Ask for Help, Run for office. */
+.welfare-page.centered-page,
+.centered-page {
+    max-width: 48rem;
     margin-inline: auto;
 }
 
-.app-main:has(.welfare-page--centered) .page-header {
-    max-width: 42rem;
+.app-main:has(.centered-page) .page-header,
+.app-main:has(.centered-page) > .alert {
+    max-width: 48rem;
     margin-inline: auto;
 }
 

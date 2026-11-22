@@ -31,6 +31,7 @@ $tones = ['filed' => 'info', 'qualified' => 'success', 'disqualified' => 'danger
 ?>
 <?php $this->start('title') ?>Run for office<?php $this->end() ?>
 <?php $this->start('page_title') ?>Run for office<?php $this->end() ?>
+<div class="centered-page">
 
 <p class="text-muted">The Executive Board and the Year-Level Representatives are elected by the members (Constitution and By-Laws, Article VI). File your candidacy here for AY <?= e($academicYear) ?>. The MSW Committee checks your COR and grades, then tells you whether you qualify to run.</p>
 
@@ -103,3 +104,4 @@ $tones = ['filed' => 'info', 'qualified' => 'success', 'disqualified' => 'danger
         </div>
     </form>
 <?php endif; ?>
+</div>
