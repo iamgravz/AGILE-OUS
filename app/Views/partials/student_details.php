@@ -1,6 +1,6 @@
 <?php
 /**
- * Year level and section side by side, then the contact number: all three required (StudentDetails).
+ * Year level, section under it, then the contact number: all three required (StudentDetails).
  *
  * @var \App\Core\View $this
  * @var array<string, mixed> $values year_level, section, contact_no (optional; falls back to the flashed old input)
