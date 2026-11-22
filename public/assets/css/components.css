@@ -2952,6 +2952,8 @@ kbd {
 }
 
 .empty-state {
+    /* Room on every side, so the text and button never touch the dashed border. */
+    padding: var(--space-5);
     border: 1px dashed var(--color-border-input);
     border-radius: var(--radius-md);
 }
