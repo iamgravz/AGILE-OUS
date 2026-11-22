@@ -8,7 +8,7 @@ return static function (PDO $db): void {
 
     $questions = [
         'academic' => [
-            ['select', 'What is your current year level?', ['1st Year', '2nd Year', '3rd Year', '4th Year', '5th Year or above'], true],
+            ['select', 'What is your current year level?', ['1st Year', '2nd Year', '3rd Year', '4th Year'], true],
         ],
         'common' => [
             ['textarea', 'Why do you want to join AGILE?', null, true],

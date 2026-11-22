@@ -89,7 +89,7 @@ $slots = static fn (array $p): string => $p['remaining'] === null ? '' : ' (' . 
                                     <p class="field__error" id="year-level-error"><?= icon('alert') ?> <?= e($yearError) ?></p>
                                 <?php endif; ?>
                             </div>
-                            <?= $this->partial('partials/form_field', ['name' => 'section', 'label' => 'Section', 'value' => (string) old('section'), 'autocomplete' => 'off', 'help' => 'For example, BSIT 2-1.']) ?>
+                            <?= $this->partial('partials/form_field', ['name' => 'section', 'label' => 'Section', 'value' => (string) old('section'), 'autocomplete' => 'off', 'help' => 'For example, BSITOUMN 3-2.']) ?>
                         </div>
                         <?= $this->partial('partials/form_field', ['name' => 'contact_no', 'label' => 'Contact number', 'type' => 'tel', 'value' => (string) old('contact_no'), 'autocomplete' => 'tel', 'help' => 'For example, 09171234567.']) ?>
 
