@@ -35,7 +35,7 @@ $consentError = $errors['privacy_consent'] ?? null;
     <?= csrf_field() ?>
     <div class="card__body">
         <?php if (isset($studentDetails)) : ?>
-            <?= $this->partial('partials/student_details', ['values' => $studentDetails, 'errors' => $errors, 'contactHelp' => 'So the MSW team can reach you. Saved to your account.']) ?>
+            <?= $this->partial('partials/student_details', ['values' => $studentDetails, 'errors' => $errors, 'row' => true, 'contactHelp' => 'So the MSW team can reach you. Saved to your account.']) ?>
         <?php endif; ?>
         <fieldset class="field-group"<?= $categoryError !== null ? ' aria-describedby="category_id-error"' : '' ?>>
             <legend class="field-group__legend">What is this about? <span class="field__required" aria-hidden="true">*</span></legend>

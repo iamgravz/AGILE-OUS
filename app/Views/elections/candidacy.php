@@ -91,12 +91,14 @@ $tones = ['filed' => 'info', 'qualified' => 'success', 'disqualified' => 'danger
                 <p class="field__help">Article VI, Section 2: the President and Vice Presidents are at least 3rd year, the other Executive Board posts at least 2nd year. You need a full academic load and no grade of 5.0, W or D last semester.</p>
                 <?php if ($positionError !== null) : ?><p class="field__error" id="position-error"><?= icon('alert') ?> <?= e($positionError) ?></p><?php endif; ?>
             </div>
-            <?= $this->partial('partials/student_details', ['values' => $input, 'errors' => $errors, 'contactHelp' => 'For example, 09171234567. Saved to your account.']) ?>
+            <?= $this->partial('partials/student_details', ['values' => $input, 'errors' => $errors, 'row' => true, 'contactHelp' => 'For example, 09171234567. Saved to your account.']) ?>
+            <div class="form-row">
             <?= $this->partial('partials/upload_field', ['name' => 'cor', 'label' => 'Current COR', 'types' => ['pdf', 'jpg', 'jpeg', 'png'], 'maxMb' => $maxMb, 'help' => "PDF, JPG or PNG, up to {$maxMb} MB. Shows your full load this semester.", 'errorMessage' => null]) ?>
             <?= $this->partial('partials/upload_field', ['name' => 'grades', 'label' => 'Previous semester copy of grades', 'types' => ['pdf', 'jpg', 'jpeg', 'png'], 'maxMb' => $maxMb, 'help' => "PDF, JPG or PNG, up to {$maxMb} MB.", 'errorMessage' => null]) ?>
+            </div>
             <div class="field <?= $statementError !== null ? 'field--error' : '' ?>">
                 <label class="field__label" for="statement">Why you are running</label>
-                <textarea class="textarea" id="statement" name="statement" rows="4" maxlength="<?= e(CandidacyService::STATEMENT_MAX) ?>" aria-describedby="statement-help"><?= e($input['statement'] ?? '') ?></textarea>
+                <textarea class="textarea" id="statement" name="statement" rows="3" maxlength="<?= e(CandidacyService::STATEMENT_MAX) ?>" aria-describedby="statement-help"><?= e($input['statement'] ?? '') ?></textarea>
                 <p class="field__help" id="statement-help">Optional. Your platform, in a few sentences.</p>
                 <?php if ($statementError !== null) : ?><p class="field__error"><?= icon('alert') ?> <?= e($statementError) ?></p><?php endif; ?>
             </div>

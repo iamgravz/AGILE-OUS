@@ -1991,17 +1991,37 @@ a.tabs__tab {
     margin-bottom: var(--space-4);
 }
 
-/* A one-column page in the middle, with its heading over it (like the public pages): Ask for Help, Run for office. */
+/* A wide page in the middle, with its heading over it: Ask for Help, Run for office. Fields sit side by side so the
+   page stays short. */
 .welfare-page.centered-page,
 .centered-page {
-    max-width: 48rem;
+    max-width: 72rem;
     margin-inline: auto;
 }
 
-.app-main:has(.centered-page) .page-header,
-.app-main:has(.centered-page) > .alert {
-    max-width: 48rem;
+.app-main:has(.centered-page) .page-header {
+    max-width: 72rem;
     margin-inline: auto;
+}
+
+/* Two fields per row from tablet width; .form-row__full spans the row. */
+@media (min-width: 768px) {
+    .form-row {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+        gap: 0 var(--space-4);
+    }
+
+    .form-row__full {
+        grid-column: 1 / -1;
+    }
+
+    /* partials/student_details with 'row': year level, section and contact number on one line. */
+    .student-details--row {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 0 var(--space-4);
+    }
 }
 
 /* Off screen rather than display:none, because some bots skip fields that are not rendered. */
