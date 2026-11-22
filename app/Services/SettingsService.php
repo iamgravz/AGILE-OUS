@@ -18,8 +18,9 @@ final class SettingsService
             'org.full_name' => ['label' => 'Organization name', 'type' => 'text', 'help' => 'Shown in the footer of every email.'],
             'org.contact_email' => ['label' => 'Contact email', 'type' => 'email', 'help' => 'Shown in every email. Public pages and error pages use ORG_CONTACT_EMAIL in .env, so keep the two the same.'],
             'org.facebook_url' => ['label' => 'Facebook page', 'type' => 'url', 'help' => 'Optional. A full web address.'],
-            'org.mission' => ['label' => 'Mission', 'type' => 'textarea'],
+            'org.mission' => ['label' => 'Mission', 'type' => 'textarea', 'help' => 'One commitment per line, as in the Constitution, Article II Section 2.'],
             'org.vision' => ['label' => 'Vision', 'type' => 'textarea'],
+            'org.objectives' => ['label' => 'Objectives', 'type' => 'textarea', 'help' => 'One objective per line, as in the Constitution, Article II Section 3.'],
         ],
         'Email signature' => [
             'email.signatory_name' => ['label' => 'Name', 'type' => 'text'],

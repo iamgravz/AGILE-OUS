@@ -9,15 +9,15 @@ Status: **Aligned**, **Partly** (works, but differs in a detail), **Gap** (the b
 | Area | Status | In short |
 |---|---|---|
 | Name, affiliation | Aligned | AGILE-OUS, PUP Open University System. |
-| Contact details | **Conflict** | The by-laws say `agile.pupous@gmail.com`; the site shows `agile.ous@gmail.com`. The Facebook link in Settings is not a valid address. The NALLRC address is not shown. |
-| Vision and mission | **Conflict** | Settings still hold sample wording, not Article II. |
+| Contact details | Fixed | `agile.pupous@gmail.com` on the site and in every email; the Facebook link is a web address (still to confirm); the NALLRC address is in the footer and on About. |
+| Vision and mission | Fixed | Article II's vision, mission and objectives on About (editable in Settings). |
 | Membership eligibility | Aligned | Enrolled BSIT-OUS students; enrollment is confirmed on every application. |
 | Membership categories | **Gap** | Only Regular (called General Member). No Associate or Honorary members. |
 | Member rights | Partly | Access to resources and records works through accounts; voting is not in the system (see Elections). |
 | Fees and dues (₱50) | **Gap** | No fee or receipt records. |
 | Data privacy (RA 10173) | Partly | Consent, encryption, access control and audit logs are in place. The end-of-year retention purge is not. |
-| Board of Officers | Partly | Executive Committee and committee heads exist. "Secretary" should be "General Secretary". |
-| Standing committees | Partly | All seven exist; two names differ slightly. |
+| Board of Officers | Aligned | Executive Committee (with General Secretary) and committee heads. |
+| Standing committees | Aligned | All seven, named as Article V writes them. |
 | The Source Code | **Conflict** | In the system as a committee with 11 positions; the by-laws do not mention it. Publications belong to the Creatives committee. |
 | Committee Heads and Deputies | Aligned | One head and one deputy per committee. |
 | Year-Level Representatives | **Gap** | No position, role or council. |
@@ -81,9 +81,19 @@ Status: **Aligned**, **Partly** (works, but differs in a detail), **Gap** (the b
 
 G6 to G9 are whole modules. They are listed for completeness; the by-laws do not say they must be run through this system.
 
-## 3. Recommended order
+## 3. Fixed on November 22, 2026
 
-1. **Now, small and safe:** C1 to C4 and P1 (contact email, Facebook, address, vision and mission, position and committee names). Text and settings only.
+Migration `2026_11_22_constitution_alignment.php` (applied to `agile_ams` after a backup), with the seeds, `.env` and views:
+
+- **C1** Official email `agile.pupous@gmail.com`: `ORG_CONTACT_EMAIL` and Settings, Contact email (every email's footer). The MSW address stays as the MSW contact in the footer.
+- **C2** Settings, Facebook page is now `https://www.facebook.com/agile.ous`, the same as the footer. *Still to confirm:* that this is the page "AGILE OUS".
+- **C3** Address: in full on About (Quick facts), short in the footer (`ORG_ADDRESS` in `.env`).
+- **C4** Vision, mission (as a list) and objectives (new setting `org.objectives`) from Article II, on About. Edited wording is never overwritten.
+- **P1** "General Secretary"; "Research and Extension"; "Finance and Fundraising".
+
+## 4. Recommended order
+
+1. Done: C1 to C4 and P1 (see section 3).
 2. **Decisions for the Board:** C5 (The Source Code) and C6 (who appoints).
 3. **Next features, if wanted:** G3 Year-Level Representatives, G4 Faculty Adviser, P2 candidate checks, P3 term limits, P5 retention, G1 member categories.
 4. **Separate projects:** G6 elections, G7 finance, G2 fees, G8 to G9.

@@ -1,15 +1,21 @@
 <?php
 /**
  * @var \App\Core\View $this
- * @var string $mission
+ * @var string $mission one commitment per line (Constitution, Article II Section 2)
  * @var string $vision
+ * @var string $objectives one objective per line (Article II Section 3)
  * @var list<array<string, mixed>> $committees
  */
 // Name, position and committee only. The rest of each row is never printed.
 $officers = (new \App\Models\MemberRepository())->search(['type' => 'officer', 'role_status' => 'active'], 1, 100)['data'];
+$objectives ??= '';
+// A setting with several lines is a list; one line is a paragraph.
+$lines = static fn (string $text): array => array_values(array_filter(array_map('trim', preg_split('/\R/', $text) ?: []), static fn (string $l): bool => $l !== ''));
+$missionLines = $lines($mission);
+$objectiveLines = $lines($objectives);
 ?>
 <?php $this->start('title') ?>About<?php $this->end() ?>
-<?php $this->start('description') ?><?= e($mission) ?><?php $this->end() ?>
+<?php $this->start('description') ?><?= e($vision !== '' ? $vision : ($missionLines[0] ?? '')) ?><?php $this->end() ?>
 <?php $this->start('docs_group') ?>About<?php $this->end() ?>
 <?php $this->start('docs_eyebrow') ?>PUP Open University System<?php $this->end() ?>
 <?php $this->start('docs_title') ?>About AGILE<?php $this->end() ?>
@@ -23,6 +29,7 @@ $officers = (new \App\Models\MemberRepository())->search(['type' => 'officer', '
             <div><dt>Program</dt><dd>BSIT</dd></div>
             <?php if ($committees !== []) : ?><div><dt>Committees</dt><dd><?= e(count($committees)) ?></dd></div><?php endif; ?>
             <div><dt>Contact</dt><dd><a href="mailto:<?= e(org_contact_email()) ?>"><?= e(org_contact_email()) ?></a></dd></div>
+            <?php if (config('app.address') !== '') : ?><div><dt>Address</dt><dd><?= e(config('app.address')) ?></dd></div><?php endif; ?>
         </dl>
     </div>
 </div>
@@ -30,10 +37,23 @@ $officers = (new \App\Models\MemberRepository())->search(['type' => 'officer', '
 <p class="portal-lead">The Academic Guild of IT Learners and Experts is the BSIT student organization of the PUP Open University System.</p>
 
 <section class="portal-section">
-    <h2>Our mission</h2>
-    <p><?= e($mission) ?></p>
     <h2>Our vision</h2>
     <p><?= e($vision) ?></p>
+    <h2>Our mission</h2>
+    <?php if (count($missionLines) > 1) : ?>
+        <p>The Organization commits to:</p>
+        <ul class="portal-list">
+            <?php foreach ($missionLines as $line) : ?><li><?= e($line) ?></li><?php endforeach; ?>
+        </ul>
+    <?php else : ?>
+        <p><?= e($mission) ?></p>
+    <?php endif; ?>
+    <?php if ($objectiveLines !== []) : ?>
+        <h2>Our objectives</h2>
+        <ul class="portal-list">
+            <?php foreach ($objectiveLines as $line) : ?><li><?= e($line) ?></li><?php endforeach; ?>
+        </ul>
+    <?php endif; ?>
 </section>
 
 <section class="portal-section" aria-labelledby="what-we-do">

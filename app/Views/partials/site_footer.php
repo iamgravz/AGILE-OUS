@@ -4,8 +4,9 @@
             <div class="site-footer__grid">
                 <div>
                     <h2 class="site-footer__heading">Organization</h2>
-                    <p>Academic Guild of IT Learners and Experts</p>
-                    <p>PUP Open University System</p>
+                    <p>AGILE-OUS, PUP Open University System</p>
+                    <?php /* Constitution, Article I Section 3. The full address is on the About page. */ ?>
+                    <p>NALLRC, Sta. Mesa, Manila</p>
                 </div>
                 <div>
                     <h2 class="site-footer__heading">Contact</h2>
@@ -13,10 +14,10 @@
                     <div class="site-footer__contact">
                         <p><a href="mailto:<?= e(config('app.contact_email')) ?>"><?= e(config('app.contact_email')) ?></a></p>
                         <?php if (config('app.msw_email') !== '') : ?>
-                            <p>MSW Committee: <a href="mailto:<?= e(config('app.msw_email')) ?>"><?= e(config('app.msw_email')) ?></a></p>
+                            <p><abbr title="Membership and Student Welfare Committee">MSW</abbr>: <a href="mailto:<?= e(config('app.msw_email')) ?>"><?= e(config('app.msw_email')) ?></a></p>
                         <?php endif; ?>
                         <?php if (config('app.facebook_url') !== '') : ?>
-                            <p><a href="<?= e(config('app.facebook_url')) ?>" rel="noopener">Facebook</a></p>
+                            <p><a href="<?= e(config('app.facebook_url')) ?>" rel="noopener" title="AGILE OUS on Facebook">Facebook</a></p>
                         <?php endif; ?>
                     </div>
                 </div>

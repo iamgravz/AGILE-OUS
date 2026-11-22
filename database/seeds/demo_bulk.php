@@ -90,7 +90,7 @@ return static function (PDO $db): void {
     $i = 0;
 
     // Former Executive Committee: last term's officers. Their role has expired and they stay general members (BR-13).
-    $executive = ['President', 'Vice President for Internal Affairs', 'Vice President for External Affairs', 'Secretary',
+    $executive = ['President', 'Vice President for Internal Affairs', 'Vice President for External Affairs', 'General Secretary',
         'Assistant Secretary', 'Treasurer', 'Auditor'];
     $expiredAt = date('Y-m-d H:i:s', strtotime('-2 months'));
 
@@ -118,17 +118,17 @@ return static function (PDO $db): void {
 
     // Current officers with no account yet: deputies where the seat is open, The Source Code, and committee members.
     $officers = [
-        ['Research and Extensions', 'Deputy Committee Head'],
+        ['Research and Extension', 'Deputy Committee Head'],
         ['Creatives, Social Media and Communication', 'Deputy Committee Head'],
-        ['Finance and Fund Raising', 'Deputy Committee Head'],
+        ['Finance and Fundraising', 'Deputy Committee Head'],
     ];
 
     foreach (['News Editor', 'Feature Editor', 'Head Cartoonist', 'Layout Editor', 'Head Photojournalist', 'Photojournalist', 'Videographer/Editor'] as $title) {
         $officers[] = ['The Source Code', $title];
     }
 
-    foreach (['Academics and Training', 'Research and Extensions', 'Creatives, Social Media and Communication',
-        'Finance and Fund Raising', 'Logistics', 'Membership and Student Welfare', 'Events and External Relations'] as $committee) {
+    foreach (['Academics and Training', 'Research and Extension', 'Creatives, Social Media and Communication',
+        'Finance and Fundraising', 'Logistics', 'Membership and Student Welfare', 'Events and External Relations'] as $committee) {
         for ($n = 0; $n < 3; $n++) {
             $officers[] = [$committee, 'Committee Member'];
         }

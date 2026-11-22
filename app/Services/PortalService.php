@@ -57,12 +57,13 @@ final class PortalService
         return $this->settings->value('welfare.guest_submission', '1') === '1';
     }
 
-    /** @return array{mission: string, vision: string} */
+    /** @return array{mission: string, vision: string, objectives: string} One item per line where there are several (Article II). */
     private function organization(): array
     {
         return [
             'mission' => (string) $this->settings->value('org.mission', ''),
             'vision' => (string) $this->settings->value('org.vision', ''),
+            'objectives' => (string) $this->settings->value('org.objectives', ''),
         ];
     }
 }

@@ -6,7 +6,7 @@ declare(strict_types=1);
 // The 2026_11_18_real_committees migration renames the old sample rows first, so this only adds what is missing.
 return static function (PDO $db): void {
     // The Executive Committee as AGILE has it (AGILE-OUS Applicant Assessment Report, Positions Dashboard).
-    $executive = ['President', 'Vice President for Internal Affairs', 'Vice President for External Affairs', 'Secretary',
+    $executive = ['President', 'Vice President for Internal Affairs', 'Vice President for External Affairs', 'General Secretary',
         'Assistant Secretary', 'Treasurer', 'Auditor'];
 
     foreach ($executive as $title) {
@@ -15,9 +15,9 @@ return static function (PDO $db): void {
 
     $committees = [
         'Academics and Training' => 'Plans tutorials, review sessions, workshops and other academic support.',
-        'Research and Extensions' => 'Leads research activities and extension programs with partner communities.',
+        'Research and Extension' => 'Leads research activities and extension programs with partner communities.',
         'Creatives, Social Media and Communication' => 'Handles publicity materials, social media and announcements.',
-        'Finance and Fund Raising' => 'Manages AGILE funds, budgets and fund-raising activities.',
+        'Finance and Fundraising' => 'Manages AGILE funds, budgets and fund-raising activities.',
         'Logistics' => 'Prepares venues, equipment and supplies for AGILE activities.',
         'Membership and Student Welfare' => 'Manages membership, recruitment and student welfare services.',
         'Events and External Relations' => 'Organizes AGILE events and works with partner organizations.',
