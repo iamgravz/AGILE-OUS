@@ -72,6 +72,9 @@ return static function (Router $router): void {
     $router->post('/applications/{id}/reject', 'ApplicationsController@reject', 'applications.reject')->middleware('perm:application.decide');
     $router->post('/applications/{id}/waitlist', 'ApplicationsController@waitlist', 'applications.waitlist')->middleware('perm:application.decide');
 
+    $router->get('/credentials/requests', 'CredentialRequestsController@index', 'credentials.requests')->middleware('perm:credential.approve');
+    $router->post('/credentials/requests/{id}/upload', 'CredentialRequestsController@upload', 'credentials.requests.upload')->middleware('perm:credential.approve');
+    $router->post('/credentials/requests/{id}/decline', 'CredentialRequestsController@decline', 'credentials.requests.decline')->middleware('perm:credential.approve');
     $router->get('/credentials/approvals', 'CredentialApprovalsController@index', 'credentials.approvals')->middleware('perm:credential.approve');
     $router->post('/credentials/approvals/approve', 'CredentialApprovalsController@approve', 'credentials.approve')->middleware('perm:credential.approve');
     $router->post('/credentials/approvals/approve-all', 'CredentialApprovalsController@approveAll', 'credentials.approve_all')->middleware('perm:credential.approve');
@@ -86,6 +89,7 @@ return static function (Router $router): void {
     $router->get('/members', 'MembersController@index', 'members')->middleware('perm:member.view');
     $router->get('/members/{id}', 'MembersController@show', 'members.show')->middleware('perm:member.view');
     $router->post('/members/{id}/resend-registration', 'MembersController@resendRegistration', 'members.resend_registration')->middleware('perm:admin.users');
+    $router->post('/members/{id}/committee', 'MembersController@committee', 'members.committee')->middleware('perm:admin.settings');
     $router->post('/members/{id}/reissue', 'MembersController@reissue', 'members.reissue')->middleware('perm:credential.reissue');
 
     $router->get('/recruitment/hr-requests', 'HrRequestsController@index', 'hr_requests')->middleware('perm:hr_request.submit');
@@ -260,6 +264,8 @@ return static function (Router $router): void {
         $router->post('/notifications/{id}/read', 'NotificationController@markRead', 'notifications.read');
         $router->get('/account', 'AccountController@show', 'account');
         $router->post('/account/contact', 'AccountController@updateContact', 'account.contact');
+        $router->post('/account/credential-requests', 'CredentialRequestsController@request', 'account.credential_request');
+        $router->post('/account/credential-requests/{id}/cancel', 'CredentialRequestsController@cancel', 'account.credential_request.cancel');
         $router->post('/account/photo', 'AccountController@updatePhoto', 'account.photo');
         $router->post('/account/password', 'AccountController@changePassword', 'account.password');
         $router->get('/files/{type}/{id}', 'FileController@show', 'files.show');

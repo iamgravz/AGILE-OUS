@@ -43,6 +43,9 @@ $member = $membership['member'] ?? null;
                 <?= $this->partial('members/_profile', $memberPart(['credentials'])) ?>
             </div>
         </section>
+        <?php if (\App\Services\CredentialService::manual()) : ?>
+            <?= $this->partial('account/_credential_requests', ['requests' => $credentialRequests]) ?>
+        <?php endif; ?>
     <?php endif; ?>
 
     <div data-tabs>

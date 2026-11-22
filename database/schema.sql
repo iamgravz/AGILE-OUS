@@ -915,6 +915,49 @@ CREATE TABLE IF NOT EXISTS election_candidacies (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
 ;
 
+-- A second standing committee for a committee member or Year-Level Representative (Article VI Section 4-A allows two).
+CREATE TABLE IF NOT EXISTS member_committees (
+    member_committee_id INT UNSIGNED NOT NULL AUTO_INCREMENT,
+    member_id INT UNSIGNED NOT NULL,
+    committee_id INT UNSIGNED NOT NULL,
+    joined_at DATE NOT NULL,
+    added_by INT UNSIGNED NULL,
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    PRIMARY KEY (member_committee_id),
+    UNIQUE KEY uq_member_committees_member_committee (member_id, committee_id),
+    KEY idx_member_committees_committee_id (committee_id),
+    KEY idx_member_committees_added_by (added_by),
+    CONSTRAINT fk_member_committees_member FOREIGN KEY (member_id) REFERENCES members (member_id) ON DELETE RESTRICT ON UPDATE RESTRICT,
+    CONSTRAINT fk_member_committees_committee FOREIGN KEY (committee_id) REFERENCES committees (committee_id) ON DELETE RESTRICT ON UPDATE RESTRICT,
+    CONSTRAINT fk_member_committees_added_by FOREIGN KEY (added_by) REFERENCES users (user_id) ON DELETE RESTRICT ON UPDATE RESTRICT
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+;
+
+-- A member asks for their digital ID or certificate; the MSW Committee Head uploads it, made from AGILE's own template.
+CREATE TABLE IF NOT EXISTS credential_requests (
+    request_id INT UNSIGNED NOT NULL AUTO_INCREMENT,
+    member_id INT UNSIGNED NOT NULL,
+    type ENUM('digital_id','certificate') NOT NULL,
+    note VARCHAR(255) NULL,
+    status ENUM('requested','issued','declined','cancelled') NOT NULL DEFAULT 'requested',
+    credential_id INT UNSIGNED NULL,
+    remarks VARCHAR(255) NULL,
+    handled_by INT UNSIGNED NULL,
+    handled_at DATETIME NULL,
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    PRIMARY KEY (request_id),
+    KEY idx_credential_requests_member_id (member_id),
+    KEY idx_credential_requests_status (status),
+    KEY idx_credential_requests_credential_id (credential_id),
+    KEY idx_credential_requests_handled_by (handled_by),
+    CONSTRAINT fk_credential_requests_member FOREIGN KEY (member_id) REFERENCES members (member_id) ON DELETE RESTRICT ON UPDATE RESTRICT,
+    CONSTRAINT fk_credential_requests_credential FOREIGN KEY (credential_id) REFERENCES digital_credentials (credential_id) ON DELETE RESTRICT ON UPDATE RESTRICT,
+    CONSTRAINT fk_credential_requests_handled_by FOREIGN KEY (handled_by) REFERENCES users (user_id) ON DELETE RESTRICT ON UPDATE RESTRICT
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+;
+
 CREATE TABLE IF NOT EXISTS job_runs (
     run_id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
     job VARCHAR(60) NOT NULL,

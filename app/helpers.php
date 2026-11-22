@@ -247,9 +247,11 @@ function icon(string $name, string $class = ''): string
 /** How many things wait behind a sidebar item. */
 function sidebar_badge(string $item): int
 {
-    return $item === 'accounts'
-        ? count((new \App\Models\UserRepository())->pendingAccounts())
-        : (new \App\Services\CredentialService())->pendingCount();
+    return match ($item) {
+        'accounts' => count((new \App\Models\UserRepository())->pendingAccounts()),
+        'credential_requests' => (new \App\Services\CredentialRequestService())->openCount(),
+        default => (new \App\Services\CredentialService())->pendingCount(),
+    };
 }
 
 /** config/menu.php filtered for the current user. Groups left with no items are dropped. */

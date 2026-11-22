@@ -62,10 +62,23 @@ final class CredentialService
     ) {
     }
 
-    /** Issues whichever credentials the member has no valid copy of. A member applying for a position keeps theirs. */
+    /** True when members request their ID and certificate and the MSW Committee Head uploads them (config/credentials.php). */
+    public static function manual(): bool
+    {
+        return config('credentials.mode', 'manual') !== 'generated';
+    }
+
+    /**
+     * Issues whichever credentials the member has no valid copy of. A member applying for a position keeps theirs.
+     * In manual mode nothing is drawn: the member requests them (CredentialRequestService).
+     */
     public function issueFor(int $memberId): void
     {
         authorize_any('application.decide', 'account.approve', 'credential.reissue');
+
+        if (self::manual()) {
+            return;
+        }
 
         Database::transaction(function () use ($memberId): void {
             $member = $this->lockMember($memberId);
@@ -88,6 +101,11 @@ final class CredentialService
 
         if (trim($reason) === '') {
             throw new DomainException('A reason is required.');
+        }
+
+        // Manual mode: the uploaded files stay as they are; after a role change the member requests new ones.
+        if (self::manual()) {
+            return;
         }
 
         Database::transaction(function () use ($memberId, $reason, $kind): void {
@@ -393,7 +411,8 @@ final class CredentialService
     /** The absolute path of a stored credential. Refuses anything that would leave storage/credentials. */
     public static function path(string $filePath): string
     {
-        if (preg_match('#^[0-9]{4}/[a-f0-9]{32}\.pdf$#', $filePath) !== 1) {
+        // Drawn credentials are PDFs; uploaded ones (manual mode) may also be images.
+        if (preg_match('#^[0-9]{4}/[a-f0-9]{32}\.(pdf|jpg|jpeg|png)$#', $filePath) !== 1) {
             throw new InvalidArgumentException('Invalid credential file path.');
         }
 

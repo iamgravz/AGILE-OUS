@@ -23,6 +23,7 @@ final class AccountController
         return Response::html(View::render('account/index', [
             'account' => current_user(),
             'membership' => (new MemberRecordsService())->ownProfile(),
+            'credentialRequests' => (new \App\Services\CredentialRequestService())->mine(),
             'breadcrumbs' => [['label' => 'Dashboard', 'url' => route('dashboard')], ['label' => 'My Account']],
         ], 'layouts/dashboard'));
     }

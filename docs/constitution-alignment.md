@@ -25,7 +25,7 @@ Status: **Aligned**, **Partly** (works, but differs in a detail), **Gap** (the b
 | Elections (COMELEC, online voting) | Partly (Nov 23) | Filing of candidacy and qualification are in the system; voting itself is not. |
 | Candidate qualifications | Fixed (Nov 23) | Elected officers checks the year-level minimums and asks the MSW Committee Head to confirm full load and no 5.0, W or D. |
 | Term of office, term limits | Fixed (Nov 23) | Terms are recorded per academic year; a third consecutive term in the same post is refused. |
-| Incompatible offices (4-A) | Partly | One position per person is enforced. Members cannot hold two committee memberships, which the by-laws allow. |
+| Incompatible offices (4-A) | Fixed (Nov 23) | One office for officers; a Committee Member or Year-Level Representative may join one more standing committee. |
 | Who decides, who is elected | Aligned (decided Nov 22) | Committee heads approve or reject applicants; the MSW team sets interview dates; the Executive Board and Year-Level Representatives are elected, never applied for. |
 | Transition and handover | Gap (outside the system) | Turnover packets and account handover are manual. |
 | Meetings, quorum, notices | Partly | Announcements and email exist; no meeting or quorum records. |
@@ -114,7 +114,11 @@ Migration `2026_11_22_constitution_alignment.php` (applied to `agile_ams` after 
 - **Every submission asks for year level, section and contact number** (`StudentDetails`, `partials/student_details`): Ask for Help (guest and member, kept encrypted on the case), apply step 1, My Account, Elected officers and Run for office. Accounts gained `year_level` and `section` (migration `2026_11_23_student_details.php`).
 - **P6, Run for office** (`/elections/candidacy`, migration `2026_11_23_candidacies.php`): members file for an Executive Board or Year-Level Representative seat with their COR and previous semester copy of grades while the MSW Committee Head has filing open. The year-level minimum and the term limit are checked at filing; one candidacy per member per academic year. **Administration, Candidacies** opens and closes filing, shows the documents, qualifies or disqualifies (with the reason), and marks winners elected, which records them as in Elected officers.
 - **P5, Document archive** (`/admin/archive`, `backup.manage`, `config/retention.php`): archive only. 120 days after the decision, the COR and grades of approved, rejected and withdrawn applications and of closed candidacies move to `storage/uploads/archive/<academic year>-<semester>/`. Records stay, the files still open from the same pages, and nothing is deleted. Run once a semester.
-- Still open: **P4** (more than one committee per member), a proposal given to the MSW Committee Head.
+- **P4, second committee** (migration `2026_11_23_member_committees.php`, `MemberCommitteeService`): every member keeps one main position. A Committee Member or a Year-Level Representative may also be a Committee Member of one other standing committee, added from the member record or by approving their application to it; two committees at most. The Executive Board, Committee Heads and Deputies hold one office, and a promotion ends the second committee. An MSW second committee gives the MSW Member role to someone who would otherwise be a General Member. The Members list for a committee includes its second-committee members, and they count toward its target.
+
+### ID and certificate (Nov 23, 2026)
+
+- `CREDENTIAL_MODE=manual` (`config/credentials.php`): the system no longer draws IDs and certificates. A member requests one under My Account; the MSW Committee Head makes it from AGILE's template and uploads it (PDF, JPG or PNG) on **ID and certificate requests**, or declines with the reason. The upload is the member's current copy, replacing an earlier one of the same kind. `generated` brings back the drawn PDFs and the approval queue.
 
 ## 4. Recommended order
 

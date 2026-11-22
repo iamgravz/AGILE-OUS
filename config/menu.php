@@ -38,7 +38,8 @@ return [
                 ['label' => 'My Applications', 'url' => '/my-applications', 'icon' => 'clipboard', 'permission' => 'application.submit'],
                 ['label' => 'Run for office', 'url' => '/elections/candidacy', 'icon' => 'award', 'permission' => 'welfare.submit'],
                 ['label' => 'Members', 'url' => '/members', 'icon' => 'users', 'permission' => 'member.view'],
-                ['label' => 'IDs and certificates for approval', 'url' => '/credentials/approvals', 'icon' => 'award', 'permission' => 'credential.approve', 'badge' => 'credentials'],
+                // Manual mode (config/credentials.php): members request, the MSW Committee Head uploads from the template.
+                ['label' => 'ID and certificate requests', 'url' => '/credentials/requests', 'icon' => 'award', 'permission' => 'credential.approve', 'badge' => 'credential_requests'],
             ],
         ],
         [

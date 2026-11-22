@@ -8,6 +8,8 @@
  * @var list<array<string, mixed>> $credentials
  * @var list<array<string, mixed>> $activeCredentials
  * @var array{tone: string, message: string}|null $notice
+ * @var list<array{committee_id: int, name: string, joined_at: string}> $extraCommittees
+ * @var list<array{committee_id: int, name: string}> $committeeOptions
  */
 $name = $member['first_name'] . ' ' . $member['last_name'];
 $reasonError = field_error('reason');
@@ -41,6 +43,47 @@ if ($member['user_id'] === null && can('admin.users')) {
         'facts' => $facts,
         'extra' => $resend,
     ]) ?>
+
+    <?php if ($extraCommittees !== [] || $committeeOptions !== []) : ?>
+        <section class="plain-section" aria-labelledby="member-second-committee">
+            <div class="card__header"><h2 class="card__title" id="member-second-committee">Second committee</h2></div>
+            <div class="card__body">
+                <p class="text-muted">A Committee Member or Year-Level Representative may also be a Committee Member of one other standing committee (Article VI, Section 4-A).</p>
+                <?php foreach ($extraCommittees as $extra) : ?>
+                    <form class="cluster" method="post" action="<?= e(route('members.committee', ['id' => (int) $member['member_id']])) ?>" data-confirm="They stop being a member of this committee. Their main position stays." data-confirm-title="Remove the second committee?" data-confirm-action="Remove">
+                        <?= csrf_field() ?>
+                        <input type="hidden" name="action" value="remove">
+                        <input type="hidden" name="committee_id" value="<?= e($extra['committee_id']) ?>">
+                        <span>Committee Member, <strong><?= e($extra['name']) ?></strong> since <?= e(date_ph($extra['joined_at'])) ?></span>
+                        <?php if (can('admin.settings')) : ?>
+                            <label class="sr-only" for="remove-reason-<?= e($extra['committee_id']) ?>">Reason</label>
+                            <input class="input" id="remove-reason-<?= e($extra['committee_id']) ?>" name="reason" maxlength="255" required placeholder="Reason">
+                            <button type="submit" class="btn btn--ghost btn--sm">Remove</button>
+                        <?php endif; ?>
+                    </form>
+                <?php endforeach; ?>
+                <?php if ($committeeOptions !== []) : ?>
+                    <form method="post" action="<?= e(route('members.committee', ['id' => (int) $member['member_id']])) ?>">
+                        <?= csrf_field() ?>
+                        <input type="hidden" name="action" value="add">
+                        <div class="grid grid--2">
+                            <div class="field">
+                                <label class="field__label" for="committee_id">Add a second committee</label>
+                                <select class="select" id="committee_id" name="committee_id" required>
+                                    <option value="">Choose a committee</option>
+                                    <?php foreach ($committeeOptions as $option) : ?>
+                                        <option value="<?= e($option['committee_id']) ?>"><?= e($option['name']) ?></option>
+                                    <?php endforeach; ?>
+                                </select>
+                            </div>
+                            <?= $this->partial('partials/form_field', ['name' => 'reason', 'label' => 'Reason', 'value' => '', 'help' => 'For example, the approved application.']) ?>
+                        </div>
+                        <button type="submit" class="btn btn--secondary">Add as Committee Member</button>
+                    </form>
+                <?php endif; ?>
+            </div>
+        </section>
+    <?php endif; ?>
 
     <?php // Only the MSW Committee Head may open these files (FileAccessPolicy::credential). ?>
     <?php if ($approvedCredentials !== [] && can('credential.approve')) : ?>
@@ -101,7 +144,7 @@ if ($member['user_id'] === null && can('admin.users')) {
                 </div>
             <?php endif; ?>
 
-            <?php if (can('credential.reissue')) : ?>
+            <?php if (can('credential.reissue') && !\App\Services\CredentialService::manual()) : ?>
                 <form class="member-reissue" method="post" action="<?= e(route('members.reissue', ['id' => (int) $member['member_id']])) ?>">
                     <?= csrf_field() ?>
                     <div class="field <?= $reasonError !== null ? 'field--error' : '' ?>">

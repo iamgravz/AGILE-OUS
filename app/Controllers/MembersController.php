@@ -52,7 +52,11 @@ final class MembersController
             return Response::error(Response::HTTP_NOT_FOUND);
         }
 
+        $committees = new \App\Services\MemberCommitteeService();
+
         return Response::html(View::render('members/show', $profile + [
+            'extraCommittees' => $committees->extras((int) $id),
+            'committeeOptions' => can('admin.settings') ? $committees->options((int) $id) : [],
             'breadcrumbs' => [
                 ['label' => 'Dashboard', 'url' => route('dashboard')],
                 ['label' => 'Members', 'url' => route('members')],
@@ -66,6 +70,28 @@ final class MembersController
         try {
             $this->records->resendRegistration((int) $id);
             flash('success', 'The registration instructions were emailed.');
+        } catch (DomainException $exception) {
+            flash('error', $exception->getMessage());
+        }
+
+        return redirect(route('members.show', ['id' => (int) $id]));
+    }
+
+    /** P4: the MSW Committee Head adds or removes a member's second standing committee. */
+    public function committee(Request $request, string $id): Response
+    {
+        $service = new \App\Services\MemberCommitteeService();
+        $committeeId = (int) $request->text('committee_id');
+        $reason = $request->text('reason');
+
+        try {
+            if ($request->text('action') === 'remove') {
+                $service->remove((int) $id, $committeeId, $reason);
+                flash('success', 'The second committee was removed.');
+            } else {
+                $service->add((int) $id, $committeeId, $reason);
+                flash('success', 'The second committee was added.');
+            }
         } catch (DomainException $exception) {
             flash('error', $exception->getMessage());
         }

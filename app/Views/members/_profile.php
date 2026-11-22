@@ -34,7 +34,7 @@ $parts ??= ['summary', 'credentials', 'history', 'applications'];
     <?php if ($inReview) : ?>
         <p>Your digital ID and certificate are being reviewed by the MSW Committee Head. We'll email you when they're ready.</p>
     <?php elseif ($activeCredentials === []) : ?>
-        <p class="text-muted">Your credentials have not been issued yet. Please contact the MSW Committee.</p>
+        <p class="text-muted"><?= \App\Services\CredentialService::manual() ? 'You have no digital ID or certificate yet. Request one below.' : 'Your credentials have not been issued yet. Please contact the MSW Committee.' ?></p>
     <?php endif; ?>
     <?php if ($approved !== []) : ?>
         <?= $this->partial('members/_credential_cards', ['credentials' => array_values($approved), 'forOwner' => true, 'headingLevel' => $headingLevel + 1]) ?>

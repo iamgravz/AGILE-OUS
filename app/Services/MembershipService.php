@@ -999,7 +999,8 @@ final class MembershipService
         $marks = implode(',', array_fill(0, count(self::APPLICATION_ROLE_TYPES), '?'));
         $statement = Database::connection()->prepare(
             "SELECT p.position_id, p.title, p.role_type, p.is_open, p.target_slots, c.committee_id, c.name AS committee_name,
-                    (SELECT COUNT(*) FROM members m WHERE m.position_id = p.position_id AND m.role_status = 'active') AS filled
+                    (SELECT COUNT(*) FROM members m WHERE m.position_id = p.position_id AND m.role_status = 'active')
+                    + IF(p.role_type = 'committee_member', (SELECT COUNT(*) FROM member_committees mc WHERE mc.committee_id = p.committee_id), 0) AS filled
              FROM positions p JOIN committees c ON c.committee_id = p.committee_id
              WHERE p.role_type IN ({$marks})
              ORDER BY p.role_type = 'source_code', c.name, FIELD(p.role_type, 'committee_head', 'deputy', 'committee_member'), p.position_id"
@@ -1053,14 +1054,16 @@ final class MembershipService
 
         // Someone who meanwhile got a position keeps it; the choice does not replace a role quietly.
         if ($before['position_id'] !== null) {
+            // A Committee Member or Year-Level Representative may take this as their second committee (P4).
+            if ($position['role_type'] === 'committee_member' && (int) $position['committee_id'] !== (int) ($before['committee_id'] ?? 0)) {
+                $this->assertSlotLeft($positionId);
+                (new MemberCommitteeService())->joinFromApplication($memberId, $positionId, trim($reason));
+            }
+
             return;
         }
 
-        foreach ($this->applicationPositions() as $row) {
-            if ($row['position_id'] === $positionId && $row['remaining'] === 0) {
-                throw new DomainException('Every slot for ' . $row['label'] . ' is filled. Raise its target in Open for application, or waitlist this application.');
-            }
-        }
+        $this->assertSlotLeft($positionId);
 
         $members->update($memberId, ['position_id' => $positionId, 'membership_type' => 'officer', 'role_status' => 'active', 'role_expired_at' => null]);
 
@@ -1078,6 +1081,16 @@ final class MembershipService
         // Written out, because roleLabel() needs an account's role and someone without one has not registered yet.
         $label = $position['committee_name'] === null ? $position['title'] : $position['title'] . ', ' . $position['committee_name'];
         $members->addHistory($memberId, 'General Member', $label, trim($reason), (int) current_user_id());
+    }
+
+    /** @throws DomainException when every slot of the position is filled. */
+    private function assertSlotLeft(int $positionId): void
+    {
+        foreach ($this->applicationPositions() as $row) {
+            if ($row['position_id'] === $positionId && $row['remaining'] === 0) {
+                throw new DomainException('Every slot for ' . $row['label'] . ' is filled. Raise its target in Open for application, or waitlist this application.');
+            }
+        }
     }
 
     /**
@@ -1130,6 +1143,8 @@ final class MembershipService
             $oldLabel = self::roleLabel($member);
             $newLabel = self::roleLabel($members->findDetailed($memberId));
             $members->addHistory($memberId, $oldLabel, $newLabel, trim($reason), $actorId);
+            // A new main position may not allow a second committee, and an MSW second committee raises the role (P4).
+            (new MemberCommitteeService())->afterMainChange($memberId, $reason);
             RbacService::clearCache();
 
             AuditService::log('member.role_changed', 'member', $memberId, ['from' => $oldLabel, 'to' => $newLabel, 'reason' => mb_substr(trim($reason), 0, 255), 'actor_id' => $actorId]);
