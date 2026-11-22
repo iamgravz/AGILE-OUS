@@ -29,7 +29,6 @@ return [
             'items' => [
                 ['label' => 'My Account', 'url' => '/account', 'icon' => 'user', 'permission' => null],
                 ['label' => 'My Submissions', 'url' => '/my-submissions', 'icon' => 'inbox', 'permission' => null],
-                ['label' => 'Notifications', 'url' => '/notifications', 'icon' => 'bell', 'permission' => null],
             ],
         ],
         [
