@@ -14,6 +14,9 @@ use DomainException;
 /** Administration, Elected officers: accounts for the Executive Board and the Year-Level Representatives. */
 final class ElectedOfficersController
 {
+    /** Article V Section 3 has four year levels. */
+    private const YEAR_LEVELS = ['1st Year', '2nd Year', '3rd Year', '4th Year'];
+
     public function __construct(private readonly ElectedOfficerService $officers = new ElectedOfficerService())
     {
     }
@@ -23,6 +26,9 @@ final class ElectedOfficersController
         return Response::html(View::render('admin/elected_officers', [
             'seats' => $this->officers->seats(),
             'chosen' => (int) $request->queryText('position'),
+            'yearLevels' => self::YEAR_LEVELS,
+            'academicYear' => $this->officers->defaultAcademicYear(),
+            'confirmations' => config('elections.confirmations'),
             'breadcrumbs' => [['label' => 'Dashboard', 'url' => route('dashboard')], ['label' => 'Elected officers']],
         ], 'layouts/dashboard'));
     }
@@ -37,7 +43,11 @@ final class ElectedOfficersController
             'student_no' => strtoupper($request->text('student_no')),
             'contact_no' => $request->text('contact_no'),
             'reason' => $request->text('reason'),
+            'year_level' => $request->text('year_level'),
+            'academic_year' => $request->text('academic_year'),
         ];
+        $ticked = $request->input('confirmations', []);
+        $data['confirmations'] = is_array($ticked) ? array_values(array_filter($ticked, 'is_string')) : [];
         $errors = Validator::check($data, [
             'position_id' => ['label' => 'Position', 'rules' => ['required']],
             'first_name' => ['label' => 'First name', 'rules' => ['required', 'max:80']],
@@ -45,7 +55,12 @@ final class ElectedOfficersController
             'email' => ['label' => 'Email', 'rules' => ['required', 'email', 'max:150']],
             'student_no' => ['label' => 'PUP student number', 'rules' => ['required', 'max:20']],
             'reason' => ['label' => 'Election record', 'rules' => ['required', 'max:255']],
+            'academic_year' => ['label' => 'Academic year', 'rules' => ['required', 'max:9']],
         ]);
+
+        if (!in_array($data['year_level'], self::YEAR_LEVELS, true)) {
+            $errors['year_level'] = 'Please choose the year level.';
+        }
 
         if ($data['contact_no'] !== '' && preg_match(Validator::PHONE_PATTERN, $data['contact_no']) !== 1) {
             $errors['contact_no'] = 'Enter a valid contact number, such as 09171234567.';

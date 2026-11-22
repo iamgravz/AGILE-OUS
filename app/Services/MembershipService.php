@@ -51,10 +51,8 @@ final class MembershipService
      */
     public const REQUIREMENT_GROUPS = [
         'general' => ['General members', 'Current COR', false, null],
-        'executive' => ['Executive Committee officers', 'Current COR and previous semester copy of grades', true, 'Previous semester copy of grades'],
         'committee' => ['Committee Heads, Deputy Heads and committee members', 'Current COR and previous semester copy of grades', true, 'Previous semester copy of grades'],
-        'year_rep' => ['Year-Level Representatives', 'Current COR and previous semester copy of grades', true, 'Previous semester copy of grades'],
-        'applicant' => ['Applicants for any officer or committee position', 'Current COR and previous semester copy of grades', true, 'Previous semester copy of grades'],
+        'applicant' => ['Applicants for any committee position or The Source Code', 'Current COR and previous semester copy of grades', true, 'Previous semester copy of grades'],
         'first_year_first_sem' => ['1st year, 1st semester joiners', 'Current COR only (no grades yet)', false, null],
         'first_year_second_sem' => ['1st years joining in the 2nd semester', 'Current COR and 1st semester copy of grades', true, '1st semester copy of grades'],
     ];

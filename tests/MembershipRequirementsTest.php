@@ -87,12 +87,15 @@ final class MembershipRequirementsTest extends TestCase
     {
         $groups = MembershipService::REQUIREMENT_GROUPS;
 
-        $this->assertCount(7, $groups);
+        // The Executive Board and Year-Level Representatives are elected, so their rows are in config/elections.php (P6).
+        $this->assertCount(5, $groups);
+        $this->assertArrayNotHasKey('executive', $groups);
+        $this->assertArrayNotHasKey('year_rep', $groups);
         $this->assertFalse($groups['general'][2], 'General members: COR only.');
         $this->assertFalse($groups['first_year_first_sem'][2], '1st year, 1st semester: COR only.');
         $this->assertSame('1st semester copy of grades', $groups['first_year_second_sem'][3]);
 
-        foreach (['executive', 'committee', 'year_rep', 'applicant'] as $key) {
+        foreach (['committee', 'applicant'] as $key) {
             $this->assertTrue($groups[$key][2], "{$key} needs grades.");
         }
     }

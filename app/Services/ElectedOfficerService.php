@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Services;
 
 use App\Core\Database;
+use App\Models\AcademicTermRepository;
 use App\Models\MemberRepository;
 use App\Models\UserRepository;
 use DomainException;
@@ -14,6 +15,10 @@ use DomainException;
  * elected, never applied for, so the MSW Committee Head (admin.users) records the winners here. Each seat gets an
  * account (or the person's existing one), a member record and the position, which gives the role in
  * config/role_mapping.php. Ending a term stays with appointments and role expiry.
+ *
+ * Article VI checks, from config/elections.php: the minimum year level (Section 2), a representative's own year level,
+ * the MSW Committee Head's confirmation of full load and clean grades, and the consecutive-term limit (Section 4),
+ * counted from officer_terms.
  */
 final class ElectedOfficerService
 {
@@ -71,7 +76,7 @@ final class ElectedOfficerService
      * Records an election winner. A new email gets a new account and the password link; an email that already has an
      * account (a member who won) keeps it and only gains the position.
      *
-     * @param array{first_name: string, last_name: string, email: string, student_no: string, contact_no: string, reason: string} $person
+     * @param array{first_name: string, last_name: string, email: string, student_no: string, contact_no: string, reason: string, year_level: string, academic_year: string, confirmations: list<string>} $person
      * @return int The account's user_id.
      * @throws DomainException
      */
@@ -91,7 +96,12 @@ final class ElectedOfficerService
             throw new DomainException('Please choose an Executive Board or Year-Level Representative position.');
         }
 
-        if ($seat['open'] === 0) {
+        // Re-election: the holder wins the same seat for another year. Only the new term is recorded.
+        $existing = $this->users->findByEmail(mb_strtolower(trim($person['email'])));
+        $holding = $existing === null ? null : $this->members->findByUser((int) $existing['user_id']);
+        $reelected = $holding !== null && (int) $holding['position_id'] === $seat['position_id'] && $holding['role_status'] === 'active';
+
+        if ($seat['open'] === 0 && !$reelected) {
             throw new DomainException($seat['title'] . ' is already held by ' . implode(', ', $seat['holders']) . '. End that term first (Members, change role) before recording the new officer.');
         }
 
@@ -101,9 +111,20 @@ final class ElectedOfficerService
             throw new DomainException('Please write the election record, for example the election date.');
         }
 
-        return Database::transaction(function () use ($seat, $person, $reason): int {
+        $academicYear = trim($person['academic_year']);
+        $this->assertQualified($seat, $person);
+        $this->assertWithinTermLimit($seat, $person, $academicYear);
+
+        return Database::transaction(function () use ($seat, $person, $reason, $academicYear, $existing, $holding, $reelected): int {
             $membership = new MembershipService();
-            $existing = $this->users->findByEmail(mb_strtolower(trim($person['email'])));
+
+            if ($reelected) {
+                $this->recordTerm((int) $holding['member_id'], $seat['position_id'], $academicYear, $person['year_level']);
+                $this->members->addHistory((int) $holding['member_id'], $seat['title'], $seat['title'], 'Re-elected: ' . $reason, (int) current_user_id());
+                AuditService::log('officer.reelected_recorded', 'member', (int) $holding['member_id'], ['position_id' => $seat['position_id'], 'academic_year' => $academicYear]);
+
+                return (int) $existing['user_id'];
+            }
 
             if ($existing === null) {
                 $userId = (new AuthService())->createAccount($person['email'], $person['first_name'], $person['last_name'], 'general_member', $person['student_no']);
@@ -128,9 +149,105 @@ final class ElectedOfficerService
             $member = $membership->ensureMember($userId, $reason);
             $membership->changeRole((int) $member['member_id'], $seat['position_id'], $reason, (int) current_user_id());
             (new CredentialService())->issueFor((int) $member['member_id']);
+            $this->recordTerm((int) $member['member_id'], $seat['position_id'], $academicYear, $person['year_level']);
             AuditService::log('officer.elected_recorded', 'member', (int) $member['member_id'], ['position_id' => $seat['position_id'], 'new_account' => $existing === null]);
 
             return $userId;
         });
+    }
+
+    private function recordTerm(int $memberId, int $positionId, string $academicYear, string $yearLevel): void
+    {
+        Database::connection()->prepare('INSERT INTO officer_terms (member_id, position_id, academic_year, year_level, recorded_by) VALUES (?, ?, ?, ?, ?)')
+            ->execute([$memberId, $positionId, $academicYear, $yearLevel, current_user_id()]);
+    }
+
+    /** The academic year a new term is recorded for: the current term's, or the school year running now. */
+    public function defaultAcademicYear(): string
+    {
+        $term = (new AcademicTermRepository())->current();
+
+        if ($term !== null) {
+            return (string) $term['academic_year'];
+        }
+
+        $start = (int) date('n') >= 8 ? (int) date('Y') : (int) date('Y') - 1;
+
+        return $start . '-' . ($start + 1);
+    }
+
+    /** The lowest year level a seat needs (1 to 4), from config/elections.php. */
+    public static function minimumYear(array $seat): int
+    {
+        if ($seat['group'] !== 'Executive Board') {
+            return 1;
+        }
+
+        $levels = config('elections.min_year_level');
+
+        return (int) ($levels[$seat['title']] ?? $levels['default']);
+    }
+
+    /** @param array<string, mixed> $seat @param array<string, mixed> $person */
+    private function assertQualified(array $seat, array $person): void
+    {
+        $year = (int) $person['year_level'];
+
+        if ($year < 1) {
+            throw new DomainException("Please choose the officer's year level.");
+        }
+
+        if ($year < self::minimumYear($seat)) {
+            throw new DomainException(sprintf('%s needs a student in at least %s year (Article VI, Section 2).', $seat['title'], self::ordinal(self::minimumYear($seat))));
+        }
+
+        if ($seat['group'] !== 'Executive Board' && config('elections.representative_same_year') && (int) $seat['title'] !== $year) {
+            throw new DomainException(sprintf('The %s must be in %s year.', $seat['title'], self::ordinal((int) $seat['title'])));
+        }
+
+        $missing = array_diff(array_keys(config('elections.confirmations')), $person['confirmations']);
+
+        if ($missing !== []) {
+            throw new DomainException('Please confirm the Article VI requirements: ' . implode(' ', array_map(static fn (string $key): string => config('elections.confirmations')[$key], $missing)));
+        }
+    }
+
+    /** Article VI Section 4: no more than the configured consecutive terms in one position. */
+    private function assertWithinTermLimit(array $seat, array $person, string $academicYear): void
+    {
+        if (preg_match('/^(\d{4})-(\d{4})$/', $academicYear, $match) !== 1 || (int) $match[2] !== (int) $match[1] + 1) {
+            throw new DomainException('Please give the academic year as 2026-2027.');
+        }
+
+        $statement = Database::connection()->prepare(
+            'SELECT DISTINCT t.academic_year FROM officer_terms t
+             JOIN members m ON m.member_id = t.member_id
+             LEFT JOIN users u ON u.user_id = m.user_id
+             WHERE t.position_id = ? AND (u.email = ? OR (CHAR_LENGTH(?) > 0 AND u.student_no = ?))'
+        );
+        $studentNo = trim($person['student_no']);
+        $statement->execute([$seat['position_id'], mb_strtolower(trim($person['email'])), $studentNo, $studentNo]);
+        $years = $statement->fetchAll(\PDO::FETCH_COLUMN);
+
+        if (in_array($academicYear, $years, true)) {
+            throw new DomainException("This person is already recorded as {$seat['title']} for {$academicYear}.");
+        }
+
+        $limit = (int) config('elections.max_consecutive_terms');
+        $start = (int) $match[1];
+        $consecutive = 0;
+
+        while (in_array(($start - $consecutive - 1) . '-' . ($start - $consecutive), $years, true)) {
+            $consecutive++;
+        }
+
+        if ($consecutive >= $limit) {
+            throw new DomainException(sprintf('This person has served %d consecutive terms as %s, the most Article VI, Section 4 allows.', $consecutive, $seat['title']));
+        }
+    }
+
+    private static function ordinal(int $year): string
+    {
+        return $year . ([1 => 'st', 2 => 'nd', 3 => 'rd'][$year] ?? 'th');
     }
 }

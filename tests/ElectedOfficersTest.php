@@ -43,19 +43,19 @@ final class ElectedOfficersTest extends TestCase
             $rep = $this->vacate('Year-Level Council', '4th Year Representative');
             $service = new ElectedOfficerService();
 
-            $userId = $service->record($president, $this->person('new.president@agile.test', '2023-99001-OU-0'));
+            $userId = $service->record($president, $this->person('new.president@agile.test', '2023-99001-OU-0', '3rd Year'));
             $user = (new UserRepository())->findWithRole($userId);
             $member = (new MemberRepository())->findByUser($userId);
             $this->assertSame('president', $user['role_slug']);
             $this->assertSame($president, (int) $member['position_id']);
             $this->assertSame('officer', $member['membership_type']);
 
-            $repId = $service->record($rep, $this->person('new.rep@agile.test', '2023-99002-OU-0'));
+            $repId = $service->record($rep, $this->person('new.rep@agile.test', '2023-99002-OU-0', '4th Year'));
             $this->assertSame('general_member', (new UserRepository())->findWithRole($repId)['role_slug']);
             $this->assertSame($rep, (int) (new MemberRepository())->findByUser($repId)['position_id']);
 
             try {
-                $service->record($rep, $this->person('another.rep@agile.test', '2023-99003-OU-0'));
+                $service->record($rep, $this->person('another.rep@agile.test', '2023-99003-OU-0', '4th Year'));
                 $this->fail('A filled seat cannot take a second officer.');
             } catch (DomainException $exception) {
                 $this->assertStringContainsString('already held', $exception->getMessage());
@@ -70,7 +70,7 @@ final class ElectedOfficersTest extends TestCase
             $seat = $this->vacate('Year-Level Council', '1st Year Representative');
             $before = (new UserRepository())->findByEmail('member@agile.test');
 
-            $userId = (new ElectedOfficerService())->record($seat, $this->person('member@agile.test', ''));
+            $userId = (new ElectedOfficerService())->record($seat, $this->person('member@agile.test', '', '1st Year'));
             $this->assertSame((int) $before['user_id'], $userId);
             $this->assertSame($seat, (int) (new MemberRepository())->findByUser($userId)['position_id']);
         });
@@ -83,7 +83,7 @@ final class ElectedOfficersTest extends TestCase
             $head = (int) Database::connection()->query("SELECT position_id FROM positions WHERE role_type = 'committee_head' LIMIT 1")->fetchColumn();
 
             try {
-                (new ElectedOfficerService())->record($head, $this->person('someone@agile.test', '2023-99004-OU-0'));
+                (new ElectedOfficerService())->record($head, $this->person('someone@agile.test', '2023-99004-OU-0', '3rd Year'));
                 $this->fail('Committee positions are applied for, not recorded here.');
             } catch (DomainException $exception) {
                 $this->assertStringContainsString('Executive Board or Year-Level', $exception->getMessage());
@@ -95,10 +95,58 @@ final class ElectedOfficersTest extends TestCase
         (new ElectedOfficerService())->seats();
     }
 
-    /** @return array{first_name: string, last_name: string, email: string, student_no: string, contact_no: string, reason: string} */
-    private function person(string $email, string $studentNo): array
+    public function testArticleSixQualificationsAreChecked(): void
     {
-        return ['first_name' => 'Sample', 'last_name' => 'Officer', 'email' => $email, 'student_no' => $studentNo, 'contact_no' => '09171234567', 'reason' => 'Elected in the test election'];
+        $this->inRollback(function (): void {
+            $this->signIn('mswhead@agile.test');
+            $president = $this->vacate('', 'President');
+            $secretary = $this->vacate('', 'General Secretary');
+            $rep = $this->vacate('Year-Level Council', '2nd Year Representative');
+            $service = new ElectedOfficerService();
+
+            $this->assertRefused('at least 3rd year', fn () => $service->record($president, $this->person('a@agile.test', '2023-99011-OU-0', '2nd Year')));
+            $this->assertRefused('at least 2nd year', fn () => $service->record($secretary, $this->person('b@agile.test', '2023-99012-OU-0', '1st Year')));
+            $this->assertRefused('must be in 2nd year', fn () => $service->record($rep, $this->person('c@agile.test', '2023-99013-OU-0', '3rd Year')));
+            $this->assertRefused('confirm the Article VI', fn () => $service->record($secretary, ['confirmations' => ['full_load']] + $this->person('d@agile.test', '2023-99014-OU-0', '2nd Year')));
+
+            $this->assertGreaterThan(0, $service->record($secretary, $this->person('e@agile.test', '2023-99015-OU-0', '2nd Year')));
+        });
+    }
+
+    public function testReElectionUpToTheTermLimit(): void
+    {
+        $this->inRollback(function (): void {
+            $this->signIn('mswhead@agile.test');
+            $seat = $this->vacate('', 'Treasurer');
+            $service = new ElectedOfficerService();
+            $term = fn (string $year): array => ['academic_year' => $year] + $this->person('treasurer@agile.test', '2023-99021-OU-0', '3rd Year');
+
+            $userId = $service->record($seat, $term('2025-2026'));
+            $this->assertSame($userId, $service->record($seat, $term('2026-2027')), 'The holder is re-elected.');
+            $this->assertRefused('already recorded', fn () => $service->record($seat, $term('2026-2027')));
+            $this->assertRefused('2 consecutive terms', fn () => $service->record($seat, $term('2027-2028')));
+            $this->assertRefused('already held', fn () => $service->record($seat, ['email' => 'other@agile.test', 'student_no' => '2023-99022-OU-0'] + $term('2027-2028')));
+
+            $terms = (int) Database::connection()->query("SELECT COUNT(*) FROM officer_terms WHERE position_id = {$seat}")->fetchColumn();
+            $this->assertSame(2, $terms);
+        });
+    }
+
+    private function assertRefused(string $message, callable $action): void
+    {
+        try {
+            $action();
+            $this->fail("Expected a refusal: {$message}");
+        } catch (DomainException $exception) {
+            $this->assertStringContainsString($message, $exception->getMessage());
+        }
+    }
+
+    /** @return array<string, mixed> */
+    private function person(string $email, string $studentNo, string $yearLevel): array
+    {
+        return ['first_name' => 'Sample', 'last_name' => 'Officer', 'email' => $email, 'student_no' => $studentNo, 'contact_no' => '09171234567',
+            'reason' => 'Elected in the test election', 'year_level' => $yearLevel, 'academic_year' => '2026-2027', 'confirmations' => ['full_load', 'clean_grades']];
     }
 
     /** Frees a seat the demo seeder filled, as an ended term would. */

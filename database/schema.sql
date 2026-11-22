@@ -860,6 +860,26 @@ CREATE TABLE IF NOT EXISTS eligibility_reviews (
     CONSTRAINT fk_eligibility_reviews_decided_by FOREIGN KEY (decided_by) REFERENCES users (user_id) ON DELETE RESTRICT ON UPDATE RESTRICT
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+-- Elected officers' terms (Constitution and By-Laws, Article VI Section 4: at most two consecutive terms in one post).
+CREATE TABLE IF NOT EXISTS officer_terms (
+    term_id INT UNSIGNED NOT NULL AUTO_INCREMENT,
+    member_id INT UNSIGNED NOT NULL,
+    position_id INT UNSIGNED NOT NULL,
+    academic_year CHAR(9) NOT NULL,
+    year_level VARCHAR(20) NOT NULL,
+    recorded_by INT UNSIGNED NULL,
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    PRIMARY KEY (term_id),
+    UNIQUE KEY uq_officer_terms_member_position_year (member_id, position_id, academic_year),
+    KEY idx_officer_terms_position_id (position_id),
+    KEY idx_officer_terms_recorded_by (recorded_by),
+    CONSTRAINT fk_officer_terms_member FOREIGN KEY (member_id) REFERENCES members (member_id) ON DELETE RESTRICT ON UPDATE RESTRICT,
+    CONSTRAINT fk_officer_terms_position FOREIGN KEY (position_id) REFERENCES positions (position_id) ON DELETE RESTRICT ON UPDATE RESTRICT,
+    CONSTRAINT fk_officer_terms_recorded_by FOREIGN KEY (recorded_by) REFERENCES users (user_id) ON DELETE RESTRICT ON UPDATE RESTRICT,
+    CONSTRAINT chk_officer_terms_year CHECK (academic_year REGEXP '^[0-9]{4}-[0-9]{4}$' AND CAST(RIGHT(academic_year, 4) AS UNSIGNED) = CAST(LEFT(academic_year, 4) AS UNSIGNED) + 1)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 CREATE TABLE IF NOT EXISTS job_runs (
     run_id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
     job VARCHAR(60) NOT NULL,

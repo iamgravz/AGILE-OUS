@@ -9,7 +9,7 @@ Status: **Aligned**, **Partly** (works, but differs in a detail), **Gap** (the b
 | Area | Status | In short |
 |---|---|---|
 | Name, affiliation | Aligned | AGILE-OUS, PUP Open University System. |
-| Contact details | Fixed | `agile.pupous@gmail.com` on the site and in every email; the Facebook link is a web address (still to confirm); the NALLRC address is in the footer and on About. |
+| Contact details | Fixed | `agile.pupous@gmail.com` on the site and in every email; no Facebook link until the page is published; the NALLRC address is in the footer and on About. |
 | Vision and mission | Fixed | Article II's vision, mission and objectives on About (editable in Settings). |
 | Membership eligibility | Aligned | Enrolled BSIT-OUS students; enrollment is confirmed on every application. |
 | Membership categories | **Gap** | Only Regular (called General Member). No Associate or Honorary members. |
@@ -18,13 +18,13 @@ Status: **Aligned**, **Partly** (works, but differs in a detail), **Gap** (the b
 | Data privacy (RA 10173) | Partly | Consent, encryption, access control and audit logs are in place. The end-of-year retention purge is not. |
 | Board of Officers | Aligned | Executive Committee (with General Secretary) and committee heads. |
 | Standing committees | Aligned | All seven, named as Article V writes them. |
-| The Source Code | **Conflict** | In the system as a committee with 11 positions; the by-laws do not mention it. Publications belong to the Creatives committee. |
+| The Source Code | Decided (Nov 23) | Stays separate from the seven standing committees for now, although the by-laws do not mention it. |
 | Committee Heads and Deputies | Aligned | One head and one deputy per committee. |
 | Year-Level Representatives | Fixed (Nov 23) | Year-Level Council with 1st to 4th Year Representative; recorded in Administration, Elected officers. |
 | Ad Hoc Committees, Advisory Board | **Gap** | No faculty adviser role; no ad hoc committees. |
 | Elections (COMELEC, online voting) | **Gap** | Not in the system. |
-| Candidate qualifications | Partly | Year level is now recorded; the 3rd-year and 2nd-year minimums are not checked. |
-| Term of office, term limits | Partly | Officer roles expire; the two-consecutive-terms limit is not checked. |
+| Candidate qualifications | Fixed (Nov 23) | Elected officers checks the year-level minimums and asks the MSW Committee Head to confirm full load and no 5.0, W or D. |
+| Term of office, term limits | Fixed (Nov 23) | Terms are recorded per academic year; a third consecutive term in the same post is refused. |
 | Incompatible offices (4-A) | Partly | One position per person is enforced. Members cannot hold two committee memberships, which the by-laws allow. |
 | Who decides, who is elected | Aligned (decided Nov 22) | Committee heads approve or reject applicants; the MSW team sets interview dates; the Executive Board and Year-Level Representatives are elected, never applied for. |
 | Transition and handover | Gap (outside the system) | Turnover packets and account handover are manual. |
@@ -103,6 +103,15 @@ Migration `2026_11_22_constitution_alignment.php` (applied to `agile_ams` after 
 - **G3** Migration `2026_11_23_year_level_council.php`: the Year-Level Council with one 1st, 2nd, 3rd and 4th Year Representative (`role_type 'general'`, never open for application; the holder keeps the General Member role).
 - **Administration, Elected officers** (`/admin/elected-officers`, `admin.users`): the MSW Committee Head records each election winner for the Executive Board or the Year-Level Council. A new email gets an account and the password link; an existing account keeps its login and gains the position (one office per person). The role follows `config/role_mapping.php`: President, Executive Committee, or General Member.
 - Demo data: the whole Executive Board has demo accounts (`Password123!`), and four demo Year-Level Representatives. No real names.
+
+### Decided and added on November 23, 2026 (second round)
+
+- **C2** The Facebook page is not published yet: the link is gone from the footer (`ORG_FACEBOOK_URL` empty) and Settings. Put the address back in both when the page is live.
+- **C5** The Source Code stays separate for now.
+- **P2** `config/elections.php` holds the Article VI rules: President and both Vice Presidents at least 3rd year, the other Executive Board posts at least 2nd year, a Year-Level Representative in their own year level, and two confirmations (full load; no 5.0, W or D). The by-laws may still change; only that file needs editing.
+- **P3** New table `officer_terms` (migration `2026_11_23_officer_terms.php`): one row per officer, post and academic year. Recording the holder again for the next academic year is a re-election; a third consecutive term is refused (`max_consecutive_terms`). Terms served before Nov 23, 2026 are not in the table, so they are not counted.
+- **P6** The apply page's requirements table no longer lists the Executive Board or the Year-Level Representatives: they are elected, and their qualifications are on Elected officers.
+- Still open: **P4** (more than one committee per member) and **P5** (retention), proposals given to the MSW Committee Head.
 
 ## 4. Recommended order
 
