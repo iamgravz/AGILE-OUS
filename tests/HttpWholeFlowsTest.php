@@ -23,7 +23,12 @@ final class HttpWholeFlowsTest extends TestCase
         $browser = new TestServer();
 
         $browser->get('/apply');
+        // What they apply for is asked on the first page too.
         $browser->post('/apply/code', ['first_name' => 'Flow', 'last_name' => 'Applicant', 'email' => $email, 'student_no' => $number, 'privacy_consent' => '1']);
+        $this->assertSame(0, $this->rowCount('notifications', 'recipient_email = ?', [$email]), 'No code without choosing what they apply for.');
+
+        $browser->get('/apply');
+        $browser->post('/apply/code', ['first_name' => 'Flow', 'last_name' => 'Applicant', 'email' => $email, 'student_no' => $number, 'applying_for' => 'general', 'privacy_consent' => '1']);
         $this->assertSame(0, $this->rowCount('applicants', 'email = ?', [$email]), 'Nothing is saved before the code.');
 
         $browser->get('/apply');
@@ -36,6 +41,7 @@ final class HttpWholeFlowsTest extends TestCase
         $browser->follow($response);
 
         $browser->follow($browser->post("/apply/{$id}/step/2", $this->answers('academic', '2nd Year') + ['enrolled' => '1', 'intent' => 'next']));
+        $this->assertStringContainsString('value="general" checked', $browser->get("/apply/{$id}/step/3")['body'], 'The first page\'s choice is already selected.');
         $browser->follow($browser->post("/apply/{$id}/step/3", ['membership_type' => 'general', 'intent' => 'next']));
         $browser->follow($browser->post("/apply/{$id}/step/4", $this->answers('common', '5 hours a week') + ['intent' => 'next']));
 

@@ -24,6 +24,8 @@ final class ApplyController
 {
     private const VACANCY_KEY = 'apply_vacancy';
     private const PENDING_KEY = 'apply_pending';
+    /** What they chose on the first page ("general" or "committee:<id>"), preselected on step 3. */
+    private const CHOICE_KEY = 'apply_choice';
     private const TOO_MANY = 'Too many tries. Please wait 15 minutes, then try again.';
     private const BAD_LINK = 'This link is invalid, expired or already used. If your application was returned for revision, ask for a new link on this page. To continue a draft, start again from Apply and confirm your email.';
 
@@ -43,7 +45,7 @@ final class ApplyController
             $pending = Session::get(self::PENDING_KEY);
 
             return $pending === null
-                ? $this->publicPage('membership/apply/start', ['forPosition' => ctype_digit($vacancy)])
+                ? $this->publicPage('membership/apply/start', ['forPosition' => ctype_digit($vacancy), 'committees' => $this->membership->joinableCommittees()])
                 : $this->publicPage('membership/apply/verify', ['email' => $pending['email']]);
         }
 
@@ -77,9 +79,21 @@ final class ApplyController
             'privacy_consent' => ['label' => 'Your consent', 'rules' => ['accepted']],
         ]);
 
-        if ($errors !== []) {
-            return $this->backWithErrors(route('apply'), $errors, $data);
+        // General Membership, or joining one of the listed committees as a Committee Member.
+        $choice = $request->text('applying_for');
+        $committeeIds = array_column($this->membership->joinableCommittees(), 'committee_id');
+        $validChoice = $choice === 'general'
+            || (preg_match('/^committee:(\d+)$/', $choice, $match) === 1 && in_array((int) $match[1], $committeeIds, true));
+
+        if (!$validChoice) {
+            $errors['applying_for'] = 'Please choose what you are applying for.';
         }
+
+        if ($errors !== []) {
+            return $this->backWithErrors(route('apply'), $errors, $data + ['applying_for' => $choice]);
+        }
+
+        Session::set(self::CHOICE_KEY, $choice);
 
         // A bot that filled the hidden field sees the normal next page, but no email is sent.
         if ($request->text('website') === '' && !$this->verification->requestCode($data['email'], $request->ip(), GuestVerificationService::PURPOSE_APPLICATION)) {
@@ -294,6 +308,7 @@ final class ApplyController
             'vacancies' => $number === 3 ? $this->membership->openVacancies() : [],
             'committees' => $number === 3 ? $this->membership->joinableCommittees() : [],
             'preselected' => $number === 3 ? Session::get(self::VACANCY_KEY) : null,
+            'preselectedChoice' => $number === 3 ? Session::get(self::CHOICE_KEY) : null,
         ] + $this->membership->details($application));
     }
 
@@ -498,6 +513,7 @@ final class ApplyController
                 // Recorded right away, because "no vacancy" alone cannot show that general membership was chosen.
                 $this->membership->advance($id, 4);
                 Session::set(self::VACANCY_KEY, null);
+                Session::set(self::CHOICE_KEY, null);
 
                 return [];
 

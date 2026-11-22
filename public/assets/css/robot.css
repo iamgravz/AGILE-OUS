@@ -1,7 +1,7 @@
-/* The login page: the site's own layout, plus Iskobot above the form in the site's colors. Loaded only by auth/login. */
+/* Iskobot standing on a card, in the site's colors: the login and apply pages (a .robot-stage with a .robot and a .robot-card). Plus the login page's own bits. */
 
 /* Iskobot stands on the login card: centered, its head resting on the card's top edge. */
-.login-page .robot {
+.robot-stage .robot {
     position: relative;
     z-index: 2;
     display: flex;
@@ -12,12 +12,12 @@
 }
 
 /* Its hands hold the card's top corners, as on the registration steps. */
-.login-card {
+.robot-card {
     position: relative;
 }
 
-.login-card::before,
-.login-card::after {
+.robot-card::before,
+.robot-card::after {
     content: "";
     position: absolute;
     top: -12px;
@@ -30,18 +30,18 @@
     box-shadow: var(--shadow-md);
 }
 
-.login-card::before {
+.robot-card::before {
     left: 24px;
     transform: rotate(-15deg);
 }
 
-.login-card::after {
+.robot-card::after {
     right: 24px;
     transform: rotate(15deg);
 }
 
 /* The card's content starts below the head that rests on it. */
-.login-card > .card__body {
+.robot-card > .card__body {
     padding-top: var(--space-6);
 }
 
@@ -134,6 +134,33 @@
     font-size: 0.875rem;
 }
 
+/* Apply page: the requirements of the chosen position, opening to AGILE's full table. */
+.apply-requirements-dropdown {
+    margin: 0 0 var(--space-4);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    background: var(--color-surface);
+}
+
+.apply-requirements-dropdown > summary {
+    padding: var(--space-3);
+    font-size: 0.875rem;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.apply-requirements-dropdown > summary span {
+    font-weight: 400;
+}
+
+.apply-requirements-dropdown[open] > summary {
+    border-bottom: 1px solid var(--color-border);
+}
+
+.apply-requirements-dropdown > :not(summary) {
+    margin: var(--space-3);
+}
+
 /* The local-only demo switcher: folded away under the form, so it never stretches the login card. */
 .login-dev {
     margin-top: var(--space-4);
@@ -205,7 +232,7 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-    .login-page .robot,
+    .robot-stage .robot,
     .robot__bulb,
     .robot__pupil {
         animation: none;

@@ -16,12 +16,17 @@
 $error = field_error('membership_type');
 $isRevision = $application['status'] !== 'draft';
 $hasChosen = (int) $application['wizard_step'] > 3;
-$chosenCommittee = (string) old('committee_id', (string) ($application['committee_id'] ?? ''));
+// What they chose on the first page ("general" or "committee:<id>"), until this step is saved.
+$preselectedChoice ??= null;
+$firstPageCommittee = is_string($preselectedChoice) && str_starts_with($preselectedChoice, 'committee:') ? substr($preselectedChoice, 10) : '';
+$chosenCommittee = (string) old('committee_id', $application['committee_id'] !== null ? (string) $application['committee_id'] : $firstPageCommittee);
 $selected = (string) old('membership_type', match (true) {
     $preselected !== null => (string) $preselected,
     $application['vacancy_id'] !== null => (string) $application['vacancy_id'],
     $application['committee_id'] !== null => 'committee',
     $hasChosen => 'general',
+    $firstPageCommittee !== '' => 'committee',
+    $preselectedChoice === 'general' => 'general',
     default => '',
 });
 // Open positions are for members with an account; someone without one applies for membership or a committee first.
