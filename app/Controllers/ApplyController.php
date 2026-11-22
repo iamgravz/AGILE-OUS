@@ -81,13 +81,19 @@ final class ApplyController
             'privacy_consent' => ['label' => 'Your consent', 'rules' => ['accepted']],
         ]);
 
-        // General Membership, or a position the MSW Committee Head opened for application.
-        $choice = $request->text('applying_for');
-        $openIds = array_column($this->membership->openPositions(), 'position_id');
-        $forPosition = preg_match('/^position:(\d+)$/', $choice, $match) === 1 && in_array((int) $match[1], $openIds, true);
+        // Two dropdowns: what they apply for (General Membership, Committee Head, Deputy Committee Head, Committee Member,
+        // The Source Code), then the committee, or the post in The Source Code. Only positions the MSW Committee Head
+        // opened, with slots left, are offered; the pair must match one of them.
+        $role = $request->text('applying_for');
+        $positionId = (int) $request->text('position_id');
+        $chosen = array_values(array_filter($this->membership->openPositions(), static fn (array $p): bool => $p['position_id'] === $positionId));
+        $forPosition = $chosen !== [] && $chosen[0]['role_type'] === $role;
+        $choice = $role === 'general' ? 'general' : ($forPosition ? 'position:' . $positionId : '');
 
-        if ($choice !== 'general' && !$forPosition) {
+        if (!in_array($role, ['general', ...MembershipService::APPLICATION_ROLE_TYPES], true)) {
             $errors['applying_for'] = 'Please choose what you are applying for.';
+        } elseif ($role !== 'general' && !$forPosition) {
+            $errors['position_id'] = $role === 'source_code' ? 'Please choose the post in The Source Code.' : 'Please choose the committee.';
         }
 
         // The Requirements dropdown is AGILE's table: the row that fits them. A General Membership applicant is a general
@@ -133,7 +139,7 @@ final class ApplyController
                 $errors['upload_again'] = 'For your security, files are not kept when something needs fixing. Please choose them again.';
             }
 
-            return $this->backWithErrors(route('apply'), $errors, $data + ['applying_for' => $choice, 'requirement' => $requirement]);
+            return $this->backWithErrors(route('apply'), $errors, $data + ['applying_for' => $role, 'position_id' => (string) $positionId, 'requirement' => $requirement]);
         }
 
         Session::set(self::CHOICE_KEY, $choice);

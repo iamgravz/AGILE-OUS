@@ -15,18 +15,29 @@ $corError = field_error('cor');
 $gradesError = field_error('grades');
 $uploadAgain = field_error('upload_again');
 $requirementError = field_error('requirement');
-$choice = (string) old('applying_for', '');
+$positionError = field_error('position_id');
+$role = (string) old('applying_for', '');
+$chosenPosition = (string) old('position_id', '');
 $requirement = (string) old('requirement', '');
 $maxMb = (new \App\Services\FileStorageService())->maxUploadMb();
 $group = \App\Services\MembershipService::REQUIREMENT_GROUPS[$requirement] ?? null;
 $requiredDocs = $group[1] ?? 'Choose the row that fits you.';
 $gradesNeeded = (bool) ($group[2] ?? false);
 $gradesLabel = $group[3] ?? 'Previous semester copy of grades';
-$byCommittee = [];
+// The first dropdown's choices and, for each, the open positions the second dropdown lists.
+$roles = [
+    'committee_head' => 'Committee Head',
+    'deputy' => 'Deputy Committee Head',
+    'committee_member' => 'Committee Member',
+    'source_code' => 'The Source Code',
+];
+$byRole = array_fill_keys(array_keys($roles), []);
 
 foreach ($positions as $position) {
-    $byCommittee[$position['committee_name']][] = $position;
+    $byRole[$position['role_type']][] = $position;
 }
+
+$slots = static fn (array $p): string => $p['remaining'] === null ? '' : ' (' . $p['remaining'] . ' ' . ($p['remaining'] === 1 ? 'slot' : 'slots') . ' left)';
 ?>
 <?php $this->start('title') ?>Apply for membership<?php $this->end() ?>
 <?php $this->start('description') ?>Apply for AGILE membership. You do not need an account. We confirm your email with a one-time code.<?php $this->end() ?>
@@ -61,19 +72,34 @@ foreach ($positions as $position) {
                         <div class="field <?= $choiceError !== null ? 'field--error' : '' ?>">
                             <label class="field__label" for="applying_for">Applying for <span class="field__required" aria-hidden="true">*</span></label>
                             <select class="select" id="applying_for" name="applying_for" required data-applying-select<?= $choiceError !== null ? ' aria-invalid="true" aria-describedby="applying-for-error"' : '' ?>>
-                                <option value="">Choose a position</option>
-                                <option value="general" data-kind="general"<?= $choice === 'general' ? ' selected' : '' ?>>General Membership</option>
-                                <?php foreach ($byCommittee as $committee => $rows) : ?>
-                                    <optgroup label="<?= e($committee) ?>">
-                                        <?php foreach ($rows as $position) : ?>
-                                            <?php $value = 'position:' . $position['position_id']; ?>
-                                            <option value="<?= e($value) ?>" data-kind="position"<?= $choice === $value ? ' selected' : '' ?>><?= e($position['label']) ?><?= $position['remaining'] !== null ? ' (' . $position['remaining'] . ' ' . ($position['remaining'] === 1 ? 'slot' : 'slots') . ' left)' : '' ?></option>
-                                        <?php endforeach; ?>
-                                    </optgroup>
+                                <option value="">Choose one</option>
+                                <option value="general" data-kind="general"<?= $role === 'general' ? ' selected' : '' ?>>General Membership</option>
+                                <?php foreach ($roles as $key => $label) : ?>
+                                    <option value="<?= e($key) ?>" data-kind="position"<?= $byRole[$key] === [] ? ' disabled' : '' ?><?= $role === $key ? ' selected' : '' ?>><?= e($label) ?><?= $byRole[$key] === [] ? ' (none open)' : '' ?></option>
                                 <?php endforeach; ?>
                             </select>
                             <?php if ($choiceError !== null) : ?>
                                 <p class="field__error" id="applying-for-error"><?= icon('alert') ?> <?= e($choiceError) ?></p>
+                            <?php endif; ?>
+                        </div>
+
+                        <?php // The 7 committees, or the posts in The Source Code. Grouped by the first dropdown, which shows only its own group. ?>
+                        <div class="field <?= $positionError !== null ? 'field--error' : '' ?>" data-position-field<?= $role === 'general' ? ' hidden' : '' ?>>
+                            <label class="field__label" for="position_id"><span data-position-label><?= $role === 'source_code' ? 'Post in The Source Code' : 'Committee' ?></span> <span class="field__required" aria-hidden="true">*</span></label>
+                            <select class="select" id="position_id" name="position_id" data-position-select<?= $positionError !== null ? ' aria-invalid="true" aria-describedby="position-error"' : '' ?>>
+                                <option value="">Choose one</option>
+                                <?php foreach ($roles as $key => $label) : ?>
+                                    <?php if ($byRole[$key] !== []) : ?>
+                                        <optgroup label="<?= e($label) ?>" data-role="<?= e($key) ?>">
+                                            <?php foreach ($byRole[$key] as $position) : ?>
+                                                <option value="<?= e($position['position_id']) ?>"<?= $chosenPosition === (string) $position['position_id'] ? ' selected' : '' ?>><?= e($key === 'source_code' ? $position['title'] : $position['committee_name']) ?><?= e($slots($position)) ?></option>
+                                            <?php endforeach; ?>
+                                        </optgroup>
+                                    <?php endif; ?>
+                                <?php endforeach; ?>
+                            </select>
+                            <?php if ($positionError !== null) : ?>
+                                <p class="field__error" id="position-error"><?= icon('alert') ?> <?= e($positionError) ?></p>
                             <?php endif; ?>
                         </div>
 
