@@ -23,12 +23,17 @@ final class HttpWholeFlowsTest extends TestCase
         $browser = new TestServer();
 
         $browser->get('/apply');
-        // What they apply for is asked on the first page too.
-        $browser->post('/apply/code', ['first_name' => 'Flow', 'last_name' => 'Applicant', 'email' => $email, 'student_no' => $number, 'privacy_consent' => '1']);
+        // The first page asks what they apply for, which requirements row fits them, and that row's documents.
+        $person = ['first_name' => 'Flow', 'last_name' => 'Applicant', 'email' => $email, 'student_no' => $number, 'privacy_consent' => '1'];
+        $browser->post('/apply/code', $person);
         $this->assertSame(0, $this->rowCount('notifications', 'recipient_email = ?', [$email]), 'No code without choosing what they apply for.');
 
         $browser->get('/apply');
-        $browser->post('/apply/code', ['first_name' => 'Flow', 'last_name' => 'Applicant', 'email' => $email, 'student_no' => $number, 'applying_for' => 'general', 'privacy_consent' => '1']);
+        $browser->post('/apply/code', $person + ['applying_for' => 'general', 'requirement' => 'general']);
+        $this->assertSame(0, $this->rowCount('notifications', 'recipient_email = ?', [$email]), 'No code without the COR.');
+
+        $browser->get('/apply');
+        $browser->upload('/apply/code', $person + ['applying_for' => 'general', 'requirement' => 'general'], 'cor', 'cor.pdf', self::PDF, 'application/pdf');
         $this->assertSame(0, $this->rowCount('applicants', 'email = ?', [$email]), 'Nothing is saved before the code.');
 
         $browser->get('/apply');
@@ -39,13 +44,15 @@ final class HttpWholeFlowsTest extends TestCase
         $this->assertSame(1, preg_match('#apply/(\d+)#', $response['location'], $match), $response['location']);
         $id = (int) $match[1];
         $browser->follow($response);
+        $this->assertSame(1, $this->rowCount('application_documents', "application_id = ? AND doc_type = 'cor'", [$id]), 'The COR from the first page joined the application.');
 
         $browser->follow($browser->post("/apply/{$id}/step/2", $this->answers('academic', '2nd Year') + ['enrolled' => '1', 'intent' => 'next']));
         $this->assertStringContainsString('value="general" checked', $browser->get("/apply/{$id}/step/3")['body'], 'The first page\'s choice is already selected.');
         $browser->follow($browser->post("/apply/{$id}/step/3", ['membership_type' => 'general', 'intent' => 'next']));
         $browser->follow($browser->post("/apply/{$id}/step/4", $this->answers('common', '5 hours a week') + ['intent' => 'next']));
 
-        // General Membership: the current COR only. A School ID is no longer asked for, so its upload is refused.
+        // General Membership: the current COR only. A School ID is no longer asked for, so its upload is refused; a new
+        // COR replaces the one from the first page, which is still pending.
         foreach (['school_id', 'cor'] as $type) {
             $browser->get("/apply/{$id}/step/5");
             $browser->upload("/apply/{$id}/documents/{$type}", [], 'document', "{$type}.pdf", self::PDF, 'application/pdf');

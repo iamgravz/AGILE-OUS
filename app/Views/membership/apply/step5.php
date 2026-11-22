@@ -23,7 +23,7 @@ $isDraft = $application['status'] === 'draft';
             <h2>Documents</h2>
             <?php if (in_array('grades', $requiredDocuments, true)) : ?>
                 <p>You are applying for <strong><?= e($application['vacancy_title'] ?? 'a position') ?></strong>, so we need your <strong>current COR</strong> and your <strong>previous semester copy of grades</strong>. 1st years joining in the 2nd semester give their 1st semester grades.</p>
-            <?php elseif ($firstYearFirstSemester && ($application['vacancy_id'] !== null || $application['committee_id'] !== null)) : ?>
+            <?php elseif ($firstYearFirstSemester && ($application['vacancy_id'] !== null || $application['position_id'] !== null)) : ?>
                 <p>You are a 1st year in your 1st semester, so you have no grades yet. We only need your <strong>current COR</strong>.</p>
             <?php else : ?>
                 <p>For General Membership we only need your <strong>current COR</strong>.</p>

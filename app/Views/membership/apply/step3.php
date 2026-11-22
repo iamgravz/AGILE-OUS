@@ -1,37 +1,42 @@
 <?php
 /**
- * Step 3: what they apply for. General Membership, joining a committee as a Committee Member, or (for members with an
- * account) an open position. Each choice says which documents it needs (membership/_requirements).
+ * Step 3: what they apply for. General Membership, a position the MSW Committee Head opened for application (Open for
+ * application), or (for members with an account) an open vacancy. What they chose on the first page is selected.
  *
  * @var \App\Core\View $this
  * @var array<string, mixed> $application
  * @var list<array<string, mixed>> $vacancies open vacancies
- * @var list<array{committee_id: int, name: string, position_id: int}> $committees committees that take Committee Members
+ * @var list<array{position_id: int, label: string, committee_name: string, remaining: ?int}> $positions open for application
  * @var int|null $preselected from ?vacancy=
  * @var bool $mayChooseGeneral false for someone who is already a member
- * @var bool $mayChooseCommittee false for someone who already holds a position
+ * @var bool $mayChoosePosition false for someone who already holds a position
  * @var int $step
  * @var int $reached
  */
 $error = field_error('membership_type');
 $isRevision = $application['status'] !== 'draft';
 $hasChosen = (int) $application['wizard_step'] > 3;
-// What they chose on the first page ("general" or "committee:<id>"), until this step is saved.
+// What they chose on the first page ("general" or "position:<id>"), until this step is saved.
 $preselectedChoice ??= null;
-$firstPageCommittee = is_string($preselectedChoice) && str_starts_with($preselectedChoice, 'committee:') ? substr($preselectedChoice, 10) : '';
-$chosenCommittee = (string) old('committee_id', $application['committee_id'] !== null ? (string) $application['committee_id'] : $firstPageCommittee);
+$firstPagePosition = is_string($preselectedChoice) && str_starts_with($preselectedChoice, 'position:') ? substr($preselectedChoice, 9) : '';
+$chosenPosition = (string) old('position_id', $application['position_id'] !== null ? (string) $application['position_id'] : $firstPagePosition);
 $selected = (string) old('membership_type', match (true) {
     $preselected !== null => (string) $preselected,
     $application['vacancy_id'] !== null => (string) $application['vacancy_id'],
-    $application['committee_id'] !== null => 'committee',
+    $application['position_id'] !== null => 'position',
     $hasChosen => 'general',
-    $firstPageCommittee !== '' => 'committee',
+    $firstPagePosition !== '' => 'position',
     $preselectedChoice === 'general' => 'general',
     default => '',
 });
-// Open positions are for members with an account; someone without one applies for membership or a committee first.
+// Vacancies are for members with an account; someone without one chooses General Membership or an open position.
 $showVacancies = current_user_id() !== null ? $vacancies : [];
-$hasChoices = $mayChooseGeneral || ($mayChooseCommittee && $committees !== []) || $showVacancies !== [];
+$hasChoices = $mayChooseGeneral || ($mayChoosePosition && $positions !== []) || $showVacancies !== [];
+$byCommittee = [];
+
+foreach ($positions as $position) {
+    $byCommittee[$position['committee_name']][] = $position;
+}
 ?>
 <?php $this->start('title') ?>Apply: Membership type<?php $this->end() ?>
 <?php $this->start('page_title') ?>Membership application<?php $this->end() ?>
@@ -62,28 +67,30 @@ $hasChoices = $mayChooseGeneral || ($mayChooseCommittee && $committees !== []) |
                     </label>
                 <?php endif; ?>
 
-                <?php if ($mayChooseCommittee && $committees !== []) : ?>
+                <?php if ($mayChoosePosition && $positions !== []) : ?>
                     <div class="wizard-choice wizard-choice--with-field">
                         <label class="check">
-                            <input type="radio" name="membership_type" value="committee"<?= $selected === 'committee' ? ' checked' : '' ?>>
+                            <input type="radio" name="membership_type" value="position"<?= $selected === 'position' ? ' checked' : '' ?>>
                             <span>
-                                <strong>Committee Member</strong><br>
-                                <span class="text-muted">Join a committee and help run its work. Needs your current COR and your previous semester copy of grades (1st years in their 1st semester: COR only). The committee's head decides.</span>
+                                <strong>A position</strong><br>
+                                <span class="text-muted">One of the positions open for application. Needs your current COR and your previous semester copy of grades (1st years in their 1st semester: COR only).</span>
                             </span>
                         </label>
                         <div class="field wizard-choice__field">
-                            <label class="field__label" for="committee_id">Committee</label>
-                            <select class="select" id="committee_id" name="committee_id">
-                                <option value="">Choose a committee</option>
-                                <?php foreach ($committees as $committee) : ?>
-                                    <option value="<?= e($committee['committee_id']) ?>"<?= $chosenCommittee === (string) $committee['committee_id'] ? ' selected' : '' ?>><?= e($committee['name']) ?></option>
+                            <label class="field__label" for="position_id">Position</label>
+                            <select class="select" id="position_id" name="position_id">
+                                <option value="">Choose a position</option>
+                                <?php foreach ($byCommittee as $committee => $rows) : ?>
+                                    <optgroup label="<?= e($committee) ?>">
+                                        <?php foreach ($rows as $position) : ?>
+                                            <option value="<?= e($position['position_id']) ?>"<?= $chosenPosition === (string) $position['position_id'] ? ' selected' : '' ?>><?= e($position['label']) ?></option>
+                                        <?php endforeach; ?>
+                                    </optgroup>
                                 <?php endforeach; ?>
                             </select>
-                            <p class="field__help">Only needed if you choose Committee Member.</p>
                         </div>
                     </div>
                 <?php endif; ?>
-
                 <?php foreach ($showVacancies as $vacancy) : ?>
                     <label class="check wizard-choice">
                         <input type="radio" name="membership_type" value="<?= e($vacancy['vacancy_id']) ?>"<?= $selected === (string) $vacancy['vacancy_id'] ? ' checked' : '' ?>>
@@ -96,7 +103,7 @@ $hasChoices = $mayChooseGeneral || ($mayChooseCommittee && $committees !== []) |
             </fieldset>
 
             <?php if (current_user_id() === null) : ?>
-                <p class="field__help">Officer positions (Executive Committee, Committee Head and others) open to AGILE members. You can apply for one after you are approved.</p>
+                <p class="field__help">Executive Committee positions are for AGILE members. You can apply for one after you are approved.</p>
             <?php endif; ?>
 
             <details class="wizard-requirements">

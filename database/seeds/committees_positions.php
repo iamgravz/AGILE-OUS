@@ -26,18 +26,21 @@ return static function (PDO $db): void {
     foreach ($committees as $name => $description) {
         $committeeId = seed_row($db, 'committees', 'committee_id', ['name' => $name], ['description' => $description]);
 
-        foreach (['Committee Head' => 'committee_head', 'Deputy Committee Head' => 'deputy', 'Committee Member' => 'committee_member'] as $title => $roleType) {
-            seed_row($db, 'positions', 'position_id', ['committee_id' => $committeeId, 'title' => $title], ['role_type' => $roleType]);
+        // Targets from AGILE's Positions & Recruitment Dashboard. Committee Members are open for application at first;
+        // the MSW Committee Head opens and closes the rest in Administration, Open for application.
+        foreach (['Committee Head' => ['committee_head', 1, 0], 'Deputy Committee Head' => ['deputy', 1, 0], 'Committee Member' => ['committee_member', 4, 1]] as $title => [$roleType, $target, $open]) {
+            seed_row($db, 'positions', 'position_id', ['committee_id' => $committeeId, 'title' => $title], ['role_type' => $roleType, 'target_slots' => $target, 'is_open' => $open]);
         }
     }
 
     // The Source Code is AGILE's publication, led by its Editor-in-Chief. It has no committee head in the system: the MSW
     // Committee Head decides its applications (BR-20).
     $sourceCode = seed_row($db, 'committees', 'committee_id', ['name' => 'The Source Code'], ['description' => 'The official student publication of AGILE OUS.']);
-    $titles = ['Editor-in-Chief', 'Managing Editor', 'News Editor', 'Feature Editor', 'Writer', 'Head Cartoonist', 'Cartoonist',
-        'Layout Editor', 'Head Photojournalist', 'Photojournalist', 'Videographer/Editor'];
+    // Title => target headcount from the dashboard (Managing Editor counts the interim one). Feature Editor has no target yet.
+    $titles = ['Editor-in-Chief' => 1, 'Managing Editor' => 2, 'News Editor' => 2, 'Feature Editor' => null, 'Writer' => 3, 'Head Cartoonist' => 1,
+        'Cartoonist' => 3, 'Layout Editor' => 3, 'Head Photojournalist' => 1, 'Photojournalist' => 3, 'Videographer/Editor' => 3];
 
-    foreach ($titles as $title) {
-        seed_row($db, 'positions', 'position_id', ['committee_id' => $sourceCode, 'title' => $title], ['role_type' => 'source_code']);
+    foreach ($titles as $title => $target) {
+        seed_row($db, 'positions', 'position_id', ['committee_id' => $sourceCode, 'title' => $title], ['role_type' => 'source_code', 'target_slots' => $target]);
     }
 };

@@ -45,6 +45,7 @@ return [
             'items' => [
                 ['label' => 'HR Requests', 'url' => '/recruitment/hr-requests', 'icon' => 'file', 'permission' => 'hr_request.submit'],
                 ['label' => 'Vacancies', 'url' => '/recruitment/vacancies', 'icon' => 'briefcase', 'permission' => 'vacancy.manage'],
+                ['label' => 'Open for application', 'url' => '/admin/open-positions', 'icon' => 'clipboard', 'permission' => 'admin.settings'],
                 ['label' => 'Applications', 'url' => '/applications', 'icon' => 'inbox', 'permission' => 'evaluation.view'],
                 ['label' => 'Evaluations', 'url' => '/recruitment/evaluations', 'icon' => 'check', 'permission' => 'evaluation.view'],
                 ['label' => 'Applications to my committee', 'url' => '/applications/my-committee', 'icon' => 'inbox', 'permission' => 'application.decide'],

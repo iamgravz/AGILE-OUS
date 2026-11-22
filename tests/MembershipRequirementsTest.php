@@ -6,13 +6,15 @@ use App\Core\Database;
 use App\Models\MembershipApplicationRepository;
 use App\Models\UserRepository;
 use App\Services\MembershipService;
+use App\Services\OpenPositionsService;
 use App\Services\RbacService;
 use PHPUnit\Framework\TestCase;
 
 /**
- * AGILE's membership requirements (Nov 22, 2026): General Membership needs the current COR; joining a committee as a
- * Committee Member, or a position, also needs the previous semester's copy of grades, except for 1st years in their
- * 1st semester. School ID is no longer asked for. Every test runs in a transaction that is rolled back.
+ * AGILE's membership requirements and Open for application (Nov 22, 2026). General Membership needs the current COR;
+ * a position also needs the previous semester's copy of grades, except for 1st years in their 1st semester. The MSW
+ * Committee Head opens positions, Committee Head to The Source Code, and sets their targets. Every test runs in a
+ * transaction that is rolled back.
  */
 final class MembershipRequirementsTest extends TestCase
 {
@@ -33,11 +35,11 @@ final class MembershipRequirementsTest extends TestCase
         });
     }
 
-    public function testJoiningACommitteeNeedsTheGradesToo(): void
+    public function testAPositionNeedsTheGradesToo(): void
     {
         $this->inRollback(function (): void {
             $this->makeCurrentTerm('2nd');
-            $application = $this->detailed($this->application($this->committeeId('Academics and Training')));
+            $application = $this->detailed($this->application($this->position('Academics and Training', 'Committee Member')));
 
             $this->assertSame(['cor', 'grades'], (new MembershipService())->requiredDocuments($application));
             $this->assertSame('Committee Member, Academics and Training', $application['vacancy_title']);
@@ -49,7 +51,7 @@ final class MembershipRequirementsTest extends TestCase
     {
         $this->inRollback(function (): void {
             $service = new MembershipService();
-            $id = $this->application($this->committeeId('Logistics'));
+            $id = $this->application($this->position('Logistics', 'Committee Member'));
             $this->answerYearLevel($id, '1st Year');
 
             $this->makeCurrentTerm('1st');
@@ -66,12 +68,26 @@ final class MembershipRequirementsTest extends TestCase
         });
     }
 
-    public function testTheCommitteesHeadDecidesAndApprovalMakesACommitteeMember(): void
+    public function testTheRequirementsDropdownIsAgilesTable(): void
+    {
+        $groups = MembershipService::REQUIREMENT_GROUPS;
+
+        $this->assertCount(7, $groups);
+        $this->assertFalse($groups['general'][2], 'General members: COR only.');
+        $this->assertFalse($groups['first_year_first_sem'][2], '1st year, 1st semester: COR only.');
+        $this->assertSame('1st semester copy of grades', $groups['first_year_second_sem'][3]);
+
+        foreach (['executive', 'committee', 'year_rep', 'applicant'] as $key) {
+            $this->assertTrue($groups[$key][2], "{$key} needs grades.");
+        }
+    }
+
+    public function testTheCommitteesHeadDecidesAndApprovalGivesThePosition(): void
     {
         $this->inRollback(function (): void {
             $this->makeCurrentTerm('2nd');
-            $committeeId = $this->committeeId('Academics and Training');
-            $id = $this->application($committeeId, ['cor' => 'verified', 'grades' => 'verified']);
+            $positionId = $this->position('Academics and Training', 'Committee Member');
+            $id = $this->application($positionId, ['cor' => 'verified', 'grades' => 'verified']);
             $service = new MembershipService();
 
             $this->assertSame($this->userId('head@agile.test'), $service->committeeDecider($this->detailed($id)));
@@ -80,15 +96,22 @@ final class MembershipRequirementsTest extends TestCase
             $service->approve($id, 'Welcome to the committee.');
 
             $member = Database::connection()->query(
-                "SELECT m.membership_type, m.role_status, p.title, p.committee_id FROM members m
-                 JOIN positions p ON p.position_id = m.position_id
+                "SELECT m.membership_type, m.role_status, m.position_id FROM members m
                  JOIN membership_applications a ON a.applicant_id = m.applicant_id WHERE a.application_id = {$id}"
             )->fetch();
 
-            $this->assertSame('Committee Member', $member['title']);
-            $this->assertSame($committeeId, (int) $member['committee_id']);
+            $this->assertSame($positionId, (int) $member['position_id']);
             $this->assertSame('officer', $member['membership_type']);
             $this->assertSame('active', $member['role_status']);
+        });
+    }
+
+    public function testACommitteeHeadApplicationGoesToTheMswHead(): void
+    {
+        $this->inRollback(function (): void {
+            $id = $this->application($this->position('Logistics', 'Committee Head'));
+
+            $this->assertNull((new MembershipService())->committeeDecider($this->detailed($id)), 'R6: the MSW Committee Head decides a Committee Head position.');
         });
     }
 
@@ -96,7 +119,7 @@ final class MembershipRequirementsTest extends TestCase
     {
         $this->inRollback(function (): void {
             $this->makeCurrentTerm('2nd');
-            $id = $this->application($this->committeeId('Academics and Training'), ['cor' => 'verified', 'grades' => 'pending']);
+            $id = $this->application($this->position('Academics and Training', 'Committee Member'), ['cor' => 'verified', 'grades' => 'pending']);
             $this->signIn('head@agile.test');
 
             try {
@@ -108,51 +131,100 @@ final class MembershipRequirementsTest extends TestCase
         });
     }
 
-    public function testChoosingACommittee(): void
+    public function testOpenForApplicationControlsTheList(): void
+    {
+        $this->inRollback(function (): void {
+            $this->signIn('mswhead@agile.test');
+            $service = new MembershipService();
+            $editor = $this->position('The Source Code', 'Editor-in-Chief');
+            $writer = $this->position('The Source Code', 'Writer');
+
+            $this->assertNotContains($editor, array_column($service->openPositions(), 'position_id'), 'Closed until the MSW Committee Head opens it.');
+
+            // Open the Editor-in-Chief with a target of 5 and the Writer with no target; everything else closes.
+            (new OpenPositionsService())->save([$editor, $writer], [$editor => '5', $writer => '']);
+            $open = array_column($service->openPositions(), 'position_id');
+
+            $this->assertSame([$editor, $writer], array_values(array_intersect($open, [$editor, $writer])));
+            $this->assertNotContains($this->position('Logistics', 'Committee Member'), $open);
+
+            $row = array_values(array_filter($service->applicationPositions(), static fn (array $p): bool => $p['position_id'] === $editor))[0];
+            $this->assertSame(5, $row['target_slots']);
+
+            // A target of 0 means full: it leaves the list even while ticked open.
+            (new OpenPositionsService())->save([$editor], [$editor => '0']);
+            $this->assertNotContains($editor, array_column($service->openPositions(), 'position_id'));
+        });
+    }
+
+    public function testOnlyTheMswHeadOpensPositions(): void
+    {
+        $this->inRollback(function (): void {
+            $this->signIn('head@agile.test');
+            $this->expectException(App\Core\ForbiddenException::class);
+            (new OpenPositionsService())->save([], []);
+        });
+    }
+
+    public function testATargetMustBeAWholeNumber(): void
+    {
+        $this->inRollback(function (): void {
+            $this->signIn('mswhead@agile.test');
+            $writer = $this->position('The Source Code', 'Writer');
+
+            $this->expectException(DomainException::class);
+            (new OpenPositionsService())->save([$writer], [$writer => 'many']);
+        });
+    }
+
+    public function testApprovalIsRefusedWhenThePositionIsFull(): void
+    {
+        $this->inRollback(function (): void {
+            $this->makeCurrentTerm('2nd');
+            $positionId = $this->position('Academics and Training', 'Committee Member');
+            $id = $this->application($positionId, ['cor' => 'verified', 'grades' => 'verified']);
+            Database::connection()->prepare('UPDATE positions SET target_slots = 0 WHERE position_id = ?')->execute([$positionId]);
+            $this->signIn('head@agile.test');
+
+            $this->expectException(DomainException::class);
+            $this->expectExceptionMessage('Every slot');
+            (new MembershipService())->approve($id, 'Welcome.');
+        });
+    }
+
+    public function testChoosingAPosition(): void
     {
         $this->inRollback(function (): void {
             $service = new MembershipService();
             $this->signIn('nomember@agile.test');
-            $id = (new MembershipApplicationRepository())->insert([
-                'user_id' => $this->userId('nomember@agile.test'),
-                'tracking_code' => MembershipService::generateTrackingCode(),
-                'status' => 'draft',
-                'wizard_step' => 3,
-            ]);
+            $id = $this->draftFor('nomember@agile.test');
 
-            $service->chooseType($id, null, $this->committeeId('Logistics'));
-            $this->assertSame($this->committeeId('Logistics'), (int) $this->detailed($id)['committee_id']);
+            $service->chooseType($id, null, $this->position('Logistics', 'Committee Member'));
+            $this->assertSame($this->position('Logistics', 'Committee Member'), (int) $this->detailed($id)['position_id']);
 
-            // The Source Code has no Committee Member position; its positions open as vacancies.
+            // A position that is not open for application cannot be chosen.
             $this->expectException(DomainException::class);
-            $service->chooseType($id, null, $this->committeeId('The Source Code'));
+            $service->chooseType($id, null, $this->position('Logistics', 'Committee Head'));
         });
     }
 
-    public function testSomeoneHoldingAPositionCannotJoinACommitteeThisWay(): void
+    public function testSomeoneHoldingAPositionCannotChooseAnotherThisWay(): void
     {
         $this->inRollback(function (): void {
-            // A member who may apply and already holds a position (a Logistics Committee Member).
             $db = Database::connection();
             $userId = $this->userId('nomember@agile.test');
-            $positionId = (int) $db->query("SELECT p.position_id FROM positions p JOIN committees c ON c.committee_id = p.committee_id WHERE c.name = 'Logistics' AND p.role_type = 'committee_member'")->fetchColumn();
             $db->prepare("INSERT INTO members (user_id, member_no, membership_type, position_id, role_status, joined_at) VALUES (?, 'AGILE-2040-9999', 'officer', ?, 'active', CURDATE())")
-                ->execute([$userId, $positionId]);
+                ->execute([$userId, $this->position('Logistics', 'Committee Member')]);
             $this->signIn('nomember@agile.test');
-            $id = (new MembershipApplicationRepository())->insert([
-                'user_id' => $userId,
-                'tracking_code' => MembershipService::generateTrackingCode(),
-                'status' => 'draft',
-                'wizard_step' => 3,
-            ]);
+            $id = $this->draftFor('nomember@agile.test');
 
             $this->expectException(DomainException::class);
             $this->expectExceptionMessage('already hold a position');
-            (new MembershipService())->chooseType($id, null, $this->committeeId('Academics and Training'));
+            (new MembershipService())->chooseType($id, null, $this->position('Academics and Training', 'Committee Member'));
         });
     }
 
-    public function testTheDatabaseRefusesBothAVacancyAndACommittee(): void
+    public function testTheDatabaseRefusesBothAVacancyAndAPosition(): void
     {
         $this->inRollback(function (): void {
             $db = Database::connection();
@@ -164,13 +236,13 @@ final class MembershipRequirementsTest extends TestCase
 
             $this->expectException(PDOException::class);
             $this->expectExceptionMessageMatches('/chk_membership_applications_one_choice/');
-            $db->prepare('UPDATE membership_applications SET vacancy_id = ?, committee_id = ? WHERE application_id = ?')
-                ->execute([$vacancyId, $this->committeeId('Logistics'), $this->application(null)]);
+            $db->prepare('UPDATE membership_applications SET vacancy_id = ?, position_id = ? WHERE application_id = ?')
+                ->execute([$vacancyId, $this->position('Logistics', 'Committee Member'), $this->application(null)]);
         });
     }
 
     /** @param array<string, string> $documents doc_type => verification status */
-    private function application(?int $committeeId, array $documents = ['cor' => 'verified']): int
+    private function application(?int $positionId, array $documents = ['cor' => 'verified']): int
     {
         static $n = 0;
         $n++;
@@ -181,7 +253,7 @@ final class MembershipRequirementsTest extends TestCase
 
         $id = (new MembershipApplicationRepository())->insert([
             'applicant_id' => $applicantId,
-            'committee_id' => $committeeId,
+            'position_id' => $positionId,
             'tracking_code' => MembershipService::generateTrackingCode(),
             'status' => 'under_review',
             'submitted_at' => date('Y-m-d H:i:s'),
@@ -194,6 +266,16 @@ final class MembershipRequirementsTest extends TestCase
         }
 
         return $id;
+    }
+
+    private function draftFor(string $email): int
+    {
+        return (new MembershipApplicationRepository())->insert([
+            'user_id' => $this->userId($email),
+            'tracking_code' => MembershipService::generateTrackingCode(),
+            'status' => 'draft',
+            'wizard_step' => 3,
+        ]);
     }
 
     private function answerYearLevel(int $applicationId, string $yearLevel): void
@@ -218,10 +300,10 @@ final class MembershipRequirementsTest extends TestCase
         return (new MembershipApplicationRepository())->findDetailed($id);
     }
 
-    private function committeeId(string $name): int
+    private function position(string $committee, string $title): int
     {
-        $statement = Database::connection()->prepare('SELECT committee_id FROM committees WHERE name = ?');
-        $statement->execute([$name]);
+        $statement = Database::connection()->prepare('SELECT p.position_id FROM positions p JOIN committees c ON c.committee_id = p.committee_id WHERE c.name = ? AND p.title = ?');
+        $statement->execute([$committee, $title]);
 
         return (int) $statement->fetchColumn();
     }

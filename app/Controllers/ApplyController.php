@@ -24,8 +24,10 @@ final class ApplyController
 {
     private const VACANCY_KEY = 'apply_vacancy';
     private const PENDING_KEY = 'apply_pending';
-    /** What they chose on the first page ("general" or "committee:<id>"), preselected on step 3. */
+    /** What they chose on the first page ("general" or "position:<id>"), preselected on step 3. */
     private const CHOICE_KEY = 'apply_choice';
+    /** Documents uploaded on the first page, doc_type => stored file, attached when the draft is created. */
+    private const DOCUMENTS_KEY = 'apply_documents';
     private const TOO_MANY = 'Too many tries. Please wait 15 minutes, then try again.';
     private const BAD_LINK = 'This link is invalid, expired or already used. If your application was returned for revision, ask for a new link on this page. To continue a draft, start again from Apply and confirm your email.';
 
@@ -45,7 +47,7 @@ final class ApplyController
             $pending = Session::get(self::PENDING_KEY);
 
             return $pending === null
-                ? $this->publicPage('membership/apply/start', ['forPosition' => ctype_digit($vacancy), 'committees' => $this->membership->joinableCommittees()])
+                ? $this->publicPage('membership/apply/start', ['forPosition' => ctype_digit($vacancy), 'positions' => $this->membership->openPositions()])
                 : $this->publicPage('membership/apply/verify', ['email' => $pending['email']]);
         }
 
@@ -79,18 +81,59 @@ final class ApplyController
             'privacy_consent' => ['label' => 'Your consent', 'rules' => ['accepted']],
         ]);
 
-        // General Membership, or joining one of the listed committees as a Committee Member.
+        // General Membership, or a position the MSW Committee Head opened for application.
         $choice = $request->text('applying_for');
-        $committeeIds = array_column($this->membership->joinableCommittees(), 'committee_id');
-        $validChoice = $choice === 'general'
-            || (preg_match('/^committee:(\d+)$/', $choice, $match) === 1 && in_array((int) $match[1], $committeeIds, true));
+        $openIds = array_column($this->membership->openPositions(), 'position_id');
+        $forPosition = preg_match('/^position:(\d+)$/', $choice, $match) === 1 && in_array((int) $match[1], $openIds, true);
 
-        if (!$validChoice) {
+        if ($choice !== 'general' && !$forPosition) {
             $errors['applying_for'] = 'Please choose what you are applying for.';
         }
 
+        // The Requirements dropdown is AGILE's table: the row that fits them. A General Membership applicant is a general
+        // member or a 1st year; a position applicant is any row but "General members".
+        $requirement = $request->text('requirement');
+        $group = MembershipService::REQUIREMENT_GROUPS[$requirement] ?? null;
+        $allowed = $forPosition ? $requirement !== 'general' : in_array($requirement, ['general', 'first_year_first_sem', 'first_year_second_sem'], true);
+
+        if ($group === null) {
+            $errors['requirement'] = 'Please choose the row of the requirements that fits you.';
+        } elseif ($choice !== '' && !$allowed) {
+            $errors['requirement'] = $forPosition
+                ? 'For a position, choose the row for officers, committee members, position applicants or 1st years.'
+                : 'For General Membership, choose General members or a 1st year row.';
+        }
+
+        // The documents that row asks for come with this page: the COR always, and the grades when the row needs them.
+        $uploads = [];
+        $storage = new \App\Services\FileStorageService();
+        $needsGrades = (bool) ($group[2] ?? false);
+
+        foreach ($needsGrades ? ['cor', 'grades'] : ['cor'] as $type) {
+            $file = $request->files($type);
+            $chosen = is_array($file) && ($file['error'] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_NO_FILE;
+
+            if (!$chosen) {
+                $errors[$type] = $type === 'cor' ? 'Please upload your current COR.' : 'Please upload your ' . lcfirst((string) $group[3]) . '.';
+
+                continue;
+            }
+
+            try {
+                $storage->validate($file);
+                $uploads[$type] = $file;
+            } catch (\App\Services\FileRejectedException $exception) {
+                $errors[$type] = $exception->getMessage();
+            }
+        }
+
         if ($errors !== []) {
-            return $this->backWithErrors(route('apply'), $errors, $data + ['applying_for' => $choice]);
+            // A browser cannot refill file fields, so the message says to choose them again.
+            if ($uploads !== []) {
+                $errors['upload_again'] = 'For your security, files are not kept when something needs fixing. Please choose them again.';
+            }
+
+            return $this->backWithErrors(route('apply'), $errors, $data + ['applying_for' => $choice, 'requirement' => $requirement]);
         }
 
         Session::set(self::CHOICE_KEY, $choice);
@@ -103,7 +146,18 @@ final class ApplyController
             return redirect(route('apply'));
         }
 
+        // Saved now, in the same private folder as every application document, and attached to the application once the
+        // email is confirmed and the draft exists (createNew). A bot that filled the hidden field gets nothing saved.
+        $documents = [];
+
+        if ($request->text('website') === '') {
+            foreach ($uploads as $type => $file) {
+                $documents[$type] = $storage->store($file, 'applications');
+            }
+        }
+
         Session::set(self::PENDING_KEY, $data);
+        Session::set(self::DOCUMENTS_KEY, $documents);
         flash('success', 'We sent a 6-digit code to your email.');
 
         return redirect(route('apply'));
@@ -170,6 +224,8 @@ final class ApplyController
     public function restart(Request $request): Response
     {
         Session::set(self::PENDING_KEY, null);
+        Session::set(self::CHOICE_KEY, null);
+        Session::set(self::DOCUMENTS_KEY, null);
 
         return redirect(route('apply'));
     }
@@ -265,6 +321,14 @@ final class ApplyController
 
         $id = $this->membership->startDraft($contactNo, $personal);
 
+        // The COR (and grades) from the first page join the new application.
+        $documents = Session::get(self::DOCUMENTS_KEY);
+
+        if (is_array($documents) && $documents !== []) {
+            $this->membership->attachFirstPageDocuments($id, $documents);
+            Session::set(self::DOCUMENTS_KEY, null);
+        }
+
         if ($request->text('intent') === 'save') {
             flash('success', $this->savedMessage());
 
@@ -306,7 +370,7 @@ final class ApplyController
             'step' => $number,
             'reached' => (int) $application['wizard_step'],
             'vacancies' => $number === 3 ? $this->membership->openVacancies() : [],
-            'committees' => $number === 3 ? $this->membership->joinableCommittees() : [],
+            'positions' => $number === 3 ? $this->membership->openPositions() : [],
             'preselected' => $number === 3 ? Session::get(self::VACANCY_KEY) : null,
             'preselectedChoice' => $number === 3 ? Session::get(self::CHOICE_KEY) : null,
         ] + $this->membership->details($application));
@@ -498,15 +562,15 @@ final class ApplyController
                     return $request->text('intent') === 'save' ? [] : ['membership_type' => 'Please choose a membership type.'];
                 }
 
-                // "general", "committee" with a committee_id, or an open vacancy's id.
-                if ($choice === 'committee') {
-                    $committeeId = (int) $request->text('committee_id');
+                // "general", "position" with a position_id (opened for application), or an open vacancy's id.
+                if ($choice === 'position') {
+                    $positionId = (int) $request->text('position_id');
 
-                    if ($committeeId <= 0) {
-                        return ['membership_type' => 'Please choose the committee you want to join.'];
+                    if ($positionId <= 0) {
+                        return ['membership_type' => 'Please choose the position you are applying for.'];
                     }
 
-                    $this->membership->chooseType($id, null, $committeeId);
+                    $this->membership->chooseType($id, null, $positionId);
                 } else {
                     $this->membership->chooseType($id, $choice === 'general' ? null : (int) $choice);
                 }
@@ -662,8 +726,8 @@ final class ApplyController
         return $this->page($view, $data + [
             'user' => $this->membership->person($data['application']),
             'mayChooseGeneral' => current_user_id() === null || !(new \App\Models\UserRepository())->hasMemberRecord(current_user_id()),
-            // Joining a committee is for people without a position yet (MembershipService::assertCommitteeChoice).
-            'mayChooseCommittee' => current_user_id() === null || ((new \App\Models\MemberRepository())->findByUser(current_user_id())['position_id'] ?? null) === null,
+            // Choosing an open position is for people without a position yet (MembershipService::assertPositionChoice).
+            'mayChoosePosition' => current_user_id() === null || ((new \App\Models\MemberRepository())->findByUser(current_user_id())['position_id'] ?? null) === null,
             'breadcrumbs' => [['label' => 'Dashboard', 'url' => route('dashboard')], ['label' => 'My Applications', 'url' => route('my_applications')], ['label' => 'Apply']],
         ]);
     }

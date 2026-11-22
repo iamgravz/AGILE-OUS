@@ -10,11 +10,11 @@ final class MembershipApplicationRepository extends BaseRepository
     protected string $primaryKey = 'application_id';
 
     /**
-     * What an application is for, shown as vacancy_title everywhere: the position, or "Committee Member, <committee>"
-     * for someone applying to join a committee. Null still means General Membership. Needs JOIN_CHOSEN and v.
+     * What an application is for, shown as vacancy_title everywhere: the vacancy, or the open position chosen on the
+     * first apply page, as "<position>, <committee>". Null still means General Membership. Needs JOIN_CHOSEN and v.
      */
-    public const APPLIED_FOR = "COALESCE(v.title, CONCAT('Committee Member, ', ac.name))";
-    public const JOIN_CHOSEN = 'LEFT JOIN committees ac ON ac.committee_id = a.committee_id';
+    public const APPLIED_FOR = "COALESCE(v.title, CONCAT(cp.title, ', ', cc.name))";
+    public const JOIN_CHOSEN = 'LEFT JOIN positions cp ON cp.position_id = a.position_id LEFT JOIN committees cc ON cc.committee_id = cp.committee_id';
 
     /** @return array<string, mixed>|null The user's unfinished application. A user has at most one. */
     public function findDraft(int $userId): ?array
@@ -36,10 +36,10 @@ final class MembershipApplicationRepository extends BaseRepository
      */
     public function findDetailed(int $id): ?array
     {
-        // A committee comes from the vacancy's position, or from the committee chosen when applying as a Committee Member.
+        // The position and its committee come from the vacancy, or from the open position chosen on the first apply page.
         $statement = $this->pdo()->prepare(
             'SELECT a.*, ' . self::APPLIED_FOR . ' AS vacancy_title, v.status AS vacancy_status, v.closes_at AS vacancy_closes_at,
-                    COALESCE(p.role_type, IF(a.committee_id IS NULL, NULL, \'committee_member\')) AS role_type,
+                    COALESCE(p.role_type, cp.role_type) AS role_type,
                     COALESCE(a.user_id, ap.user_id) AS owner_user_id, c.name AS committee_name,
                     IF(hu.status = \'active\', c.head_user_id, NULL) AS committee_head_id,
                     CONCAT(hu.first_name, \' \', hu.last_name) AS committee_head_name
@@ -48,7 +48,7 @@ final class MembershipApplicationRepository extends BaseRepository
              LEFT JOIN vacancies v ON v.vacancy_id = a.vacancy_id
              LEFT JOIN positions p ON p.position_id = v.position_id
              ' . self::JOIN_CHOSEN . '
-             LEFT JOIN committees c ON c.committee_id = COALESCE(p.committee_id, a.committee_id)
+             LEFT JOIN committees c ON c.committee_id = COALESCE(p.committee_id, cp.committee_id)
              LEFT JOIN users hu ON hu.user_id = c.head_user_id
              WHERE a.application_id = ?'
         );
@@ -122,12 +122,12 @@ final class MembershipApplicationRepository extends BaseRepository
         return $statement->fetch() ?: null;
     }
 
-    /** @return array<string, mixed>|null The user's other committee application still waiting for a decision. */
-    public function findPendingCommittee(int $userId, int $exceptId): ?array
+    /** @return array<string, mixed>|null The user's other position application (no vacancy) still waiting for a decision. */
+    public function findPendingPosition(int $userId, int $exceptId): ?array
     {
         $statement = $this->pdo()->prepare(
             "SELECT * FROM membership_applications
-             WHERE user_id = ? AND application_id <> ? AND committee_id IS NOT NULL
+             WHERE user_id = ? AND application_id <> ? AND position_id IS NOT NULL
                AND status IN ('submitted', 'under_review', 'for_revision', 'waitlisted') LIMIT 1"
         );
         $statement->execute([$userId, $exceptId]);
@@ -154,9 +154,9 @@ final class MembershipApplicationRepository extends BaseRepository
             $params[] = $filters['vacancy_id'];
         }
 
-        // Position applications in their committees, and people (with or without an account) applying to join as a Committee Member.
+        // Applications to positions in their committees: through a vacancy, or an open position chosen on the first apply page.
         $statement = $this->pdo()->prepare(
-            'SELECT a.application_id, a.tracking_code, a.status, a.submitted_at, a.vacancy_id, a.committee_id, ' . self::APPLIED_FOR . ' AS vacancy_title,
+            'SELECT a.application_id, a.tracking_code, a.status, a.submitted_at, a.vacancy_id, a.position_id, ' . self::APPLIED_FOR . ' AS vacancy_title,
                     COALESCE(u.first_name, ap.first_name) AS first_name, COALESCE(u.last_name, ap.last_name) AS last_name,
                     (SELECT COUNT(*) FROM evaluations e WHERE e.application_id = a.application_id) AS evaluation_count,
                     (SELECT AVG(e.score) FROM evaluations e WHERE e.application_id = a.application_id) AS average_score
@@ -166,7 +166,7 @@ final class MembershipApplicationRepository extends BaseRepository
              LEFT JOIN vacancies v ON v.vacancy_id = a.vacancy_id
              LEFT JOIN positions p ON p.position_id = v.position_id
              ' . self::JOIN_CHOSEN . '
-             JOIN committees c ON c.committee_id = COALESCE(p.committee_id, a.committee_id)
+             JOIN committees c ON c.committee_id = COALESCE(p.committee_id, cp.committee_id)
              WHERE ' . implode(' AND ', $conditions) . '
              ORDER BY a.submitted_at DESC, a.application_id DESC'
         );
@@ -238,9 +238,9 @@ final class MembershipApplicationRepository extends BaseRepository
         }
 
         if (($filters['type'] ?? null) === 'general') {
-            $conditions[] = 'a.vacancy_id IS NULL AND a.committee_id IS NULL';
-        } elseif (($filters['type'] ?? null) === 'committee') {
-            $conditions[] = 'a.committee_id IS NOT NULL';
+            $conditions[] = 'a.vacancy_id IS NULL AND a.position_id IS NULL';
+        } elseif (($filters['type'] ?? null) === 'position') {
+            $conditions[] = 'a.position_id IS NOT NULL';
         } elseif (isset($filters['vacancy_id'])) {
             $conditions[] = 'a.vacancy_id = ?';
             $params[] = $filters['vacancy_id'];
@@ -265,7 +265,7 @@ final class MembershipApplicationRepository extends BaseRepository
         // Committee heads review approved applications, those already evaluated, and position applications they can evaluate (BR-05).
         if (($filters['reviewed_only'] ?? false) === true) {
             $conditions[] = "(a.status = 'approved'
-                OR ((a.vacancy_id IS NOT NULL OR a.committee_id IS NOT NULL) AND a.status IN ('submitted', 'under_review', 'for_revision', 'waitlisted'))
+                OR ((a.vacancy_id IS NOT NULL OR a.position_id IS NOT NULL) AND a.status IN ('submitted', 'under_review', 'for_revision', 'waitlisted'))
                 OR EXISTS (SELECT 1 FROM evaluations e WHERE e.application_id = a.application_id))";
         }
 
@@ -282,7 +282,7 @@ final class MembershipApplicationRepository extends BaseRepository
 
         // $order comes only from the fixed list above. $perPage and $offset are integers.
         $rows = $this->pdo()->prepare(
-            "SELECT a.application_id, a.tracking_code, a.status, a.submitted_at, a.vacancy_id, a.committee_id, " . self::APPLIED_FOR . " AS vacancy_title,
+            "SELECT a.application_id, a.tracking_code, a.status, a.submitted_at, a.vacancy_id, a.position_id, " . self::APPLIED_FOR . " AS vacancy_title,
                     COALESCE(u.first_name, ap.first_name) AS first_name, COALESCE(u.last_name, ap.last_name) AS last_name, COALESCE(u.email, ap.email) AS email
              {$from} WHERE {$where} ORDER BY {$order}, a.application_id DESC LIMIT {$perPage} OFFSET {$offset}"
         );

@@ -170,7 +170,7 @@ final class ApplicationsController
         $validDate = static fn (string $date): bool => preg_match('/^\d{4}-\d{2}-\d{2}$/', $date) === 1 && strtotime($date) !== false;
         $form = [
             'status' => in_array($status, ApplicationStatus::ALL, true) && $status !== 'draft' ? $status : '',
-            'type' => in_array($type, ['general', 'committee'], true) || ctype_digit($type) ? $type : '',
+            'type' => in_array($type, ['general', 'position'], true) || ctype_digit($type) ? $type : '',
             'from' => $validDate($from) ? $from : '',
             'to' => $validDate($to) ? $to : '',
             'q' => $search,
@@ -178,7 +178,7 @@ final class ApplicationsController
 
         $service = array_filter([
             'status' => $form['status'],
-            'type' => in_array($form['type'], ['general', 'committee'], true) ? $form['type'] : '',
+            'type' => in_array($form['type'], ['general', 'position'], true) ? $form['type'] : '',
             'from' => $form['from'],
             'to' => $form['to'],
             'q' => $form['q'],
