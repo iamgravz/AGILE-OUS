@@ -24,7 +24,7 @@ final class HttpWholeFlowsTest extends TestCase
 
         $browser->get('/apply');
         // The first page asks what they apply for and the documents that choice needs (the COR for General Membership).
-        $person = ['first_name' => 'Flow', 'last_name' => 'Applicant', 'email' => $email, 'student_no' => $number, 'privacy_consent' => '1'];
+        $person = ['first_name' => 'Flow', 'last_name' => 'Applicant', 'email' => $email, 'student_no' => $number, 'year_level' => '2nd Year', 'section' => 'bsit 2-1', 'contact_no' => '09171234500', 'privacy_consent' => '1'];
         $browser->post('/apply/code', $person);
         $this->assertSame(0, $this->rowCount('notifications', 'recipient_email = ?', [$email]), 'No code without choosing what they apply for.');
 
@@ -45,6 +45,8 @@ final class HttpWholeFlowsTest extends TestCase
         $id = (int) $match[1];
         $browser->follow($response);
         $this->assertSame(1, $this->rowCount('application_documents', "application_id = ? AND doc_type = 'cor'", [$id]), 'The COR from the first page joined the application.');
+        $this->assertSame(1, $this->rowCount('applicants', "email = ? AND section = 'BSIT 2-1' AND year_level = '2nd Year' AND contact_no = '09171234500'", [$email]), 'Year level, section and contact number are saved.');
+        $this->assertStringContainsString('value="2nd Year" selected', $browser->get("/apply/{$id}/step/2")['body'], 'The year level answers step 2.');
 
         $browser->follow($browser->post("/apply/{$id}/step/2", $this->answers('academic', '2nd Year') + ['enrolled' => '1', 'intent' => 'next']));
         $this->assertStringContainsString('value="general" checked', $browser->get("/apply/{$id}/step/3")['body'], 'The first page\'s choice is already selected.');

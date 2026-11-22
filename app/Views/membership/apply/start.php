@@ -7,6 +7,8 @@
  * @var \App\Core\View $this
  * @var bool $forPosition they came from a position's page
  * @var list<array{position_id: int, title: string, committee_name: string, label: string, remaining: ?int}> $positions open for application
+ * @var list<string> $yearLevels the year levels step 2 offers
+ * @var string|null $semester the current academic term's semester ('1st', '2nd', 'summer'), or null
  */
 $consentError = field_error('privacy_consent');
 $choiceError = field_error('applying_for');
@@ -18,10 +20,17 @@ $positionError = field_error('position_id');
 $role = (string) old('applying_for', '');
 $chosenPosition = (string) old('position_id', '');
 
+$yearError = field_error('year_level');
+$yearLevel = (string) old('year_level', '');
 $maxMb = (new \App\Services\FileStorageService())->maxUploadMb();
-// Shown with the upload fields once they are chosen: General Membership needs the COR, a position the grades too.
+// AGILE's requirements: a position needs grades, except a 1st year in a 1st semester; a 1st year later gives the 1st
+// semester's. The same rule as MembershipService::gradesForYear(), and apply-start.js applies it as they choose.
+$firstYearFirstSem = $yearLevel === '1st Year' && $semester === '1st';
+$gradesLabel = $yearLevel === '1st Year' && $semester !== '1st' ? '1st semester copy of grades' : 'Previous semester copy of grades';
+$gradesShown = $role !== 'general' && !$firstYearFirstSem;
+// Shown with the upload fields once they are chosen.
 $uploadsPending = $role === '' || ($role !== 'general' && $chosenPosition === '');
-$requiredDocs = $role === 'general' ? 'Current COR' : 'Current COR and previous semester copy of grades (1st years in their 1st semester: COR only)';
+$requiredDocs = $gradesShown ? 'Current COR and ' . lcfirst($gradesLabel) : 'Current COR';
 // The first dropdown's choices and, for each, the open positions the second dropdown lists.
 $roles = [
     'committee_head' => 'Committee Head',
@@ -59,13 +68,30 @@ $slots = static fn (array $p): string => $p['remaining'] === null ? '' : ' (' . 
 
                 <?= $this->partial('partials/robot', ['bubble' => "Hi! I'm Iskobot. Let's get you into AGILE!"]) ?>
 
-                <form class="card glass robot-card" method="post" enctype="multipart/form-data" action="<?= e(route('apply.code')) ?>">
+                <form class="card glass robot-card" method="post" enctype="multipart/form-data" action="<?= e(route('apply.code')) ?>" data-semester="<?= e($semester ?? '') ?>">
                     <?= csrf_field() ?>
                     <div class="card__body">
                         <?= $this->partial('partials/form_field', ['name' => 'first_name', 'label' => 'First name', 'value' => (string) old('first_name'), 'autocomplete' => 'given-name']) ?>
                         <?= $this->partial('partials/form_field', ['name' => 'last_name', 'label' => 'Last name', 'value' => (string) old('last_name'), 'autocomplete' => 'family-name']) ?>
                         <?= $this->partial('partials/form_field', ['name' => 'email', 'label' => 'Email', 'type' => 'email', 'value' => (string) old('email'), 'autocomplete' => 'email']) ?>
                         <?= $this->partial('partials/form_field', ['name' => 'student_no', 'label' => 'PUP student number', 'value' => (string) old('student_no'), 'autocomplete' => 'off', 'help' => 'For example, 2024-xxxxx-MN-0.']) ?>
+
+                        <div class="apply-year-section">
+                            <div class="field <?= $yearError !== null ? 'field--error' : '' ?>">
+                                <label class="field__label" for="year_level">Year level <span class="field__required" aria-hidden="true">*</span></label>
+                                <select class="select" id="year_level" name="year_level" required data-year-select<?= $yearError !== null ? ' aria-invalid="true" aria-describedby="year-level-error"' : '' ?>>
+                                    <option value="">Choose one</option>
+                                    <?php foreach ($yearLevels as $level) : ?>
+                                        <option value="<?= e($level) ?>"<?= $yearLevel === $level ? ' selected' : '' ?>><?= e($level) ?></option>
+                                    <?php endforeach; ?>
+                                </select>
+                                <?php if ($yearError !== null) : ?>
+                                    <p class="field__error" id="year-level-error"><?= icon('alert') ?> <?= e($yearError) ?></p>
+                                <?php endif; ?>
+                            </div>
+                            <?= $this->partial('partials/form_field', ['name' => 'section', 'label' => 'Section', 'value' => (string) old('section'), 'autocomplete' => 'off', 'help' => 'For example, BSIT 2-1.']) ?>
+                        </div>
+                        <?= $this->partial('partials/form_field', ['name' => 'contact_no', 'label' => 'Contact number', 'type' => 'tel', 'value' => (string) old('contact_no'), 'autocomplete' => 'tel', 'help' => 'For example, 09171234567.']) ?>
 
                         <div class="field <?= $choiceError !== null ? 'field--error' : '' ?>">
                             <label class="field__label" for="applying_for">Applying for <span class="field__required" aria-hidden="true">*</span></label>
@@ -103,11 +129,10 @@ $slots = static fn (array $p): string => $p['remaining'] === null ? '' : ' (' . 
 
 
                         <?php
-                        // Branching: the upload fields follow what they apply for. Nothing until it is chosen (and, for a
-                        // position, the committee or post); then the COR, plus the grades for a position. The grades are
-                        // optional here, because a 1st year in a 1st semester has none: the Documents step asks for them
-                        // once step 2 gives the year level (MembershipService::requiredDocuments). data-pending hides this
-                        // only when JavaScript runs (.js), so without it the fields still show and the server checks them.
+                        // Branching: the upload fields follow what they apply for and their year level. Nothing until the
+                        // choice is made (and, for a position, the committee or post); then the COR, plus the grades for a
+                        // position, except for a 1st year in a 1st semester. data-pending hides this only when JavaScript
+                        // runs (.js), so without it the fields still show and the server checks them.
                         ?>
                         <div class="apply-uploads" data-uploads<?= $uploadsPending ? ' data-pending' : '' ?>>
                         <p class="apply-required-docs"><strong>Required documents:</strong> <span data-required-docs><?= e($requiredDocs) ?></span></p>
@@ -125,10 +150,10 @@ $slots = static fn (array $p): string => $p['remaining'] === null ? '' : ' (' . 
                             <?php endif; ?>
                         </div>
 
-                        <div class="field <?= $gradesError !== null ? 'field--error' : '' ?>" data-upload="grades"<?= $role === 'general' ? ' hidden' : '' ?>>
-                            <label class="field__label" for="grades">Previous semester copy of grades</label>
-                            <input class="input apply-upload" id="grades" name="grades" type="file" accept=".pdf,.jpg,.jpeg,.png" aria-describedby="grades-help<?= $gradesError !== null ? ' grades-error' : '' ?>"<?= $gradesError !== null ? ' aria-invalid="true"' : '' ?>>
-                            <p class="field__help" id="grades-help">PDF, JPG or PNG, up to <?= e($maxMb) ?> MB. 1st years joining in the 2nd semester: your 1st semester grades. 1st years in their 1st semester: leave this empty.</p>
+                        <div class="field <?= $gradesError !== null ? 'field--error' : '' ?>" data-upload="grades"<?= $gradesShown ? '' : ' hidden' ?>>
+                            <label class="field__label" for="grades"><span data-grades-label><?= e($gradesLabel) ?></span> <span class="field__required" aria-hidden="true">*</span></label>
+                            <input class="input apply-upload" id="grades" name="grades" type="file" accept=".pdf,.jpg,.jpeg,.png"<?= $gradesShown && !$uploadsPending ? ' required' : '' ?> aria-describedby="grades-help<?= $gradesError !== null ? ' grades-error' : '' ?>"<?= $gradesError !== null ? ' aria-invalid="true"' : '' ?>>
+                            <p class="field__help" id="grades-help">PDF, JPG or PNG, up to <?= e($maxMb) ?> MB.</p>
                             <?php if ($gradesError !== null) : ?>
                                 <p class="field__error" id="grades-error"><?= icon('alert') ?> <?= e($gradesError) ?></p>
                             <?php endif; ?>

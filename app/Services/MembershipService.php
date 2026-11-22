@@ -941,6 +941,52 @@ final class MembershipService
         }
     }
 
+    /** @return list<string> The year levels step 2 offers, so the first apply page asks with the same words. */
+    public function yearLevelOptions(): array
+    {
+        $academic = $this->questions->forRoleTypes(['academic']);
+        $options = $academic === [] ? [] : json_decode((string) $academic[0]['options_json'], true);
+
+        return is_array($options) ? array_values(array_map('strval', $options)) : [];
+    }
+
+    /** The current academic term's semester ('1st', '2nd', 'summer'), or null when the MSW Committee Head set none. */
+    public function currentSemester(): ?string
+    {
+        return (new \App\Models\AcademicTermRepository())->current()['semester'] ?? null;
+    }
+
+    /**
+     * What the first apply page asks for a position, by year level (AGILE's requirements): no grades for a 1st year in a
+     * 1st semester, the 1st semester grades for a 1st year in a later one, and the previous semester's otherwise.
+     *
+     * @return array{needed: bool, label: string}
+     */
+    public function gradesForYear(string $yearLevel): array
+    {
+        if ($yearLevel !== self::FIRST_YEAR) {
+            return ['needed' => true, 'label' => 'Previous semester copy of grades'];
+        }
+
+        return $this->currentSemester() === '1st'
+            ? ['needed' => false, 'label' => 'Previous semester copy of grades']
+            : ['needed' => true, 'label' => '1st semester copy of grades'];
+    }
+
+    /** The year level from the first apply page becomes the step 2 answer, unless they already answered it. */
+    public function prefillYearLevel(int $id): void
+    {
+        $application = $this->editable($id);
+        $academic = $this->questions->forRoleTypes(['academic']);
+        $yearLevel = (string) ($this->person($application)['year_level'] ?? '');
+
+        if ($academic === [] || $yearLevel === '' || isset($this->answers->forApplication($id)[(int) $academic[0]['question_id']])) {
+            return;
+        }
+
+        $this->storeAnswers($id, [$academic[0]], [(int) $academic[0]['question_id'] => $yearLevel]);
+    }
+
     /** The role types the Open for application module covers: Committee Head down to The Source Code. */
     public const APPLICATION_ROLE_TYPES = ['committee_head', 'deputy', 'committee_member', 'source_code'];
 

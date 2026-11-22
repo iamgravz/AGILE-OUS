@@ -139,6 +139,15 @@
     display: none;
 }
 
+/* Year level and section side by side from tablet width. */
+@media (min-width: 640px) {
+    .apply-year-section {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+        gap: 0 var(--space-4);
+    }
+}
+
 .apply-required-docs {
     margin: 0 0 var(--space-3);
 }

@@ -180,6 +180,8 @@ CREATE TABLE IF NOT EXISTS applicants (
     student_no VARCHAR(20) NULL,
     contact_no VARCHAR(20) NULL,
     year_level VARCHAR(30) NULL,
+    -- Asked on the first apply page with the year level (addition, Nov 22, 2026).
+    section VARCHAR(30) NULL,
     email_verified_at DATETIME NULL,
     user_id INT UNSIGNED NULL,
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,

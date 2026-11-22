@@ -44,19 +44,28 @@
         positionLabel.textContent = role === 'source_code' ? 'Post in The Source Code' : 'Committee';
     };
 
+    const year = document.querySelector('[data-year-select]');
+    const semester = document.querySelector('[data-semester]')?.dataset.semester ?? '';
+    const gradesLabel = gradesField.querySelector('[data-grades-label]');
+
+    // AGILE's requirements, as MembershipService::gradesForYear(): a position needs grades, except a 1st year in a 1st
+    // semester; a 1st year in a later semester gives the 1st semester's.
     const updateUploads = () => {
         const role = applying.value;
         const forPosition = role !== '' && role !== 'general';
         const ready = role === 'general' || (forPosition && position.value !== '');
+        const firstYear = year?.value === '1st Year';
+        const needsGrades = forPosition && !(firstYear && semester === '1st');
+        const label = firstYear && semester !== '1st' ? '1st semester copy of grades' : 'Previous semester copy of grades';
 
         uploads.toggleAttribute('data-pending', !ready);
         corInput.required = ready;
-        gradesField.hidden = !forPosition;
-        docs.textContent = forPosition
-            ? 'Current COR and previous semester copy of grades (1st years in their 1st semester: COR only)'
-            : 'Current COR';
+        gradesField.hidden = !needsGrades;
+        gradesInput.required = ready && needsGrades;
+        gradesLabel.textContent = label;
+        docs.textContent = needsGrades ? `Current COR and ${label.charAt(0).toLowerCase()}${label.slice(1)}` : 'Current COR';
 
-        if (!forPosition) {
+        if (!needsGrades) {
             gradesInput.value = '';
         }
     };
@@ -66,6 +75,7 @@
         updateUploads();
     });
     position.addEventListener('change', updateUploads);
+    year?.addEventListener('change', updateUploads);
 
     fillPositions();
     updateUploads();

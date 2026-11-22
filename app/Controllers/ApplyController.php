@@ -47,7 +47,7 @@ final class ApplyController
             $pending = Session::get(self::PENDING_KEY);
 
             return $pending === null
-                ? $this->publicPage('membership/apply/start', ['forPosition' => ctype_digit($vacancy), 'positions' => $this->membership->openPositions()])
+                ? $this->publicPage('membership/apply/start', ['forPosition' => ctype_digit($vacancy), 'positions' => $this->membership->openPositions(), 'yearLevels' => $this->membership->yearLevelOptions(), 'semester' => $this->membership->currentSemester()])
                 : $this->publicPage('membership/apply/verify', ['email' => $pending['email']]);
         }
 
@@ -68,8 +68,12 @@ final class ApplyController
             'last_name' => $request->text('last_name'),
             'email' => strtolower($request->text('email')),
             'student_no' => strtoupper($request->text('student_no')),
+            'year_level' => $request->text('year_level'),
+            'section' => strtoupper($request->text('section')),
+            'contact_no' => $request->text('contact_no'),
         ];
-        $errors = Validator::check($data + ['privacy_consent' => $request->text('privacy_consent')], [
+        $errors = $this->contactErrors($data['contact_no']) + Validator::check($data + ['privacy_consent' => $request->text('privacy_consent')], [
+            'section' => ['label' => 'Section', 'rules' => ['required', 'max:30']],
             'first_name' => ['label' => 'First name', 'rules' => ['required', 'max:80']],
             'last_name' => ['label' => 'Last name', 'rules' => ['required', 'max:80']],
             'email' => ['label' => 'Email', 'rules' => ['required', 'email', 'max:150']],
@@ -80,6 +84,11 @@ final class ApplyController
             ],
             'privacy_consent' => ['label' => 'Your consent', 'rules' => ['accepted']],
         ]);
+
+        // The same year levels step 2 offers; it becomes their step 2 answer.
+        if (!in_array($data['year_level'], $this->membership->yearLevelOptions(), true)) {
+            $errors['year_level'] = 'Please choose your year level.';
+        }
 
         // Two dropdowns: what they apply for (General Membership, Committee Head, Deputy Committee Head, Committee Member,
         // The Source Code), then the committee, or the post in The Source Code. Only positions the MSW Committee Head
@@ -96,20 +105,19 @@ final class ApplyController
             $errors['position_id'] = $role === 'source_code' ? 'Please choose the post in The Source Code.' : 'Please choose the committee.';
         }
 
-        // The documents follow what they apply for: the COR always, and the grades for a position. The grades are optional
-        // here, because a 1st year in a 1st semester has none; the Documents step asks for them once step 2 gives the
-        // year level (MembershipService::requiredDocuments).
+        // The documents follow what they apply for and their year level (AGILE's requirements): the COR always; for a
+        // position, the grades too, except for a 1st year in a 1st semester, who has none yet.
         $uploads = [];
         $storage = new \App\Services\FileStorageService();
+        $grades = $this->membership->gradesForYear($data['year_level']);
+        $needsGrades = $forPosition && $grades['needed'];
 
-        foreach ($forPosition ? ['cor', 'grades'] : ['cor'] as $type) {
+        foreach ($needsGrades ? ['cor', 'grades'] : ['cor'] as $type) {
             $file = $request->files($type);
             $chosen = is_array($file) && ($file['error'] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_NO_FILE;
 
             if (!$chosen) {
-                if ($type === 'cor') {
-                    $errors['cor'] = 'Please upload your current COR.';
-                }
+                $errors[$type] = $type === 'cor' ? 'Please upload your current COR.' : 'Please upload your ' . lcfirst($grades['label']) . '.';
 
                 continue;
             }
@@ -323,6 +331,9 @@ final class ApplyController
             $this->membership->attachFirstPageDocuments($id, $documents);
             Session::set(self::DOCUMENTS_KEY, null);
         }
+
+        // The year level from the first page answers step 2's question.
+        $this->membership->prefillYearLevel($id);
 
         if ($request->text('intent') === 'save') {
             flash('success', $this->savedMessage());

@@ -68,6 +68,21 @@ final class MembershipRequirementsTest extends TestCase
         });
     }
 
+    public function testTheApplyPageAsksForGradesByYearLevel(): void
+    {
+        $this->inRollback(function (): void {
+            $service = new MembershipService();
+
+            $this->makeCurrentTerm('1st');
+            $this->assertFalse($service->gradesForYear('1st Year')['needed'], '1st year, 1st semester: COR only.');
+            $this->assertTrue($service->gradesForYear('2nd Year')['needed']);
+
+            $this->makeCurrentTerm('2nd');
+            $this->assertSame(['needed' => true, 'label' => '1st semester copy of grades'], $service->gradesForYear('1st Year'));
+            $this->assertSame(['needed' => true, 'label' => 'Previous semester copy of grades'], $service->gradesForYear('3rd Year'));
+        });
+    }
+
     public function testTheRequirementsDropdownIsAgilesTable(): void
     {
         $groups = MembershipService::REQUIREMENT_GROUPS;
