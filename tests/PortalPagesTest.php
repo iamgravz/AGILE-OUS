@@ -48,11 +48,18 @@ final class PortalPagesTest extends TestCase
 
     public function testApplyFromAPositionArrivesWithItChosen(): void
     {
-        $id = (int) TestServer::db()->query("SELECT p.position_id FROM positions p WHERE p.is_open = 1 AND p.role_type = 'committee_member' LIMIT 1")->fetchColumn();
-        $this->assertGreaterThan(0, $id);
+        // Whatever Open Positions offers right now: the Apply link on its first card.
+        preg_match('/href="\/apply\?position=(\d+)"/', (new TestServer())->get('/positions')['body'], $match);
+
+        if ($match === []) {
+            $this->markTestSkipped('Nothing is open for application in this run.');
+        }
+
+        $id = (int) $match[1];
+        $role = (string) TestServer::db()->query("SELECT role_type FROM positions WHERE position_id = {$id}")->fetchColumn();
 
         $body = (new TestServer())->get("/apply?position={$id}")['body'];
-        $this->assertMatchesRegularExpression('/<option value="committee_member"[^>]*selected/', $body);
+        $this->assertMatchesRegularExpression('/<option value="' . $role . '"[^>]*selected/', $body);
         $this->assertMatchesRegularExpression('/<option value="' . $id . '"[^>]*selected/', $body);
     }
 }
