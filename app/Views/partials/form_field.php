@@ -10,12 +10,13 @@
  * @var string $help (optional)
  * @var bool $required (optional, default true)
  * @var string $class extra class for the wrapper (optional)
+ * @var string|null $error (optional) for a page shown again from the same request; otherwise the flashed error
  */
 $type ??= 'text';
 $value ??= '';
 $help ??= '';
 $required ??= true;
-$error = field_error($name);
+$error = ($error ?? null) ?? field_error($name);
 $describedBy = trim(($help !== '' ? "{$name}-help " : '') . ($error !== null ? "{$name}-error" : ''));
 ?>
 <div class="field <?= $error !== null ? 'field--error' : '' ?> <?= e($class ?? '') ?>">

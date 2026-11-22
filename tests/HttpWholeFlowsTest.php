@@ -102,12 +102,22 @@ final class HttpWholeFlowsTest extends TestCase
         $browser = new TestServer();
 
         $browser->get('/welfare/guest');
-        $browser->follow($browser->post('/welfare/guest/code', ['name' => 'Flow Guest', 'email' => $email, 'student_no' => '', 'privacy_consent' => '1']));
+        $guest = ['name' => 'Flow Guest', 'email' => $email, 'student_no' => '', 'privacy_consent' => '1'];
+
+        // The first page asks for the category and the concern too, and a page with a mistake keeps them.
+        $page = $browser->post('/welfare/guest/code', $guest + ['category_id' => '1']);
+        $this->assertSame(422, $page['status']);
+        $this->assertStringContainsString('Description', $page['body']);
+        $this->assertSame(0, $this->countMail($email, 'GUEST_EMAIL_CODE'), 'No code without the concern.');
+
+        $browser->follow($browser->post('/welfare/guest/code', $guest + ['category_id' => '1', 'description' => 'FLOWSECRET first page']));
 
         $page = $browser->follow($browser->post('/welfare/guest/verify', ['code' => '000000']));
         $this->assertStringContainsString('name="code"', $page['body'], 'A wrong code stays on the code page.');
+        $this->assertStringNotContainsString('FLOWSECRET', $page['body'], 'The concern is not shown before the email is confirmed.');
 
-        $browser->follow($browser->post('/welfare/guest/verify', ['code' => $this->lastPayload($email, 'GUEST_EMAIL_CODE')['code']]));
+        $page = $browser->follow($browser->post('/welfare/guest/verify', ['code' => $this->lastPayload($email, 'GUEST_EMAIL_CODE')['code']]));
+        $this->assertStringContainsString('FLOWSECRET first page', $page['body'], 'Once confirmed, the form holds what they wrote on the first page.');
         $page = $browser->follow($browser->post('/welfare/guest/submit', ['category_id' => '1', 'subject' => 'FLOWSECRET subject', 'description' => 'FLOWSECRET words']));
 
         $case = TestServer::db()->prepare('SELECT case_code, subject, guest_name FROM welfare_cases WHERE guest_email_hash = ?');

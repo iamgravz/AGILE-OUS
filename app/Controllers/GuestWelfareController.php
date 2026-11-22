@@ -10,6 +10,7 @@ use App\Core\Session;
 use App\Core\Validator;
 use App\Core\View;
 use App\Models\UserRepository;
+use App\Services\EncryptionService;
 use App\Services\FileRejectedException;
 use App\Services\FileStorageService;
 use App\Services\GuestVerificationService;
@@ -18,8 +19,10 @@ use App\Services\WelfareService;
 use DomainException;
 
 /**
- * A guest's concern, in three steps (BR-17): details, emailed code, form. The session holds the guest's name and
- * email, never the concern. A failed form is shown again from this request, like WelfareController.
+ * A guest's concern, in three steps (BR-17): details with the category and the concern, emailed code, then the form,
+ * filled in. The session holds the guest's name and email; the category and concern typed before the code are kept
+ * there encrypted (EncryptionService), never as plain text, and only decrypted once the email is confirmed. A failed
+ * form is shown again from this request, like WelfareController.
  */
 final class GuestWelfareController
 {
@@ -52,14 +55,15 @@ final class GuestWelfareController
         $guest = Session::get(self::SESSION_KEY);
 
         if ($guest === null) {
-            return $this->page('welfare/guest/start', []);
+            return $this->page('welfare/guest/start', ['categories' => $this->welfare->categories()]);
         }
 
         if (!$this->isVerified($guest)) {
             return $this->page('welfare/guest/verify', ['email' => $guest['email']]);
         }
 
-        return $this->concernForm($guest, ['related_code' => (string) Session::get(self::RELATED_KEY, '')], []);
+        // What they wrote on the first page, decrypted only now that the email is confirmed.
+        return $this->concernForm($guest, $this->firstPageConcern($guest) + ['related_code' => (string) Session::get(self::RELATED_KEY, '')], []);
     }
 
     public function requestCode(Request $request): Response
@@ -76,7 +80,15 @@ final class GuestWelfareController
             'student_no' => strtoupper($request->text('student_no')),
             'privacy_consent' => $request->text('privacy_consent'),
         ];
-        $errors = Validator::check($data, [
+        // The category and the concern itself, asked on this first page too.
+        $concern = [
+            'category_id' => $request->text('category_id'),
+            'description' => $request->text('description'),
+        ];
+        $errors = array_intersect_key(
+            $this->welfare->concernErrors($concern + ['subject' => 'x', 'urgent' => false]),
+            ['category_id' => 0, 'description' => 0]
+        ) + Validator::check($data, [
             'name' => ['label' => 'Full name', 'rules' => ['required', 'max:160']],
             'email' => ['label' => 'Email', 'rules' => ['required', 'email', 'max:150']],
             'student_no' => [
@@ -87,22 +99,23 @@ final class GuestWelfareController
             'privacy_consent' => ['label' => 'Your consent', 'rules' => ['accepted']],
         ]);
 
+        // A failed page is shown again from this request, so the concern never goes into the flashed session data.
         if ($errors !== []) {
-            flash('_errors', $errors);
-            flash('_old_input', array_diff_key($data, ['privacy_consent' => 0]));
-
-            return redirect(route('welfare.guest'));
+            return $this->page('welfare/guest/start', ['categories' => $this->welfare->categories(), 'errors' => $errors, 'input' => array_diff_key($data, ['privacy_consent' => 0]) + $concern], Response::HTTP_UNPROCESSABLE);
         }
 
         // A bot that filled the hidden field sees the normal next page, but no email is sent.
         if ($request->text('website') === '' && !$this->verification->requestCode($data['email'], $request->ip())) {
-            flash('error', self::TOO_MANY);
-            flash('_old_input', array_diff_key($data, ['privacy_consent' => 0]));
-
-            return redirect(route('welfare.guest'));
+            return $this->page('welfare/guest/start', ['categories' => $this->welfare->categories(), 'errors' => ['form' => self::TOO_MANY], 'input' => array_diff_key($data, ['privacy_consent' => 0]) + $concern], Response::HTTP_TOO_MANY_REQUESTS);
         }
 
-        Session::set(self::SESSION_KEY, ['name' => $data['name'], 'email' => $data['email'], 'student_no' => $data['student_no'], 'verified_at' => null]);
+        Session::set(self::SESSION_KEY, [
+            'name' => $data['name'],
+            'email' => $data['email'],
+            'student_no' => $data['student_no'],
+            'verified_at' => null,
+            'concern' => (new EncryptionService())->encrypt(json_encode($concern, JSON_THROW_ON_ERROR)),
+        ]);
         flash('success', 'We sent a 6-digit code to your email.');
 
         return redirect(route('welfare.guest'));
@@ -189,6 +202,8 @@ final class GuestWelfareController
             try {
                 $case = $this->welfare->submitAsGuest($guest, $input, $relatedCode, WelfareService::uploadsFrom($request->files('attachments')));
                 Session::set(self::RELATED_KEY, null);
+                // Submitted: the encrypted copy from the first page is no longer needed.
+                Session::set(self::SESSION_KEY, ['concern' => null] + $guest);
                 Session::set(self::RESULT_KEY, ['code' => $case['case_code'], 'email' => $guest['email']]);
 
                 return redirect(route('welfare.guest.submitted'));
@@ -229,6 +244,30 @@ final class GuestWelfareController
             // Only now, after the code proved the email is theirs, so nobody can use this to test whose email has an account.
             'hasAccount' => (new UserRepository())->findByEmail($guest['email']) !== null,
         ], $status ?? ($errors === [] ? Response::HTTP_OK : Response::HTTP_UNPROCESSABLE));
+    }
+
+    /**
+     * The category and concern typed on the first page, decrypted. Empty if there is none or it cannot be read.
+     *
+     * @param array<string, mixed> $guest
+     * @return array{category_id?: string, description?: string}
+     */
+    private function firstPageConcern(array $guest): array
+    {
+        if (!is_string($guest['concern'] ?? null)) {
+            return [];
+        }
+
+        try {
+            $concern = json_decode((new EncryptionService())->decrypt($guest['concern']), true, 4, JSON_THROW_ON_ERROR);
+        } catch (\Throwable) {
+            return [];
+        }
+
+        return [
+            'category_id' => (string) ($concern['category_id'] ?? ''),
+            'description' => (string) ($concern['description'] ?? ''),
+        ];
     }
 
     /** @param array<string, mixed> $guest */
