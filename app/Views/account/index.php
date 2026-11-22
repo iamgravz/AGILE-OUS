@@ -34,7 +34,7 @@ $member = $membership['member'] ?? null;
         'headingId' => 'account-details',
         'lines' => array_filter([e($membership['roleLabel'] ?? $account['role_name']), $member !== null ? status_badge($member['status']) : null]),
         'facts' => $facts,
-        'note' => 'Contact the MSW Committee to correct your name, email or student number.',
+        'note' => 'To correct your name, email or student number, ask the MSW Committee Head (Administration, Users).',
     ]) ?>
 
     <?php if ($membership !== null) : ?>

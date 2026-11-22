@@ -160,6 +160,7 @@ return static function (Router $router): void {
     $router->get('/admin/users/create', 'AdminUsersController@create', 'admin.users.create')->middleware('perm:admin.users');
     $router->post('/admin/users/create', 'AdminUsersController@store')->middleware('perm:admin.users');
     $router->get('/admin/users/{id}', 'AdminUsersController@show', 'admin.users.show')->middleware('perm:admin.users');
+    $router->post('/admin/users/{id}/details', 'AdminUsersController@details', 'admin.users.details')->middleware('perm:admin.users');
     $router->post('/admin/users/{id}/role', 'AdminUsersController@role', 'admin.users.role')->middleware('perm:admin.users');
     $router->post('/admin/users/{id}/status', 'AdminUsersController@status', 'admin.users.status')->middleware('perm:admin.users');
     $router->post('/admin/users/{id}/unlock', 'AdminUsersController@unlock', 'admin.users.unlock')->middleware('perm:admin.users');
