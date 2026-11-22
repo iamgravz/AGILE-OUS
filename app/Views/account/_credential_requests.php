@@ -15,12 +15,13 @@ $open = array_column(array_filter($requests, static fn (array $r): bool => $r['s
     <div class="card__header"><h2 class="card__title" id="credential-requests-title">Request your ID or certificate</h2></div>
     <div class="card__body">
         <p class="text-muted">The MSW Committee makes it from the AGILE template and uploads it here. Once it is ready, you can download it from this page.</p>
-        <form method="post" action="<?= e(route('account.credential_request')) ?>">
+        <form method="post" action="<?= e(route('account.credential_request')) ?>" enctype="multipart/form-data">
             <?= csrf_field() ?>
             <div class="grid grid--2">
                 <div class="field">
                     <label class="field__label" for="credential-type">What do you need? <span class="field__required" aria-hidden="true">*</span></label>
                     <select class="select" id="credential-type" name="type" required>
+                        <option value="">Choose one</option>
                         <?php foreach (CredentialService::TYPES as $type => $label) : ?>
                             <option value="<?= e($type) ?>"<?= in_array($type, $open, true) ? ' disabled' : '' ?>><?= e($label) ?><?= in_array($type, $open, true) ? ' (requested)' : '' ?></option>
                         <?php endforeach; ?>
@@ -28,6 +29,14 @@ $open = array_column(array_filter($requests, static fn (array $r): bool => $r['s
                 </div>
                 <?= $this->partial('partials/form_field', ['name' => 'note', 'label' => 'Note', 'value' => '', 'required' => false, 'help' => 'Optional. For example, what it is for, or a correction.']) ?>
             </div>
+            <?= $this->partial('partials/upload_field', [
+                'name' => 'id_photo',
+                'label' => 'Half-body professional picture',
+                'types' => CredentialRequestService::PHOTO_TYPES,
+                'maxMb' => 5,
+                'required' => false,
+                'help' => 'Required for the digital ID. JPG or PNG, up to 5 MB: from the waist up, facing the camera, plain light background, formal or business attire.',
+            ]) ?>
             <button type="submit" class="btn btn--primary"<?= count($open) === count(CredentialService::TYPES) ? ' disabled' : '' ?>>Send request</button>
         </form>
 

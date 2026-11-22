@@ -60,8 +60,13 @@ final class CredentialRequestsTest extends TestCase
         $email = $this->makeMember();
         $member = TestServer::loggedIn($email);
 
-        $member->post('/account/credential-requests', ['type' => 'digital_id', 'note' => 'For the general assembly']);
-        $member->post('/account/credential-requests', ['type' => 'digital_id', 'note' => 'Again']);
+        // The digital ID needs a half-body picture; only JPG or PNG.
+        $member->post('/account/credential-requests', ['type' => 'digital_id', 'note' => 'No picture']);
+        $member->uploadFiles('/account/credential-requests', ['type' => 'digital_id', 'note' => 'A PDF'], ['id_photo' => ['me.pdf', "%PDF-1.4\n", 'application/pdf']]);
+        $this->assertSame([], $this->requests($email), 'Refused without a JPG or PNG picture.');
+
+        $member->uploadFiles('/account/credential-requests', ['type' => 'digital_id', 'note' => 'For the general assembly'], ['id_photo' => ['me.png', $this->png(), 'image/png']]);
+        $member->uploadFiles('/account/credential-requests', ['type' => 'digital_id', 'note' => 'Again'], ['id_photo' => ['me.png', $this->png(), 'image/png']]);
         $member->post('/account/credential-requests', ['type' => 'certificate', 'note' => '']);
         $rows = $this->requests($email);
         $this->assertEquals(['certificate' => 'requested', 'digital_id' => 'requested'], array_column($rows, 'status', 'type'), 'One open request per kind.');
@@ -74,6 +79,12 @@ final class CredentialRequestsTest extends TestCase
         $this->assertSame(403, TestServer::loggedIn('mswmember@agile.test')->get('/credentials/requests')['status']);
 
         $byType = array_column($rows, null, 'type');
+        $this->assertNotNull($byType['digital_id']['photo_path']);
+        $this->assertNull($byType['certificate']['photo_path'], 'The certificate needs no picture.');
+        $photo = $head->get('/credentials/requests/' . $byType['digital_id']['request_id'] . '/photo?inline=1');
+        $this->assertSame(200, $photo['status']);
+        $this->assertSame('image/png', (new finfo(FILEINFO_MIME_TYPE))->buffer($photo['body']));
+        $this->assertSame(403, $member->get('/credentials/requests/' . $byType['digital_id']['request_id'] . '/photo')['status']);
         $idRequest = (int) $byType['digital_id']['request_id'];
         $refused = $head->uploadFiles("/credentials/requests/{$idRequest}/upload", [], ['file' => ['id.exe', "MZ\x90\x00 not a document", 'application/octet-stream']]);
         $this->assertSame(302, $refused['status']);

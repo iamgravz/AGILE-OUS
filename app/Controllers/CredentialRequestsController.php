@@ -22,9 +22,9 @@ final class CredentialRequestsController
     public function request(Request $request): Response
     {
         try {
-            $this->requests->request($request->text('type'), $request->text('note'));
+            $this->requests->request($request->text('type'), $request->text('note'), $request->files('id_photo'));
             flash('success', 'Your request was sent. We will let you know when it is ready to download.');
-        } catch (DomainException $exception) {
+        } catch (FileRejectedException | DomainException $exception) {
             flash('error', $exception->getMessage());
         }
 
@@ -65,6 +65,21 @@ final class CredentialRequestsController
         }
 
         return redirect(route('credentials.requests'));
+    }
+
+    /** The picture a member sent with their request, for the MSW Committee Head to put on the template. */
+    public function photo(Request $request, string $id): Response
+    {
+        $row = ctype_digit($id) ? $this->requests->find((int) $id) : null;
+
+        if ($row === null || $row['photo_path'] === null) {
+            return Response::error(Response::HTTP_NOT_FOUND);
+        }
+
+        \App\Services\AuditService::log('file.accessed', 'credential_request_photo', (int) $id);
+        $name = 'Photo-' . preg_replace('/[^A-Za-z0-9-]/', '', (string) $row['member_no']) . '.' . pathinfo((string) $row['photo_path'], PATHINFO_EXTENSION);
+
+        return (new FileStorageService())->stream((string) $row['photo_path'], $name, $request->queryText('inline') === '1');
     }
 
     /** The member's QR code as a PNG, to put on the ID made from AGILE's template. */

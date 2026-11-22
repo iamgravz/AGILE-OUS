@@ -60,6 +60,7 @@ final class DemoDataRemover
         'eligibility_documents.stored_path' => 'uploads',
         'election_candidacies.cor_path' => 'uploads',
         'election_candidacies.grades_path' => 'uploads',
+        'credential_requests.photo_path' => 'uploads',
         'content_posts.cover_image' => 'uploads',
     ];
 

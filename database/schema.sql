@@ -942,6 +942,7 @@ CREATE TABLE IF NOT EXISTS credential_requests (
     member_id INT UNSIGNED NOT NULL,
     type ENUM('digital_id','certificate') NOT NULL,
     note VARCHAR(255) NULL,
+    photo_path VARCHAR(255) NULL,
     status ENUM('requested','issued','declined','cancelled') NOT NULL DEFAULT 'requested',
     credential_id INT UNSIGNED NULL,
     remarks VARCHAR(255) NULL,

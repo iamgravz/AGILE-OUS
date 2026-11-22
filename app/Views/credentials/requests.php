@@ -46,6 +46,12 @@ $accept = implode(',', array_map(static fn (string $type): string => '.' . $type
                         <td data-label="Asked for">
                             <?= e(CredentialService::TYPES[$row['type']]) ?>
                             <?php if ($row['note'] !== null) : ?><br><span class="text-muted">"<?= e($row['note']) ?>"</span><?php endif; ?>
+                            <?php if ($row['photo_path'] !== null) : ?>
+                                <a class="credential-request__photo" href="<?= e(route('credentials.requests.photo', ['id' => $id])) ?>?inline=1" target="_blank" rel="noopener">
+                                    <img src="<?= e(route('credentials.requests.photo', ['id' => $id])) ?>?inline=1" alt="Picture sent by <?= e($row['first_name'] . ' ' . $row['last_name']) ?>" loading="lazy">
+                                </a>
+                                <a class="btn btn--ghost btn--sm" href="<?= e(route('credentials.requests.photo', ['id' => $id])) ?>">Download picture</a>
+                            <?php endif; ?>
                         </td>
                         <td data-label="Requested"><?= e(datetime_ph($row['created_at'])) ?></td>
                         <td data-label="Status">

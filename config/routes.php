@@ -75,6 +75,7 @@ return static function (Router $router): void {
     $router->post('/applications/{id}/waitlist', 'ApplicationsController@waitlist', 'applications.waitlist')->middleware('perm:application.decide');
 
     $router->get('/credentials/requests', 'CredentialRequestsController@index', 'credentials.requests')->middleware('perm:credential.approve');
+    $router->get('/credentials/requests/{id}/photo', 'CredentialRequestsController@photo', 'credentials.requests.photo')->middleware('perm:credential.approve');
     $router->get('/credentials/qr/{memberId}', 'CredentialRequestsController@qr', 'credentials.qr')->middleware('perm:credential.approve');
     $router->post('/credentials/requests/{id}/upload', 'CredentialRequestsController@upload', 'credentials.requests.upload')->middleware('perm:credential.approve');
     $router->post('/credentials/requests/{id}/decline', 'CredentialRequestsController@decline', 'credentials.requests.decline')->middleware('perm:credential.approve');

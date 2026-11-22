@@ -44,7 +44,14 @@ final class CredentialRequestService
         return $memberId === null ? [] : $this->query('r.member_id = ?', [$memberId]);
     }
 
-    public function request(string $type, string $note): int
+    /** The picture for the ID: a half-body professional photo, JPG or PNG. */
+    public const PHOTO_TYPES = ['jpg', 'jpeg', 'png'];
+
+    /**
+     * @param array<string, mixed>|null $photo from $_FILES; required for the digital ID
+     * @throws DomainException|FileRejectedException
+     */
+    public function request(string $type, string $note, ?array $photo = null): int
     {
         $memberId = $this->ownMemberId() ?? throw new DomainException('Only AGILE members can request an ID or certificate.');
 
@@ -56,9 +63,23 @@ final class CredentialRequestService
             throw new DomainException('You already asked for this. The MSW Committee will upload it soon.');
         }
 
-        return Database::transaction(function () use ($memberId, $type, $note): int {
-            Database::connection()->prepare('INSERT INTO credential_requests (member_id, type, note) VALUES (?, ?, ?)')
-                ->execute([$memberId, $type, trim($note) === '' ? null : mb_substr(trim($note), 0, 255)]);
+        $hasPhoto = $photo !== null && ($photo['error'] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_NO_FILE;
+
+        if ($type === 'digital_id' && !$hasPhoto) {
+            throw new FileRejectedException('Please upload a half-body professional picture for your ID.');
+        }
+
+        $storage = new FileStorageService();
+        $photoPath = null;
+
+        if ($hasPhoto) {
+            $storage->validate($photo, self::PHOTO_TYPES);
+            $photoPath = $storage->store($photo, 'id-photos', self::PHOTO_TYPES)['stored_path'];
+        }
+
+        return Database::transaction(function () use ($memberId, $type, $note, $photoPath): int {
+            Database::connection()->prepare('INSERT INTO credential_requests (member_id, type, note, photo_path) VALUES (?, ?, ?, ?)')
+                ->execute([$memberId, $type, trim($note) === '' ? null : mb_substr(trim($note), 0, 255), $photoPath]);
             $id = (int) Database::connection()->lastInsertId();
             AuditService::log('credential.requested', 'credential_request', $id, ['type' => $type]);
 
