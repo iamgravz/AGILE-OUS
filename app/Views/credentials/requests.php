@@ -18,6 +18,7 @@ $accept = implode(',', array_map(static fn (string $type): string => '.' . $type
 <?php $this->start('page_title') ?>ID and certificate requests<?php $this->end() ?>
 
 <p class="text-muted">Members ask for their digital ID or certificate of membership from My Account. Make it from the AGILE template, then upload it here as PDF, JPG or PNG (up to <?= e($maxMb) ?> MB). It replaces any earlier one of the same kind, and the member is told it is ready.</p>
+<p class="text-muted">For a digital ID, first download the member's QR code and put it on the template. Each member keeps the same QR code: scanning it always shows their current ID and that they are an active member, so a new ID never needs a new code.</p>
 
 <nav class="cluster" aria-label="Filter requests">
     <?php foreach ($tabs as $key => $label) : ?>
@@ -53,6 +54,9 @@ $accept = implode(',', array_map(static fn (string $type): string => '.' . $type
                         </td>
                         <td data-label="Action">
                             <?php if ($row['status'] === 'requested') : ?>
+                                <?php if ($row['type'] === 'digital_id') : ?>
+                                    <p><a class="btn btn--secondary btn--sm" href="<?= e(route('credentials.qr', ['memberId' => (int) $row['member_id']])) ?>">Download their QR code</a></p>
+                                <?php endif; ?>
                                 <form method="post" action="<?= e(route('credentials.requests.upload', ['id' => $id])) ?>" enctype="multipart/form-data">
                                     <?= csrf_field() ?>
                                     <label class="field__label" for="file-<?= e($id) ?>">File from the template</label>

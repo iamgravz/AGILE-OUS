@@ -91,6 +91,24 @@ final class CredentialRequestsTest extends TestCase
         $this->assertSame(200, $member->get("/files/credential/{$credentialId}")['status']);
         $this->assertNotSame(200, TestServer::loggedIn('member@agile.test')->get("/files/credential/{$credentialId}")['status']);
 
+        // One QR code per member: the MSW Committee Head downloads it; scanning it shows the current ID and active status.
+        $memberId = (int) $byType['digital_id']['member_id'];
+        $qr = $head->get("/credentials/qr/{$memberId}");
+        $this->assertSame(200, $qr['status']);
+        $this->assertStringStartsWith("\x89PNG", $qr['body']);
+        $this->assertSame(403, $member->get("/credentials/qr/{$memberId}")['status']);
+        $token = (string) $db->query("SELECT verify_token FROM members WHERE member_id = {$memberId}")->fetchColumn();
+        $this->assertMatchesRegularExpression('/^[a-f0-9]{64}$/', $token);
+        $this->assertSame($token, (string) $db->query("SELECT verify_token FROM members WHERE member_id = {$memberId}")->fetchColumn(), 'The same code every time.');
+
+        $public = new TestServer();
+        $page = $public->get("/verify/member/{$token}");
+        $this->assertSame(200, $page['status']);
+        $this->assertStringContainsString('Active AGILE member', $page['body']);
+        $this->assertStringContainsString('Sample Requester', $page['body']);
+        $this->assertSame(200, $public->get("/verify/member/{$token}/id")['status']);
+        $this->assertSame(404, $public->get('/verify/member/' . str_repeat('a', 64))['status']);
+
         // Declining needs the reason, which the member sees.
         $certRequest = (int) $byType['certificate']['request_id'];
         $head->post("/credentials/requests/{$certRequest}/decline", ['remarks' => '']);

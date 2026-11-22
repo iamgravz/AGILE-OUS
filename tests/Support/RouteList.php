@@ -14,7 +14,7 @@ final class RouteList
     /** Everything reachable without a login. A new route must be added here on purpose, or given a login check. */
     public const PUBLIC_ROUTES = [
         'GET /', 'GET /about', 'GET /news', 'GET /events', 'GET /publications', 'GET /announcements', 'GET /positions', 'GET /positions/{id}',
-        'GET /ask-for-help', 'GET /privacy', 'GET /track', 'POST /track', 'POST /track/edit-link', 'GET /verify/{token}', 'GET /posts/{slug}', 'GET /media/{id}',
+        'GET /ask-for-help', 'GET /privacy', 'GET /track', 'POST /track', 'POST /track/edit-link', 'GET /verify/{token}', 'GET /verify/member/{token}', 'GET /verify/member/{token}/id', 'GET /posts/{slug}', 'GET /media/{id}',
         'GET /welfare/guest', 'POST /welfare/guest/code', 'POST /welfare/guest/resend', 'POST /welfare/guest/verify', 'POST /welfare/guest/restart', 'POST /welfare/guest/submit', 'GET /welfare/guest/submitted',
         'GET /register', 'POST /register', 'POST /register/verify', 'POST /register/password', 'POST /register/resend', 'POST /register/restart',
         'GET /login', 'POST /login', 'GET /forgot-password', 'POST /forgot-password', 'GET /reset-password', 'POST /reset-password', 'GET /account/setup', 'POST /account/setup',

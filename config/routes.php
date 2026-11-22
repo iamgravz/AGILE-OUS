@@ -27,6 +27,8 @@ return static function (Router $router): void {
     $router->get('/track', 'TrackController@show', 'track');
     $router->post('/track', 'TrackController@lookup');
     $router->post('/track/edit-link', 'TrackController@editLink', 'track.edit_link');
+    $router->get('/verify/member/{token}', 'VerifyController@member', 'verify.member');
+    $router->get('/verify/member/{token}/id', 'VerifyController@memberId', 'verify.member_id');
     $router->get('/verify/{token}', 'VerifyController@show', 'verify');
 
     $router->group(['middleware' => [GuestMiddleware::class]], static function (Router $router): void {
@@ -73,6 +75,7 @@ return static function (Router $router): void {
     $router->post('/applications/{id}/waitlist', 'ApplicationsController@waitlist', 'applications.waitlist')->middleware('perm:application.decide');
 
     $router->get('/credentials/requests', 'CredentialRequestsController@index', 'credentials.requests')->middleware('perm:credential.approve');
+    $router->get('/credentials/qr/{memberId}', 'CredentialRequestsController@qr', 'credentials.qr')->middleware('perm:credential.approve');
     $router->post('/credentials/requests/{id}/upload', 'CredentialRequestsController@upload', 'credentials.requests.upload')->middleware('perm:credential.approve');
     $router->post('/credentials/requests/{id}/decline', 'CredentialRequestsController@decline', 'credentials.requests.decline')->middleware('perm:credential.approve');
     $router->get('/credentials/approvals', 'CredentialApprovalsController@index', 'credentials.approvals')->middleware('perm:credential.approve');

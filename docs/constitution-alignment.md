@@ -119,6 +119,7 @@ Migration `2026_11_22_constitution_alignment.php` (applied to `agile_ams` after 
 ### ID and certificate (Nov 23, 2026)
 
 - `CREDENTIAL_MODE=manual` (`config/credentials.php`): the system no longer draws IDs and certificates. A member requests one under My Account; the MSW Committee Head makes it from AGILE's template and uploads it (PDF, JPG or PNG) on **ID and certificate requests**, or declines with the reason. The upload is the member's current copy, replacing an earlier one of the same kind. `generated` brings back the drawn PDFs and the approval queue.
+- **One QR code per member** (migration `2026_11_23_member_verify_token.php`, `MemberVerificationService`): the MSW Committee Head downloads it from the request or the member record and puts it on the template. Scanning it opens `/verify/member/<token>`, which shows the member's current digital ID, name, member number, role and that they are an active member. A new ID keeps the same QR code.
 
 ## 4. Recommended order
 
