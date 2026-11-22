@@ -19,6 +19,9 @@ $fields = [
 ?>
 <?php $this->start('title') ?>Track your application or concern<?php $this->end() ?>
 <?php $this->start('description') ?>Check the status of your AGILE application or welfare concern using your code and email.<?php $this->end() ?>
+<?php $this->start('head') ?>
+<link rel="stylesheet" href="<?= e(asset('css/robot.css')) ?>">
+<?php $this->end() ?>
 <?php $glassForm = $result === null && current_user_id() === null; ?>
 <?php if ($glassForm) : ?>
     <?php $this->start('no_flash') ?>1<?php $this->end() ?>
@@ -28,7 +31,7 @@ $fields = [
             <?= $this->partial('partials/flash') ?>
 <?php endif; ?>
 <div class="form-layout">
-<div class="track-page form-layout__main">
+<div class="track-page form-layout__main robot-stage">
     <h1>Track your application or concern</h1>
 
     <?php if ($result !== null) : ?>
@@ -110,7 +113,9 @@ $fields = [
         <?php if ($error !== null) : ?>
             <?= $this->partial('partials/alert', ['tone' => 'danger', 'message' => $error]) ?>
         <?php endif; ?>
-        <form class="card glass" method="post" action="<?= e(route('track')) ?>">
+        <?= $this->partial('partials/robot', ['bubble' => "I'm Iskobot. Let's check where your request is."]) ?>
+
+        <form class="card glass robot-card" method="post" action="<?= e(route('track')) ?>">
             <?= csrf_field() ?>
             <div class="card__body">
                 <?php foreach ($fields as $name => $field) : ?>

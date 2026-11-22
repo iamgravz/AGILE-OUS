@@ -139,7 +139,7 @@
     display: none;
 }
 
-/* Login, Apply and Ask for Help: the card column sits in the middle of the page, with its heading centered over it. */
+/* Login, Apply, Ask for Help and Track: the card column sits in the middle of the page, with its heading centered over it. */
 .form-layout:has(> .robot-stage) {
     grid-template-columns: minmax(0, 45rem);
     justify-content: center;
