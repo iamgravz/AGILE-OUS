@@ -161,6 +161,8 @@ return static function (Router $router): void {
     $router->get('/admin/roles', 'AdminUsersController@roles', 'admin.roles')->middleware('perm:admin.users');
     $router->post('/admin/roles', 'AdminUsersController@saveRoles')->middleware('perm:admin.users');
 
+    $router->get('/admin/elected-officers', 'ElectedOfficersController@index', 'admin.elected_officers')->middleware('perm:admin.users');
+    $router->post('/admin/elected-officers', 'ElectedOfficersController@store')->middleware('perm:admin.users');
     $router->get('/admin/open-positions', 'OpenPositionsController@index', 'admin.open_positions')->middleware('perm:admin.settings');
     $router->post('/admin/open-positions', 'OpenPositionsController@save')->middleware('perm:admin.settings');
 

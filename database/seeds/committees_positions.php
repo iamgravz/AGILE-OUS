@@ -36,6 +36,15 @@ return static function (PDO $db): void {
     // The Source Code is AGILE's publication, led by its Editor-in-Chief. It has no committee head in the system: the MSW
     // Committee Head decides its applications (BR-20).
     $sourceCode = seed_row($db, 'committees', 'committee_id', ['name' => 'The Source Code'], ['description' => 'The official student publication of AGILE OUS.']);
+    // Year-Level Council (Article V Section 3): one elected representative per year level, never open for application.
+    $council = seed_row($db, 'committees', 'committee_id', ['name' => 'Year-Level Council'], [
+        'description' => 'Elected representatives from each year level: the communication bridge between the Executive Board and their batch.',
+    ]);
+
+    foreach (['1st Year Representative', '2nd Year Representative', '3rd Year Representative', '4th Year Representative'] as $title) {
+        seed_row($db, 'positions', 'position_id', ['committee_id' => $council, 'title' => $title], ['role_type' => 'general', 'target_slots' => 1, 'is_open' => 0]);
+    }
+
     // Title => target headcount from the dashboard (Managing Editor counts the interim one). Feature Editor has no target yet.
     $titles = ['Editor-in-Chief' => 1, 'Managing Editor' => 2, 'News Editor' => 2, 'Feature Editor' => null, 'Writer' => 3, 'Head Cartoonist' => 1,
         'Cartoonist' => 3, 'Layout Editor' => 3, 'Head Photojournalist' => 1, 'Photojournalist' => 3, 'Videographer/Editor' => 3];

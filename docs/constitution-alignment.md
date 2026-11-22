@@ -20,7 +20,7 @@ Status: **Aligned**, **Partly** (works, but differs in a detail), **Gap** (the b
 | Standing committees | Aligned | All seven, named as Article V writes them. |
 | The Source Code | **Conflict** | In the system as a committee with 11 positions; the by-laws do not mention it. Publications belong to the Creatives committee. |
 | Committee Heads and Deputies | Aligned | One head and one deputy per committee. |
-| Year-Level Representatives | **Gap** | No position, role or council. |
+| Year-Level Representatives | Fixed (Nov 23) | Year-Level Council with 1st to 4th Year Representative; recorded in Administration, Elected officers. |
 | Ad Hoc Committees, Advisory Board | **Gap** | No faculty adviser role; no ad hoc committees. |
 | Elections (COMELEC, online voting) | **Gap** | Not in the system. |
 | Candidate qualifications | Partly | Year level is now recorded; the 3rd-year and 2nd-year minimums are not checked. |
@@ -96,11 +96,17 @@ Migration `2026_11_22_constitution_alignment.php` (applied to `agile_ams` after 
 - **Committee Heads approve or reject applicants** for their committees (BR-20, as built). A Committee Head position and The Source Code still go to the MSW Committee Head.
 - **The MSW team sets the interview dates** (`interview.manage`, as built).
 - **The Executive Board and the Year-Level Representatives are chosen by election** (Article VI), not by application. The system already cannot open them: an HR request must be for a position in the requester's own committee, Executive positions have no committee, and Open for application covers Committee Head to The Source Code only. The apply page now says so.
-- Vacancy succession (Article VI Section 5) and the elections themselves stay outside the system until G6 (COMELEC and online voting) is built; Year-Level Representatives (G3) belong with it.
+- Vacancy succession (Article VI Section 5) and the elections themselves stay outside the system until G6 (COMELEC and online voting) is built. The Year-Level Representatives positions exist since Nov 23 (section 3); the winners are recorded in Elected officers.
+
+### Added on November 23, 2026
+
+- **G3** Migration `2026_11_23_year_level_council.php`: the Year-Level Council with one 1st, 2nd, 3rd and 4th Year Representative (`role_type 'general'`, never open for application; the holder keeps the General Member role).
+- **Administration, Elected officers** (`/admin/elected-officers`, `admin.users`): the MSW Committee Head records each election winner for the Executive Board or the Year-Level Council. A new email gets an account and the password link; an existing account keeps its login and gains the position (one office per person). The role follows `config/role_mapping.php`: President, Executive Committee, or General Member.
+- Demo data: the whole Executive Board has demo accounts (`Password123!`), and four demo Year-Level Representatives. No real names.
 
 ## 4. Recommended order
 
 1. Done: C1 to C4 and P1 (see section 3).
 2. **Decision for the Board:** C5 (The Source Code). C6 is decided (section 3).
-3. **Next features, if wanted:** G3 Year-Level Representatives, G4 Faculty Adviser, P2 candidate checks, P3 term limits, P5 retention, G1 member categories.
+3. **Next features, if wanted:** G4 Faculty Adviser, P2 candidate checks, P3 term limits, P5 retention, G1 member categories.
 4. **Separate projects:** G6 elections, G7 finance, G2 fees, G8 to G9.

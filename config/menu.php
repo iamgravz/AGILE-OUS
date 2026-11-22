@@ -94,6 +94,7 @@ return [
             'items' => [
                 ['label' => 'New accounts for approval', 'url' => '/accounts/approvals', 'icon' => 'users', 'permission' => 'account.approve', 'badge' => 'accounts'],
                 ['label' => 'Users', 'url' => '/admin/users', 'icon' => 'users', 'permission' => 'admin.users'],
+                ['label' => 'Elected officers', 'url' => '/admin/elected-officers', 'icon' => 'users', 'permission' => 'admin.users'],
                 ['label' => 'Roles and permissions', 'url' => '/admin/roles', 'icon' => 'shield', 'permission' => 'admin.users'],
                 ['label' => 'Committees and positions', 'url' => '/admin/committees', 'icon' => 'layers', 'permission' => 'admin.settings'],
                 ['label' => 'Settings', 'url' => '/admin/settings', 'icon' => 'settings', 'permission' => 'admin.settings'],

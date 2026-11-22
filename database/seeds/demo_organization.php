@@ -7,8 +7,9 @@ declare(strict_types=1);
 // Runs only outside production, after demo_users (which already has the President, a VP, the Academics and Training
 // head and the MSW Committee Head, Deputy and Member).
 //
-// Committee heads get an account (password Password123!) so they can decide their committee's applications (BR-20).
-// Everyone else is a member with no account yet, as an approved applicant would be; they can try /register.
+// Committee heads (to decide their committee's applications, BR-20) and the Executive Board get an account, password
+// Password123!. Everyone else, the Year-Level Representatives too, is a member with no account yet, as an approved
+// applicant would be; they can try /register.
 return static function (PDO $db): void {
     $now = date('Y-m-d H:i:s');
     $role = static function (string $slug) use ($db): int {
@@ -58,6 +59,11 @@ return static function (PDO $db): void {
         ['The Source Code', 'Managing Editor', 'Dino', 'Lazaro'],
         ['The Source Code', 'Writer', 'Mia', 'Santiago'],
         ['The Source Code', 'Cartoonist', 'Paolo', 'Reyes'],
+        // Year-Level Council (Article V Section 3), elected like the Executive Board.
+        ['Year-Level Council', '1st Year Representative', 'Andrea', 'Lim'],
+        ['Year-Level Council', '2nd Year Representative', 'Bryan', 'Cruz'],
+        ['Year-Level Council', '3rd Year Representative', 'Celine', 'Dizon'],
+        ['Year-Level Council', '4th Year Representative', 'Dennis', 'Flores'],
     ];
 
     foreach ($people as $index => [$committee, $title, $firstName, $lastName]) {
@@ -70,28 +76,33 @@ return static function (PDO $db): void {
         $email = strtolower(str_replace(' ', '', "{$firstName}.{$lastName}")) . '@agile.test';
         $studentNo = sprintf('2024-%05d-OU-0', 300 + $index);
         $isHead = $title === 'Committee Head';
+        // Committee heads and the Executive Board log in; the rest are members who can still try /register.
+        $accountRole = $isHead ? 'committee_head' : ($committee === '' ? 'execomm' : null);
+        $yearLevel = str_ends_with($title, 'Year Representative') ? substr($title, 0, 8) : '3rd Year';
 
         $applicantId = seed_row($db, 'applicants', 'applicant_id', ['email' => $email], [
             'first_name' => $firstName,
             'last_name' => $lastName,
             'student_no' => $studentNo,
             'contact_no' => sprintf('0917200%04d', $index + 1),
-            'year_level' => '3rd Year',
+            'year_level' => $yearLevel,
             'email_verified_at' => $now,
         ]);
 
-        $member = $db->prepare('SELECT member_id FROM members WHERE applicant_id = ?');
+        $member = $db->prepare('SELECT member_id, user_id FROM members WHERE applicant_id = ?');
         $member->execute([$applicantId]);
+        $existing = $member->fetch(PDO::FETCH_ASSOC);
 
-        if ($member->fetchColumn() !== false) {
+        // Already seeded: only an Executive Board member seeded before they had accounts (Nov 23, 2026) gets one now.
+        if ($existing !== false && ($accountRole === null || $existing['user_id'] !== null)) {
             continue;
         }
 
         $userId = null;
 
-        if ($isHead) {
+        if ($accountRole !== null) {
             $userId = seed_row($db, 'users', 'user_id', ['email' => $email], [
-                'role_id' => $role('committee_head'),
+                'role_id' => $role($accountRole),
                 'password_hash' => password_hash('Password123!', PASSWORD_DEFAULT),
                 'first_name' => $firstName,
                 'last_name' => $lastName,
@@ -101,6 +112,12 @@ return static function (PDO $db): void {
                 'email_verified_at' => $now,
             ]);
             $db->prepare('UPDATE applicants SET user_id = ? WHERE applicant_id = ?')->execute([$userId, $applicantId]);
+        }
+
+        if ($existing !== false) {
+            $db->prepare('UPDATE members SET user_id = ?, registered_at = ? WHERE member_id = ?')->execute([$userId, $now, $existing['member_id']]);
+
+            continue;
         }
 
         seed_row($db, 'members', 'member_id', ['applicant_id' => $applicantId], [

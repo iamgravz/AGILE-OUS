@@ -89,7 +89,9 @@ final class DatabaseIntegrityTest extends TestCase
         $this->assertSame([
             'Academics and Training', 'Creatives, Social Media and Communication', 'Events and External Relations',
             'Finance and Fundraising', 'Logistics', 'Membership and Student Welfare', 'Research and Extension', 'The Source Code',
+            'Year-Level Council',
         ], $committees);
+        $this->assertSame(4, (int) $db->query("SELECT COUNT(*) FROM positions p JOIN committees c ON c.committee_id = p.committee_id WHERE c.name = 'Year-Level Council' AND p.role_type = 'general' AND p.is_open = 0")->fetchColumn());
         $this->assertSame(11, (int) $db->query("SELECT COUNT(*) FROM positions p JOIN committees c ON c.committee_id = p.committee_id WHERE c.name = 'The Source Code' AND p.role_type = 'source_code'")->fetchColumn());
         $this->assertSame(
             ['Assistant Secretary', 'Auditor', 'General Secretary', 'President', 'Treasurer', 'Vice President for External Affairs', 'Vice President for Internal Affairs'],
