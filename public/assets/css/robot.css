@@ -134,6 +134,15 @@
     font-size: 0.875rem;
 }
 
+/* Apply page: the upload fields wait for a Requirements row. Only with JavaScript on, so they never become unreachable. */
+.js .apply-uploads[data-pending] {
+    display: none;
+}
+
+.apply-required-docs {
+    margin: 0 0 var(--space-3);
+}
+
 /* Apply page: the requirements of the chosen position, opening to AGILE's full table. */
 .apply-requirements-dropdown {
     margin: 0 0 var(--space-4);

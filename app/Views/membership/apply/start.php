@@ -112,11 +112,18 @@ $slots = static fn (array $p): string => $p['remaining'] === null ? '' : ' (' . 
                                     <option value="<?= e($key) ?>" data-documents="<?= e($documents) ?>" data-grades="<?= $needsGrades ? '1' : '0' ?>" data-grades-label="<?= e($rowGradesLabel ?? '') ?>"<?= $requirement === $key ? ' selected' : '' ?>><?= e($who) ?></option>
                                 <?php endforeach; ?>
                             </select>
-                            <p class="apply-required-docs" id="requirement-docs"><strong>Required documents:</strong> <span data-required-docs><?= e($requiredDocs) ?></span></p>
                             <?php if ($requirementError !== null) : ?>
                                 <p class="field__error" id="requirement-error"><?= icon('alert') ?> <?= e($requirementError) ?></p>
                             <?php endif; ?>
                         </div>
+
+                        <?php
+                        // Branching: nothing to upload until a Requirements row is chosen. Then the COR for every row, and the
+                        // grades only for the rows that ask for them. data-pending hides this only when JavaScript runs (.js),
+                        // so without it the fields still show and the server checks them.
+                        ?>
+                        <div class="apply-uploads" data-uploads<?= $requirement === '' ? ' data-pending' : '' ?>>
+                        <p class="apply-required-docs" id="requirement-docs"><strong>Required documents:</strong> <span data-required-docs><?= e($requiredDocs) ?></span></p>
 
                         <?php if ($uploadAgain !== null) : ?>
                             <p class="field__error"><?= icon('alert') ?> <?= e($uploadAgain) ?></p>
@@ -134,10 +141,11 @@ $slots = static fn (array $p): string => $p['remaining'] === null ? '' : ' (' . 
                         <div class="field <?= $gradesError !== null ? 'field--error' : '' ?>" data-upload="grades"<?= $requirement !== '' && !$gradesNeeded ? ' hidden' : '' ?>>
                             <label class="field__label" for="grades"><span data-grades-label><?= e($gradesLabel) ?></span> <span class="field__required" aria-hidden="true">*</span></label>
                             <input class="input apply-upload" id="grades" name="grades" type="file" accept=".pdf,.jpg,.jpeg,.png"<?= $gradesNeeded ? ' required' : '' ?> aria-describedby="grades-help<?= $gradesError !== null ? ' grades-error' : '' ?>"<?= $gradesError !== null ? ' aria-invalid="true"' : '' ?>>
-                            <p class="field__help" id="grades-help">PDF, JPG or PNG, up to <?= e($maxMb) ?> MB. Not needed for general members and 1st years in their 1st semester.</p>
+                            <p class="field__help" id="grades-help">PDF, JPG or PNG, up to <?= e($maxMb) ?> MB.</p>
                             <?php if ($gradesError !== null) : ?>
                                 <p class="field__error" id="grades-error"><?= icon('alert') ?> <?= e($gradesError) ?></p>
                             <?php endif; ?>
+                        </div>
                         </div>
 
                         <div class="hp-field" aria-hidden="true">

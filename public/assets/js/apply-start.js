@@ -44,11 +44,17 @@
         positionLabel.textContent = role === 'source_code' ? 'Post in The Source Code' : 'Committee';
     };
 
+    const uploads = document.querySelector('[data-uploads]');
+    const corInput = document.querySelector('[data-upload="cor"] input[type="file"]');
+
+    // Branching: no upload fields until a row is chosen; then the COR, and the grades only when the row asks for them.
     const updateRequirement = () => {
         const option = requirement.selectedOptions[0];
         const chosen = option && option.value !== '';
         const needsGrades = chosen && option.dataset.grades === '1';
 
+        uploads.toggleAttribute('data-pending', !chosen);
+        corInput.required = chosen;
         docs.textContent = chosen ? option.dataset.documents : 'Choose the row that fits you.';
         gradesField.hidden = !needsGrades;
         gradesInput.required = needsGrades;
@@ -62,27 +68,33 @@
         }
     };
 
-    // A suggestion only: General Membership starts at "General members", a position at its own row. A 1st year
-    // changes it to their row.
-    const suggestRequirement = () => {
+    // They choose the row themselves; only rows that fit what they apply for can be chosen (the server checks the
+    // same): General Membership takes General members or a 1st year row, a position any row but General members.
+    const limitRequirement = () => {
         const role = applying.value;
-        const current = requirement.value;
-        const firstYear = ['first_year_first_sem', 'first_year_second_sem'];
+        const forGeneral = ['general', 'first_year_first_sem', 'first_year_second_sem'];
 
-        if (role === 'general' && !['general', ...firstYear].includes(current)) {
-            requirement.value = 'general';
-        } else if (role !== '' && role !== 'general' && !firstYear.includes(current)) {
-            requirement.value = ['committee_head', 'deputy', 'committee_member'].includes(role) ? 'committee' : 'applicant';
+        [...requirement.options].forEach((option) => {
+            if (option.value === '') {
+                return;
+            }
+
+            option.disabled = role === 'general' ? !forGeneral.includes(option.value) : role !== '' && option.value === 'general';
+        });
+
+        if (requirement.selectedOptions[0]?.disabled) {
+            requirement.value = '';
         }
     };
 
     applying.addEventListener('change', () => {
         fillPositions();
-        suggestRequirement();
+        limitRequirement();
         updateRequirement();
     });
     requirement.addEventListener('change', updateRequirement);
 
     fillPositions();
+    limitRequirement();
     updateRequirement();
 })();
