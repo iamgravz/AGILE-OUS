@@ -9,6 +9,8 @@ use App\Middleware\GuestMiddleware;
 return static function (Router $router): void {
     $router->get('/', 'PortalController@home', 'home');
     $router->get('/about', 'PortalController@about', 'about');
+    $router->get('/committees', 'PortalController@committees', 'committees');
+    $router->get('/committees/{id}', 'PortalController@committee', 'committees.show');
     $router->get('/news', 'PortalController@news', 'news');
     $router->get('/events', 'PortalController@events', 'events');
     $router->get('/publications', 'PortalController@publications', 'publications');

@@ -8,7 +8,7 @@ return [
     'public' => [
         ['label' => 'Home', 'url' => '/'],
         ['label' => 'About', 'url' => '/about'],
-        ['label' => 'Committees', 'url' => '/about#committees'],
+        ['label' => 'Committees', 'url' => '/committees'],
         ['label' => 'News', 'url' => '/news'],
         ['label' => 'Events', 'url' => '/events'],
         ['label' => 'Publications', 'url' => '/publications'],

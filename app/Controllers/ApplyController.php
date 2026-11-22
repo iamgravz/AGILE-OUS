@@ -46,9 +46,13 @@ final class ApplyController
 
         if (current_user_id() === null && ApplicantAccessService::current() === null) {
             $pending = Session::get(self::PENDING_KEY);
+            $open = $this->membership->openPositions();
+            // From Open Positions: "Apply" on a card arrives with ?position=<id>, already chosen.
+            $picked = array_values(array_filter($open, static fn (array $p): bool => (string) $p['position_id'] === $request->queryText('position')))[0] ?? null;
 
             return $pending === null
-                ? $this->publicPage('membership/apply/start', ['forPosition' => ctype_digit($vacancy), 'positions' => $this->membership->openPositions(), 'yearLevels' => $this->membership->yearLevelOptions(), 'semester' => $this->membership->currentSemester()])
+                ? $this->publicPage('membership/apply/start', ['forPosition' => ctype_digit($vacancy), 'positions' => $open, 'yearLevels' => $this->membership->yearLevelOptions(), 'semester' => $this->membership->currentSemester(),
+                    'prefill' => $picked === null ? [] : ['applying_for' => $picked['role_type'], 'position_id' => (string) $picked['position_id']]])
                 : $this->publicPage('membership/apply/verify', ['email' => $pending['email']]);
         }
 

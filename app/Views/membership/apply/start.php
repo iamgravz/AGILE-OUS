@@ -9,7 +9,9 @@
  * @var list<array{position_id: int, title: string, committee_name: string, label: string, remaining: ?int}> $positions open for application
  * @var list<string> $yearLevels the year levels step 2 offers
  * @var string|null $semester the current academic term's semester ('1st', '2nd', 'summer'), or null
+ * @var array{applying_for?: string, position_id?: string} $prefill (optional) the position chosen on Open Positions
  */
+$prefill ??= [];
 $consentError = field_error('privacy_consent');
 $choiceError = field_error('applying_for');
 $corError = field_error('cor');
@@ -17,8 +19,8 @@ $gradesError = field_error('grades');
 $uploadAgain = field_error('upload_again');
 
 $positionError = field_error('position_id');
-$role = (string) old('applying_for', '');
-$chosenPosition = (string) old('position_id', '');
+$role = (string) old('applying_for', $prefill['applying_for'] ?? '');
+$chosenPosition = (string) old('position_id', $prefill['position_id'] ?? '');
 
 $yearError = field_error('year_level');
 $yearLevel = (string) old('year_level', '');
