@@ -1992,7 +1992,7 @@ a.tabs__tab {
 }
 
 /* Ask for Help for members: the form in the middle of the page, with its heading over it (like the public pages). */
-.welfare-page--centered {
+.welfare-page.welfare-page--centered {
     margin-inline: auto;
 }
 
