@@ -161,6 +161,12 @@ return static function (Router $router): void {
     $router->get('/admin/roles', 'AdminUsersController@roles', 'admin.roles')->middleware('perm:admin.users');
     $router->post('/admin/roles', 'AdminUsersController@saveRoles')->middleware('perm:admin.users');
 
+    $router->get('/admin/archive', 'DocumentArchiveController@index', 'admin.archive')->middleware('perm:backup.manage');
+    $router->post('/admin/archive', 'DocumentArchiveController@run')->middleware('perm:backup.manage');
+    $router->get('/admin/candidacies', 'CandidaciesController@index', 'admin.candidacies')->middleware('perm:admin.users');
+    $router->post('/admin/candidacies/filing', 'CandidaciesController@filing', 'admin.candidacies.filing')->middleware('perm:admin.users');
+    $router->post('/admin/candidacies/{id}/decide', 'CandidaciesController@decide', 'admin.candidacies.decide')->middleware('perm:admin.users');
+    $router->post('/admin/candidacies/{id}/elected', 'CandidaciesController@elected', 'admin.candidacies.elected')->middleware('perm:admin.users');
     $router->get('/admin/elected-officers', 'ElectedOfficersController@index', 'admin.elected_officers')->middleware('perm:admin.users');
     $router->post('/admin/elected-officers', 'ElectedOfficersController@store')->middleware('perm:admin.users');
     $router->get('/admin/open-positions', 'OpenPositionsController@index', 'admin.open_positions')->middleware('perm:admin.settings');
@@ -233,6 +239,11 @@ return static function (Router $router): void {
         // Own records only, like applications. A linked guest case stays visible whatever the role.
         $router->get('/my-welfare-cases', 'WelfareController@index', 'my_welfare_cases');
         $router->get('/my-welfare-cases/{id}', 'WelfareController@show', 'my_welfare_cases.show');
+        // Run for office (Article VI). Members only; CandidacyService checks membership, and the file route its owner.
+        $router->get('/elections/candidacy', 'CandidaciesController@form', 'candidacy');
+        $router->post('/elections/candidacy', 'CandidaciesController@file');
+        $router->post('/elections/candidacy/{id}/withdraw', 'CandidaciesController@withdraw', 'candidacy.withdraw');
+        $router->get('/elections/candidacy/{id}/files/{kind}', 'CandidaciesController@document', 'candidacy.document');
         $router->get('/my-eligibility', 'EligibilityController@mine', 'my_eligibility');
         $router->post('/my-eligibility/documents', 'EligibilityController@submitDocuments', 'my_eligibility.documents');
         // Two permissions can reach these (BR-10), so EligibilityService makes the check, per screening.

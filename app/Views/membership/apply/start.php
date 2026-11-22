@@ -61,7 +61,7 @@ $slots = static fn (array $p): string => $p['remaining'] === null ? '' : ' (' . 
             <div class="form-layout__main robot-stage apply-start">
                 <h1>Apply for membership</h1>
                 <?php if ($forPosition) : ?>
-                    <p class="portal-lead">Committee positions open for application are listed below. The Executive Board and Year-Level Representatives are chosen by election. Already a member? <a href="<?= e(route('login')) ?>">Log in</a>.</p>
+                    <p class="portal-lead">Committee positions open for application are listed below. The Executive Board and Year-Level Representatives are chosen by election: members <a href="<?= e(route('candidacy')) ?>">file a candidacy</a>. Already a member? <a href="<?= e(route('login')) ?>">Log in</a>.</p>
                 <?php else : ?>
                     <p class="portal-lead">You do not need an account. We send a 6-digit code to confirm that this email is yours.</p>
                 <?php endif; ?>

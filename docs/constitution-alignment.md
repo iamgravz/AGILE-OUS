@@ -15,14 +15,14 @@ Status: **Aligned**, **Partly** (works, but differs in a detail), **Gap** (the b
 | Membership categories | **Gap** | Only Regular (called General Member). No Associate or Honorary members. |
 | Member rights | Partly | Access to resources and records works through accounts; voting is not in the system (see Elections). |
 | Fees and dues (₱50) | **Gap** | No fee or receipt records. |
-| Data privacy (RA 10173) | Partly | Consent, encryption, access control and audit logs are in place. The end-of-year retention purge is not. |
+| Data privacy (RA 10173) | Partly | Consent, encryption, access control and audit logs are in place. Decided COR and grades are archived each semester (Nov 23); nothing is purged, by decision. |
 | Board of Officers | Aligned | Executive Committee (with General Secretary) and committee heads. |
 | Standing committees | Aligned | All seven, named as Article V writes them. |
 | The Source Code | Decided (Nov 23) | Stays separate from the seven standing committees for now, although the by-laws do not mention it. |
 | Committee Heads and Deputies | Aligned | One head and one deputy per committee. |
 | Year-Level Representatives | Fixed (Nov 23) | Year-Level Council with 1st to 4th Year Representative; recorded in Administration, Elected officers. |
 | Ad Hoc Committees, Advisory Board | **Gap** | No faculty adviser role; no ad hoc committees. |
-| Elections (COMELEC, online voting) | **Gap** | Not in the system. |
+| Elections (COMELEC, online voting) | Partly (Nov 23) | Filing of candidacy and qualification are in the system; voting itself is not. |
 | Candidate qualifications | Fixed (Nov 23) | Elected officers checks the year-level minimums and asks the MSW Committee Head to confirm full load and no 5.0, W or D. |
 | Term of office, term limits | Fixed (Nov 23) | Terms are recorded per academic year; a third consecutive term in the same post is refused. |
 | Incompatible offices (4-A) | Partly | One position per person is enforced. Members cannot hold two committee memberships, which the by-laws allow. |
@@ -111,7 +111,10 @@ Migration `2026_11_22_constitution_alignment.php` (applied to `agile_ams` after 
 - **P2** `config/elections.php` holds the Article VI rules: President and both Vice Presidents at least 3rd year, the other Executive Board posts at least 2nd year, a Year-Level Representative in their own year level, and two confirmations (full load; no 5.0, W or D). The by-laws may still change; only that file needs editing.
 - **P3** New table `officer_terms` (migration `2026_11_23_officer_terms.php`): one row per officer, post and academic year. Recording the holder again for the next academic year is a re-election; a third consecutive term is refused (`max_consecutive_terms`). Terms served before Nov 23, 2026 are not in the table, so they are not counted.
 - **P6** The apply page's requirements table no longer lists the Executive Board or the Year-Level Representatives: they are elected, and their qualifications are on Elected officers.
-- Still open: **P4** (more than one committee per member) and **P5** (retention), proposals given to the MSW Committee Head.
+- **Every submission asks for year level, section and contact number** (`StudentDetails`, `partials/student_details`): Ask for Help (guest and member, kept encrypted on the case), apply step 1, My Account, Elected officers and Run for office. Accounts gained `year_level` and `section` (migration `2026_11_23_student_details.php`).
+- **P6, Run for office** (`/elections/candidacy`, migration `2026_11_23_candidacies.php`): members file for an Executive Board or Year-Level Representative seat with their COR and previous semester copy of grades while the MSW Committee Head has filing open. The year-level minimum and the term limit are checked at filing; one candidacy per member per academic year. **Administration, Candidacies** opens and closes filing, shows the documents, qualifies or disqualifies (with the reason), and marks winners elected, which records them as in Elected officers.
+- **P5, Document archive** (`/admin/archive`, `backup.manage`, `config/retention.php`): archive only. 120 days after the decision, the COR and grades of approved, rejected and withdrawn applications and of closed candidacies move to `storage/uploads/archive/<academic year>-<semester>/`. Records stay, the files still open from the same pages, and nothing is deleted. Run once a semester.
+- Still open: **P4** (more than one committee per member), a proposal given to the MSW Committee Head.
 
 ## 4. Recommended order
 

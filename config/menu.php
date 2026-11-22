@@ -36,6 +36,7 @@ return [
             'heading' => 'Membership',
             'items' => [
                 ['label' => 'My Applications', 'url' => '/my-applications', 'icon' => 'clipboard', 'permission' => 'application.submit'],
+                ['label' => 'Run for office', 'url' => '/elections/candidacy', 'icon' => 'award', 'permission' => 'welfare.submit'],
                 ['label' => 'Members', 'url' => '/members', 'icon' => 'users', 'permission' => 'member.view'],
                 ['label' => 'IDs and certificates for approval', 'url' => '/credentials/approvals', 'icon' => 'award', 'permission' => 'credential.approve', 'badge' => 'credentials'],
             ],
@@ -94,11 +95,13 @@ return [
             'items' => [
                 ['label' => 'New accounts for approval', 'url' => '/accounts/approvals', 'icon' => 'users', 'permission' => 'account.approve', 'badge' => 'accounts'],
                 ['label' => 'Users', 'url' => '/admin/users', 'icon' => 'users', 'permission' => 'admin.users'],
+                ['label' => 'Candidacies', 'url' => '/admin/candidacies', 'icon' => 'clipboard', 'permission' => 'admin.users'],
                 ['label' => 'Elected officers', 'url' => '/admin/elected-officers', 'icon' => 'users', 'permission' => 'admin.users'],
                 ['label' => 'Roles and permissions', 'url' => '/admin/roles', 'icon' => 'shield', 'permission' => 'admin.users'],
                 ['label' => 'Committees and positions', 'url' => '/admin/committees', 'icon' => 'layers', 'permission' => 'admin.settings'],
                 ['label' => 'Settings', 'url' => '/admin/settings', 'icon' => 'settings', 'permission' => 'admin.settings'],
                 ['label' => 'Audit log', 'url' => '/admin/audit-logs', 'icon' => 'list', 'permission' => 'audit.view'],
+                ['label' => 'Document archive', 'url' => '/admin/archive', 'icon' => 'database', 'permission' => 'backup.manage'],
                 ['label' => 'System health', 'url' => '/admin/system-health', 'icon' => 'database', 'permission' => 'backup.manage'],
             ],
         ],

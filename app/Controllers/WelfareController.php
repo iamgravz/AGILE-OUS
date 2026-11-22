@@ -8,7 +8,9 @@ use App\Core\Request;
 use App\Core\Response;
 use App\Core\View;
 use App\Services\FileRejectedException;
+use App\Models\UserRepository;
 use App\Services\FileStorageService;
+use App\Services\StudentDetails;
 use App\Services\WelfareService;
 use DomainException;
 
@@ -38,7 +40,8 @@ final class WelfareController
             'urgent' => $request->text('urgent') !== '',
         ];
         $related = $request->text('related_case_id');
-        $errors = $this->welfare->concernErrors($input);
+        $details = StudentDetails::fromRequest($request);
+        $errors = $this->welfare->concernErrors($input) + StudentDetails::errors($details);
 
         if ($request->text('privacy_consent') === '') {
             $errors['privacy_consent'] = 'Your consent is required before submitting.';
@@ -46,7 +49,7 @@ final class WelfareController
 
         if ($errors === []) {
             try {
-                $case = $this->welfare->submit($input, ctype_digit($related) ? (int) $related : null, WelfareService::uploadsFrom($request->files('attachments')));
+                $case = $this->welfare->submit($input, ctype_digit($related) ? (int) $related : null, WelfareService::uploadsFrom($request->files('attachments')), $details);
                 flash('success', "We received your concern. Your case code is {$case['case_code']}.");
 
                 return redirect(route('my_welfare_cases.show', ['id' => (int) $case['case_id']]));
@@ -57,7 +60,7 @@ final class WelfareController
             }
         }
 
-        return $this->form($input + ['related_case_id' => $related], $errors);
+        return $this->form($input + ['related_case_id' => $related], $errors, $details);
     }
 
     public function index(Request $request): Response
@@ -89,14 +92,17 @@ final class WelfareController
      * @param array<string, mixed> $input
      * @param array<string, string> $errors
      */
-    private function form(array $input, array $errors): Response
+    private function form(array $input, array $errors, ?array $details = null): Response
     {
+        $account = (new UserRepository())->find((int) current_user_id()) ?? [];
+
         return Response::html(View::render('welfare/new', [
             'input' => $input,
             'errors' => $errors,
             'categories' => $this->welfare->categories(),
             'closedCases' => $this->welfare->myClosedCases(),
             'maxMb' => (new FileStorageService())->maxUploadMb(),
+            'studentDetails' => $details ?? ['year_level' => (string) ($account['year_level'] ?? ''), 'section' => (string) ($account['section'] ?? ''), 'contact_no' => (string) ($account['contact_no'] ?? '')],
             'breadcrumbs' => [['label' => 'Dashboard', 'url' => route('dashboard')], ['label' => 'Ask for Help']],
         ], 'layouts/dashboard'), $errors === [] ? Response::HTTP_OK : Response::HTTP_UNPROCESSABLE, ['Cache-Control' => 'no-store']);
     }

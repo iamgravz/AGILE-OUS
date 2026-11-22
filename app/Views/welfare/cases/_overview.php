@@ -35,6 +35,13 @@ $assignable = array_values(array_filter($handlers, static fn (array $user): bool
                 <?php if ($studentNo !== null) : ?>
                     <div><dt>Student number</dt><dd><?= e($studentNo) ?></dd></div>
                 <?php endif; ?>
+                <?php $details = $case['submitter_details'] ?? ['contact_no' => '', 'year_level' => '', 'section' => '']; ?>
+                <?php if ($details['year_level'] !== '' || $details['section'] !== '') : ?>
+                    <div><dt>Year and section</dt><dd><?= e(trim($details['year_level'] . ', ' . $details['section'], ', ')) ?></dd></div>
+                <?php endif; ?>
+                <?php if ($details['contact_no'] !== '') : ?>
+                    <div><dt>Contact number</dt><dd><a href="tel:<?= e($details['contact_no']) ?>"><?= e($details['contact_no']) ?></a></dd></div>
+                <?php endif; ?>
                 <div><dt>Description</dt><dd><?= nl2br(e($case['description'])) ?></dd></div>
             </dl>
             <?php if (!$isClosed && $case['acknowledged_at'] === null && can('welfare.handle')) : ?>

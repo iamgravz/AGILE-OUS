@@ -4020,3 +4020,12 @@ form .grid--2 {
 }
 
 /* Home: mission and vision fill the row, and quick links join them when there is room. */
+
+/* Year level and section side by side from tablet width (partials/student_details). */
+@media (min-width: 640px) {
+    .student-details {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+        gap: 0 var(--space-4);
+    }
+}

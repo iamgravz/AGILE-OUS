@@ -5,7 +5,6 @@
  * @var \App\Core\View $this
  * @var list<array{position_id: int, title: string, group: string, slots: int, holders: list<string>, open: int}> $seats
  * @var int $chosen
- * @var list<string> $yearLevels
  * @var string $academicYear
  * @var array<string, string> $confirmations
  */
@@ -17,7 +16,6 @@ foreach ($seats as $seat) {
 
 $selected = (int) old('position_id', (string) $chosen);
 $positionError = field_error('position_id');
-$yearError = field_error('year_level');
 $oldConfirmations = (array) old('confirmations', []);
 $needs = static fn (array $seat): string => $seat['group'] === 'Executive Board'
     ? 'At least ' . \App\Services\ElectedOfficerService::minimumYear($seat) . (\App\Services\ElectedOfficerService::minimumYear($seat) === 3 ? 'rd' : 'nd') . ' year'
@@ -81,24 +79,9 @@ $needs = static fn (array $seat): string => $seat['group'] === 'Executive Board'
         <?= $this->partial('partials/form_field', ['name' => 'last_name', 'label' => 'Last name', 'value' => (string) old('last_name', '')]) ?>
     </div>
     <?= $this->partial('partials/form_field', ['name' => 'email', 'label' => 'Email', 'type' => 'email', 'value' => (string) old('email', ''), 'help' => 'If this email already has an account, that account is kept and gains the position.']) ?>
-    <div class="grid grid--2">
-        <?= $this->partial('partials/form_field', ['name' => 'student_no', 'label' => 'PUP student number', 'value' => (string) old('student_no', ''), 'help' => 'For example, 2024-xxxxx-MN-0.']) ?>
-        <?= $this->partial('partials/form_field', ['name' => 'contact_no', 'label' => 'Contact number', 'type' => 'tel', 'value' => (string) old('contact_no', ''), 'required' => false, 'help' => 'Optional.']) ?>
-    </div>
-    <div class="grid grid--2">
-        <div class="field <?= $yearError !== null ? 'field--error' : '' ?>">
-            <label class="field__label" for="year_level">Year level <span class="field__required" aria-hidden="true">*</span></label>
-            <select class="select" id="year_level" name="year_level" required>
-                <option value="">Choose the year level</option>
-                <?php foreach ($yearLevels as $level) : ?>
-                    <option value="<?= e($level) ?>"<?= old('year_level') === $level ? ' selected' : '' ?>><?= e($level) ?></option>
-                <?php endforeach; ?>
-            </select>
-            <p class="field__help">From their current COR (Article VI, Section 2).</p>
-            <?php if ($yearError !== null) : ?><p class="field__error"><?= icon('alert') ?> <?= e($yearError) ?></p><?php endif; ?>
-        </div>
-        <?= $this->partial('partials/form_field', ['name' => 'academic_year', 'label' => 'Academic year of the term', 'value' => (string) old('academic_year', $academicYear), 'help' => 'For example, 2026-2027. Used for the term limit.']) ?>
-    </div>
+    <?= $this->partial('partials/form_field', ['name' => 'student_no', 'label' => 'PUP student number', 'value' => (string) old('student_no', ''), 'help' => 'For example, 2024-xxxxx-MN-0.']) ?>
+    <?= $this->partial('partials/student_details', ['contactHelp' => 'For example, 09171234567. Saved to their account.']) ?>
+    <?= $this->partial('partials/form_field', ['name' => 'academic_year', 'label' => 'Academic year of the term', 'value' => (string) old('academic_year', $academicYear), 'help' => 'For example, 2026-2027. Used for the term limit.']) ?>
     <fieldset class="field">
         <legend class="field__label">Qualifications (Article VI, Section 2) <span class="field__required" aria-hidden="true">*</span></legend>
         <?php foreach ($confirmations as $key => $text) : ?>

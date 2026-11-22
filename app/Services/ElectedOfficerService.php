@@ -39,6 +39,24 @@ final class ElectedOfficerService
     {
         authorize('admin.users');
 
+        return $this->allSeats();
+    }
+
+    /** One elected seat, or null when the position is not an Executive Board or Year-Level Council one. For candidacies. */
+    public function seat(int $positionId): ?array
+    {
+        foreach ($this->allSeats() as $row) {
+            if ($row['position_id'] === $positionId) {
+                return $row;
+            }
+        }
+
+        return null;
+    }
+
+    /** @return list<array{position_id: int, title: string, group: string, slots: int, holders: list<string>, open: int}> */
+    public function allSeats(): array
+    {
         $rows = Database::connection()->prepare(
             "SELECT p.position_id, p.title, p.target_slots, c.name AS committee_name,
                     GROUP_CONCAT(CONCAT(COALESCE(u.first_name, a.first_name), ' ', COALESCE(u.last_name, a.last_name)) ORDER BY m.member_id SEPARATOR '\n') AS holders
@@ -84,13 +102,7 @@ final class ElectedOfficerService
     {
         authorize('admin.users');
 
-        $seat = null;
-
-        foreach ($this->seats() as $row) {
-            if ($row['position_id'] === $positionId) {
-                $seat = $row;
-            }
-        }
+        $seat = $this->seat($positionId);
 
         if ($seat === null) {
             throw new DomainException('Please choose an Executive Board or Year-Level Representative position.');
@@ -129,9 +141,7 @@ final class ElectedOfficerService
             if ($existing === null) {
                 $userId = (new AuthService())->createAccount($person['email'], $person['first_name'], $person['last_name'], 'general_member', $person['student_no']);
 
-                if ($person['contact_no'] !== '') {
-                    $this->users->update($userId, ['contact_no' => $person['contact_no']]);
-                }
+                $this->users->update($userId, ['contact_no' => $person['contact_no'], 'year_level' => $person['year_level'], 'section' => $person['section']]);
             } else {
                 $userId = (int) $existing['user_id'];
 
@@ -144,6 +154,10 @@ final class ElectedOfficerService
                 if ($current !== null && $current['position_id'] !== null) {
                     throw new DomainException('This person already holds a position. One office per person (Article VI, Section 4-A): end that role first.');
                 }
+            }
+
+            if ($existing !== null) {
+                $this->users->update($userId, ['contact_no' => $person['contact_no'], 'year_level' => $person['year_level'], 'section' => $person['section']]);
             }
 
             $member = $membership->ensureMember($userId, $reason);
@@ -191,7 +205,24 @@ final class ElectedOfficerService
     /** @param array<string, mixed> $seat @param array<string, mixed> $person */
     private function assertQualified(array $seat, array $person): void
     {
-        $year = (int) $person['year_level'];
+        $this->assertYearLevel($seat, (string) $person['year_level']);
+
+        $missing = array_diff(array_keys(config('elections.confirmations')), $person['confirmations']);
+
+        if ($missing !== []) {
+            throw new DomainException('Please confirm the Article VI requirements: ' . implode(' ', array_map(static fn (string $key): string => config('elections.confirmations')[$key], $missing)));
+        }
+    }
+
+    /**
+     * Article VI Section 2 and Article V Section 3: the minimum year level, and a representative's own year.
+     *
+     * @param array<string, mixed> $seat
+     * @throws DomainException
+     */
+    public function assertYearLevel(array $seat, string $yearLevel): void
+    {
+        $year = (int) $yearLevel;
 
         if ($year < 1) {
             throw new DomainException("Please choose the officer's year level.");
@@ -204,16 +235,14 @@ final class ElectedOfficerService
         if ($seat['group'] !== 'Executive Board' && config('elections.representative_same_year') && (int) $seat['title'] !== $year) {
             throw new DomainException(sprintf('The %s must be in %s year.', $seat['title'], self::ordinal((int) $seat['title'])));
         }
-
-        $missing = array_diff(array_keys(config('elections.confirmations')), $person['confirmations']);
-
-        if ($missing !== []) {
-            throw new DomainException('Please confirm the Article VI requirements: ' . implode(' ', array_map(static fn (string $key): string => config('elections.confirmations')[$key], $missing)));
-        }
     }
 
-    /** Article VI Section 4: no more than the configured consecutive terms in one position. */
-    private function assertWithinTermLimit(array $seat, array $person, string $academicYear): void
+    /**
+     * Article VI Section 4: no more than the configured consecutive terms in one position. $person needs email and student_no.
+     *
+     * @throws DomainException
+     */
+    public function assertWithinTermLimit(array $seat, array $person, string $academicYear): void
     {
         if (preg_match('/^(\d{4})-(\d{4})$/', $academicYear, $match) !== 1 || (int) $match[2] !== (int) $match[1] + 1) {
             throw new DomainException('Please give the academic year as 2026-2027.');

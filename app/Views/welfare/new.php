@@ -6,6 +6,7 @@
  * @var list<array<string, mixed>> $categories
  * @var list<array{case_id: int, label: string}> $closedCases
  * @var int $maxMb
+ * @var array<string, string> $studentDetails
  */
 ?>
 <?php $this->start('title') ?>Ask for help<?php $this->end() ?>
@@ -23,5 +24,6 @@
         'maxMb' => $maxMb,
         'closedCases' => $closedCases,
         'withConsent' => true,
+        'studentDetails' => $studentDetails,
     ]) ?>
 </div>

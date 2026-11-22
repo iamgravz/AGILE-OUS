@@ -11,6 +11,7 @@
  * @var int $maxMb
  * @var list<array{case_id: int, label: string}>|null $closedCases logged-in users choose from these
  * @var bool $withConsent guests gave consent in the first step
+ * @var array<string, string>|null $studentDetails logged-in users: year level, section and contact number, from their account
  */
 use App\Services\WelfareService;
 
@@ -33,6 +34,9 @@ $consentError = $errors['privacy_consent'] ?? null;
 <form class="card" method="post" action="<?= e($action) ?>" enctype="multipart/form-data">
     <?= csrf_field() ?>
     <div class="card__body">
+        <?php if (isset($studentDetails)) : ?>
+            <?= $this->partial('partials/student_details', ['values' => $studentDetails, 'errors' => $errors, 'contactHelp' => 'So the MSW team can reach you. Saved to your account.']) ?>
+        <?php endif; ?>
         <fieldset class="field-group"<?= $categoryError !== null ? ' aria-describedby="category_id-error"' : '' ?>>
             <legend class="field-group__legend">What is this about? <span class="field__required" aria-hidden="true">*</span></legend>
             <?php if ($categoryError !== null) : ?>

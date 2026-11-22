@@ -46,6 +46,7 @@ $field = static fn (string $name, string $label, array $extra = []): array => ['
                         <?= $this->partial('partials/form_field', $field('name', 'Full name', ['autocomplete' => 'name'])) ?>
                         <?= $this->partial('partials/form_field', $field('email', 'Email', ['type' => 'email', 'autocomplete' => 'email', 'help' => 'We send a 6-digit code here to confirm that this email is yours.'])) ?>
                         <?= $this->partial('partials/form_field', $field('student_no', 'PUP student number', ['required' => false, 'autocomplete' => 'off', 'help' => 'Optional. For example, 2024-xxxxx-MN-0.'])) ?>
+                        <?= $this->partial('partials/student_details', ['values' => $input, 'errors' => $errors, 'contactHelp' => 'So the MSW team can reach you. For example, 09171234567.']) ?>
 
                         <div class="field <?= $categoryError !== null ? 'field--error' : '' ?>">
                             <label class="field__label" for="category_id">Category <span class="field__required" aria-hidden="true">*</span></label>

@@ -256,7 +256,7 @@ final class MembershipService
             return;
         }
 
-        $this->users->update($this->userId(), ['contact_no' => $contactNo]);
+        $this->users->update($this->userId(), ['contact_no' => $contactNo] + array_intersect_key($personal, ['year_level' => 0, 'section' => 0]));
     }
 
     /** @param array<int|string, mixed> $answers */

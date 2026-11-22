@@ -103,7 +103,7 @@ foreach ($positions as $position) {
             </fieldset>
 
             <?php if (current_user_id() === null) : ?>
-                <p class="field__help">The Executive Board and Year-Level Representatives are chosen by election, not by application (Constitution, Article VI).</p>
+                <p class="field__help">The Executive Board and Year-Level Representatives are chosen by election, not by application (Constitution, Article VI). To run, <a href="<?= e(route('candidacy')) ?>">file a candidacy</a>.</p>
             <?php endif; ?>
 
             <details class="wizard-requirements">

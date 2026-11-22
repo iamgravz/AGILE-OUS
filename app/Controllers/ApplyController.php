@@ -14,6 +14,7 @@ use App\Services\ApplicationIncompleteException;
 use App\Services\FileRejectedException;
 use App\Services\GuestVerificationService;
 use App\Services\MembershipService;
+use App\Services\StudentDetails;
 use DomainException;
 
 /**
@@ -314,15 +315,17 @@ final class ApplyController
             return $blocked;
         }
 
-        $contactNo = $request->text('contact_no');
+        $details = StudentDetails::fromRequest($request);
+        $contactNo = $details['contact_no'];
         $personal = $this->personalInput($request);
-        $errors = $this->contactErrors($contactNo) + $this->personalErrors($personal);
+        $errors = StudentDetails::errors($details) + $this->personalErrors($personal);
 
         if ($errors !== []) {
-            return $this->backWithErrors(route('apply.new'), $errors, $personal + ['contact_no' => $contactNo]);
+            return $this->backWithErrors(route('apply.new'), $errors, $personal + $details);
         }
 
         $id = $this->membership->startDraft($contactNo, $personal);
+        $this->membership->saveContact($id, $contactNo, $personal + ['year_level' => $details['year_level'], 'section' => $details['section']]);
 
         // The COR (and grades) from the first page join the new application.
         $documents = Session::get(self::DOCUMENTS_KEY);
@@ -541,12 +544,12 @@ final class ApplyController
 
         switch ($step) {
             case 1:
-                $contactNo = $request->text('contact_no');
+                $details = StudentDetails::fromRequest($request);
                 $personal = $application['applicant_id'] !== null ? $this->personalInput($request) : [];
-                $errors = $this->contactErrors($contactNo) + $this->personalErrors($personal);
+                $errors = StudentDetails::errors($details) + $this->personalErrors($personal);
 
                 if ($errors === []) {
-                    $this->membership->saveContact($id, $contactNo, $personal);
+                    $this->membership->saveContact($id, $details['contact_no'], $personal + ['year_level' => $details['year_level'], 'section' => $details['section']]);
                 }
 
                 return $errors;
@@ -697,7 +700,7 @@ final class ApplyController
     /** @return array<string, mixed> */
     private function oldInput(Request $request): array
     {
-        $old = ['contact_no' => $request->text('contact_no')] + $this->personalInput($request);
+        $old = StudentDetails::fromRequest($request) + $this->personalInput($request);
         $answers = $request->input('q', []);
 
         foreach (is_array($answers) ? $answers : [] as $questionId => $answer) {

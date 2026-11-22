@@ -28,12 +28,13 @@ final class ProfileService
     ) {
     }
 
-    public function updateContact(string $contactNo): void
+    public function updateContact(string $contactNo, ?string $yearLevel = null, ?string $section = null): void
     {
         $userId = $this->userId();
+        $values = array_filter(['contact_no' => $contactNo, 'year_level' => $yearLevel, 'section' => $section], static fn (?string $value): bool => $value !== null);
 
-        $this->users->update($userId, ['contact_no' => $contactNo]);
-        AuditService::log('profile.updated', 'user', $userId, ['fields' => ['contact_no']]);
+        $this->users->update($userId, $values);
+        AuditService::log('profile.updated', 'user', $userId, ['fields' => array_keys($values)]);
     }
 
     /**

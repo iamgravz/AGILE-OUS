@@ -15,6 +15,7 @@ use App\Services\FileRejectedException;
 use App\Services\FileStorageService;
 use App\Services\GuestVerificationService;
 use App\Services\PortalService;
+use App\Services\StudentDetails;
 use App\Services\WelfareService;
 use DomainException;
 
@@ -79,7 +80,7 @@ final class GuestWelfareController
             'email' => strtolower($request->text('email')),
             'student_no' => strtoupper($request->text('student_no')),
             'privacy_consent' => $request->text('privacy_consent'),
-        ];
+        ] + StudentDetails::fromRequest($request);
         // The category and the concern itself, asked on this first page too.
         $concern = [
             'category_id' => $request->text('category_id'),
@@ -97,7 +98,7 @@ final class GuestWelfareController
                 'message' => 'Enter your student number in this format: 2024-xxxxx-MN-0.',
             ],
             'privacy_consent' => ['label' => 'Your consent', 'rules' => ['accepted']],
-        ]);
+        ]) + StudentDetails::errors($data);
 
         // A failed page is shown again from this request, so the concern never goes into the flashed session data.
         if ($errors !== []) {
@@ -113,6 +114,9 @@ final class GuestWelfareController
             'name' => $data['name'],
             'email' => $data['email'],
             'student_no' => $data['student_no'],
+            'year_level' => $data['year_level'],
+            'section' => $data['section'],
+            'contact_no' => $data['contact_no'],
             'verified_at' => null,
             'concern' => (new EncryptionService())->encrypt(json_encode($concern, JSON_THROW_ON_ERROR)),
         ]);

@@ -40,7 +40,7 @@ final class HttpWholeFlowsTest extends TestCase
         $page = $browser->follow($browser->post('/apply/verify', ['code' => $this->lastPayload($email, 'GUEST_EMAIL_CODE')['code']]));
         $this->assertStringContainsString('Personal info', $page['body']);
 
-        $response = $browser->post('/apply/new', ['first_name' => 'Flow', 'last_name' => 'Applicant', 'student_no' => $number, 'contact_no' => '09171234500', 'intent' => 'next']);
+        $response = $browser->post('/apply/new', ['first_name' => 'Flow', 'last_name' => 'Applicant', 'student_no' => $number, 'year_level' => '2nd Year', 'section' => 'BSITOUMN 3-2', 'contact_no' => '09171234500', 'intent' => 'next']);
         $this->assertSame(1, preg_match('#apply/(\d+)#', $response['location'], $match), $response['location']);
         $id = (int) $match[1];
         $browser->follow($response);
@@ -102,7 +102,13 @@ final class HttpWholeFlowsTest extends TestCase
         $browser = new TestServer();
 
         $browser->get('/welfare/guest');
-        $guest = ['name' => 'Flow Guest', 'email' => $email, 'student_no' => '', 'privacy_consent' => '1'];
+        $guest = ['name' => 'Flow Guest', 'email' => $email, 'student_no' => '', 'privacy_consent' => '1', 'year_level' => '3rd Year', 'section' => 'bsitoumn 3-1', 'contact_no' => '09171234599'];
+
+        // Year level, section and contact number are required (Nov 23, 2026).
+        $page = $browser->post('/welfare/guest/code', ['contact_no' => '', 'section' => ''] + $guest + ['category_id' => '1', 'description' => 'Words']);
+        $this->assertSame(422, $page['status']);
+        $this->assertStringContainsString('Section is required', $page['body']);
+        $this->assertStringContainsString('Contact number is required', $page['body']);
 
         // The first page asks for the category and the concern too, and a page with a mistake keeps them.
         $page = $browser->post('/welfare/guest/code', $guest + ['category_id' => '1']);
@@ -119,6 +125,12 @@ final class HttpWholeFlowsTest extends TestCase
         $page = $browser->follow($browser->post('/welfare/guest/verify', ['code' => $this->lastPayload($email, 'GUEST_EMAIL_CODE')['code']]));
         $this->assertStringContainsString('FLOWSECRET first page', $page['body'], 'Once confirmed, the form holds what they wrote on the first page.');
         $page = $browser->follow($browser->post('/welfare/guest/submit', ['category_id' => '1', 'subject' => 'FLOWSECRET subject', 'description' => 'FLOWSECRET words']));
+
+        $details = TestServer::db()->prepare('SELECT submitter_contact_no, submitter_year_level, submitter_section FROM welfare_cases WHERE guest_email_hash = ?');
+        $details->execute([(new \App\Services\EncryptionService())->blindIndex($email)]);
+        $stored = $details->fetch();
+        $this->assertNotSame('09171234599', $stored['submitter_contact_no'], 'The contact number is encrypted.');
+        $this->assertSame(['contact_no' => '09171234599', 'year_level' => '3rd Year', 'section' => 'BSITOUMN 3-1'], (new \App\Services\WelfareService())->submitterDetails($stored));
 
         $case = TestServer::db()->prepare('SELECT case_code, subject, guest_name FROM welfare_cases WHERE guest_email_hash = ?');
         $case->execute([(new \App\Services\EncryptionService())->blindIndex($email)]);

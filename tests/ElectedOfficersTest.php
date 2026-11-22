@@ -146,7 +146,7 @@ final class ElectedOfficersTest extends TestCase
     private function person(string $email, string $studentNo, string $yearLevel): array
     {
         return ['first_name' => 'Sample', 'last_name' => 'Officer', 'email' => $email, 'student_no' => $studentNo, 'contact_no' => '09171234567',
-            'reason' => 'Elected in the test election', 'year_level' => $yearLevel, 'academic_year' => '2026-2027', 'confirmations' => ['full_load', 'clean_grades']];
+            'reason' => 'Elected in the test election', 'year_level' => $yearLevel, 'section' => 'BSITOUMN 3-1', 'academic_year' => '2026-2027', 'confirmations' => ['full_load', 'clean_grades']];
     }
 
     /** Frees a seat the demo seeder filled, as an ended term would. */

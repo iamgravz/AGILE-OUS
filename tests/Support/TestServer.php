@@ -93,6 +93,33 @@ final class TestServer
         return $this->send('POST', $path, $body, ["Content-Type: multipart/form-data; boundary={$boundary}"]);
     }
 
+    /**
+     * Several files in one form, as field => [file name, contents, type].
+     *
+     * @param array<string, string> $data
+     * @param array<string, array{0: string, 1: string, 2: string}> $files
+     * @return array{status: int, location: string, body: string}
+     */
+    public function uploadFiles(string $path, array $data, array $files): array
+    {
+        if ($this->csrf === '') {
+            $this->get('/privacy');
+        }
+
+        $boundary = '----agile' . bin2hex(random_bytes(8));
+        $body = '';
+
+        foreach ($data + ['_token' => $this->csrf] as $key => $value) {
+            $body .= "--{$boundary}\r\nContent-Disposition: form-data; name=\"{$key}\"\r\n\r\n{$value}\r\n";
+        }
+
+        foreach ($files as $field => [$name, $contents, $type]) {
+            $body .= "--{$boundary}\r\nContent-Disposition: form-data; name=\"{$field}\"; filename=\"{$name}\"\r\nContent-Type: {$type}\r\n\r\n{$contents}\r\n";
+        }
+
+        return $this->send('POST', $path, $body . "--{$boundary}--\r\n", ["Content-Type: multipart/form-data; boundary={$boundary}"]);
+    }
+
     /** @return array{status: int, location: string, body: string} */
     public function follow(array $response): array
     {

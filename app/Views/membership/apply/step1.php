@@ -30,7 +30,7 @@ $action = $application === null ? route('apply.new') : route('apply.step', ['id'
                 <div><dt>Email</dt><dd><?= e($user['email']) ?></dd></div>
             </dl>
         <?php endif; ?>
-        <?= $this->partial('partials/form_field', ['name' => 'contact_no', 'label' => 'Contact number', 'type' => 'tel', 'value' => old('contact_no', $user['contact_no']), 'autocomplete' => 'tel']) ?>
+        <?= $this->partial('partials/student_details', ['values' => ['year_level' => $user['year_level'] ?? '', 'section' => $user['section'] ?? '', 'contact_no' => $user['contact_no'] ?? '']]) ?>
     </div>
     <?= $this->partial('membership/apply/_actions', compact('application', 'step')) ?>
 </form>
