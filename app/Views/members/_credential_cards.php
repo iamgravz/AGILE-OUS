@@ -15,9 +15,17 @@ $whose = $forOwner ? 'your' : 'this';
         <?php
         $typeName = \App\Services\CredentialService::TYPES[$credential['type']];
         $fileUrl = route('files.show', ['type' => 'credential', 'id' => (int) $credential['credential_id']]);
+        // An uploaded JPG or PNG (manual mode) is shown whole as a picture; a PDF needs the frame.
+        $isImage = preg_match('/\.(jpg|jpeg|png)$/', (string) ($credential['file_path'] ?? '')) === 1;
         ?>
         <article class="card credential-card credential-card--<?= e($credential['type']) ?>">
             <?php // The frame ignores the pointer, so a click on the preview opens the file full size. ?>
+            <?php if ($isImage) : ?>
+            <a class="credential-card__thumb credential-card__thumb--image" href="<?= e($fileUrl) ?>?inline=1" target="_blank" rel="noopener">
+                <img src="<?= e($fileUrl) ?>?inline=1" alt="<?= e(ucfirst($whose) . ' ' . $typeName) ?>" loading="lazy">
+                <span class="sr-only">Open <?= e($whose . ' ' . $typeName) ?> full size in a new tab</span>
+            </a>
+            <?php else : ?>
             <a class="credential-card__thumb" href="<?= e($fileUrl) ?>?inline=1" target="_blank" rel="noopener">
                 <iframe src="<?= e($fileUrl) ?>?inline=1#toolbar=0&amp;navpanes=0&amp;scrollbar=0&amp;view=Fit" title="Preview of <?= e($whose . ' ' . $typeName) ?>" tabindex="-1" loading="lazy"></iframe>
                 <?php // Phones cannot draw a PDF in a frame, so they get this tile instead (components.css). ?>
@@ -28,6 +36,7 @@ $whose = $forOwner ? 'your' : 'this';
                 </span>
                 <span class="sr-only">Open <?= e($whose . ' ' . $typeName) ?> full size in a new tab</span>
             </a>
+            <?php endif; ?>
             <div class="credential-card__body">
                 <h<?= $headingLevel ?> class="credential-card__title"><?= e($typeName) ?></h<?= $headingLevel ?>>
                 <dl class="detail-list">

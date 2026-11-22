@@ -3942,6 +3942,14 @@ form .grid--2 {
     pointer-events: none;
 }
 
+/* An uploaded picture (manual mode): the whole ID or certificate fits the frame, like the PDF preview. */
+.credential-card__thumb--image img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+}
+
 .credential-card__thumb:focus-visible {
     outline-offset: -3px;
 }
