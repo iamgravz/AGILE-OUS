@@ -1,9 +1,8 @@
 <?php
 /**
  * The first page of applying, like the login page: Iskobot standing on the card that holds the form. Below the email
- * and student number: what they apply for (General Membership or a position the MSW Committee Head opened), its
- * requirements (a dropdown that opens), and the upload fields those requirements need: the COR always, the grades for
- * a position. The choice is kept until step 3, where it is already selected; the files join the application then.
+ * and student number: what they apply for (General Membership or a position the MSW Committee Head opened), then the
+ * upload fields that choice needs: the COR always, the grades for a position. The choice is kept until step 3, where it is already selected; the files join the application then.
  *
  * @var \App\Core\View $this
  * @var bool $forPosition they came from a position's page
@@ -14,16 +13,15 @@ $choiceError = field_error('applying_for');
 $corError = field_error('cor');
 $gradesError = field_error('grades');
 $uploadAgain = field_error('upload_again');
-$requirementError = field_error('requirement');
+
 $positionError = field_error('position_id');
 $role = (string) old('applying_for', '');
 $chosenPosition = (string) old('position_id', '');
-$requirement = (string) old('requirement', '');
+
 $maxMb = (new \App\Services\FileStorageService())->maxUploadMb();
-$group = \App\Services\MembershipService::REQUIREMENT_GROUPS[$requirement] ?? null;
-$requiredDocs = $group[1] ?? 'Choose the row that fits you.';
-$gradesNeeded = (bool) ($group[2] ?? false);
-$gradesLabel = $group[3] ?? 'Previous semester copy of grades';
+// Shown with the upload fields once they are chosen: General Membership needs the COR, a position the grades too.
+$uploadsPending = $role === '' || ($role !== 'general' && $chosenPosition === '');
+$requiredDocs = $role === 'general' ? 'Current COR' : 'Current COR and previous semester copy of grades (1st years in their 1st semester: COR only)';
 // The first dropdown's choices and, for each, the open positions the second dropdown lists.
 $roles = [
     'committee_head' => 'Committee Head',
@@ -103,27 +101,16 @@ $slots = static fn (array $p): string => $p['remaining'] === null ? '' : ' (' . 
                             <?php endif; ?>
                         </div>
 
-                        <?php // AGILE's requirements table as a dropdown: the row that fits them sets the documents and upload fields below. ?>
-                        <div class="field <?= $requirementError !== null ? 'field--error' : '' ?>">
-                            <label class="field__label" for="requirement">Requirements <span class="field__required" aria-hidden="true">*</span></label>
-                            <select class="select" id="requirement" name="requirement" required data-requirement-select aria-describedby="requirement-docs<?= $requirementError !== null ? ' requirement-error' : '' ?>"<?= $requirementError !== null ? ' aria-invalid="true"' : '' ?>>
-                                <option value="">Which one are you?</option>
-                                <?php foreach (\App\Services\MembershipService::REQUIREMENT_GROUPS as $key => [$who, $documents, $needsGrades, $rowGradesLabel]) : ?>
-                                    <option value="<?= e($key) ?>" data-documents="<?= e($documents) ?>" data-grades="<?= $needsGrades ? '1' : '0' ?>" data-grades-label="<?= e($rowGradesLabel ?? '') ?>"<?= $requirement === $key ? ' selected' : '' ?>><?= e($who) ?></option>
-                                <?php endforeach; ?>
-                            </select>
-                            <?php if ($requirementError !== null) : ?>
-                                <p class="field__error" id="requirement-error"><?= icon('alert') ?> <?= e($requirementError) ?></p>
-                            <?php endif; ?>
-                        </div>
 
                         <?php
-                        // Branching: nothing to upload until a Requirements row is chosen. Then the COR for every row, and the
-                        // grades only for the rows that ask for them. data-pending hides this only when JavaScript runs (.js),
-                        // so without it the fields still show and the server checks them.
+                        // Branching: the upload fields follow what they apply for. Nothing until it is chosen (and, for a
+                        // position, the committee or post); then the COR, plus the grades for a position. The grades are
+                        // optional here, because a 1st year in a 1st semester has none: the Documents step asks for them
+                        // once step 2 gives the year level (MembershipService::requiredDocuments). data-pending hides this
+                        // only when JavaScript runs (.js), so without it the fields still show and the server checks them.
                         ?>
-                        <div class="apply-uploads" data-uploads<?= $requirement === '' ? ' data-pending' : '' ?>>
-                        <p class="apply-required-docs" id="requirement-docs"><strong>Required documents:</strong> <span data-required-docs><?= e($requiredDocs) ?></span></p>
+                        <div class="apply-uploads" data-uploads<?= $uploadsPending ? ' data-pending' : '' ?>>
+                        <p class="apply-required-docs"><strong>Required documents:</strong> <span data-required-docs><?= e($requiredDocs) ?></span></p>
 
                         <?php if ($uploadAgain !== null) : ?>
                             <p class="field__error"><?= icon('alert') ?> <?= e($uploadAgain) ?></p>
@@ -131,17 +118,17 @@ $slots = static fn (array $p): string => $p['remaining'] === null ? '' : ' (' . 
 
                         <div class="field <?= $corError !== null ? 'field--error' : '' ?>" data-upload="cor">
                             <label class="field__label" for="cor">Current COR (Certificate of Registration) <span class="field__required" aria-hidden="true">*</span></label>
-                            <input class="input apply-upload" id="cor" name="cor" type="file" accept=".pdf,.jpg,.jpeg,.png" required aria-describedby="cor-help<?= $corError !== null ? ' cor-error' : '' ?>"<?= $corError !== null ? ' aria-invalid="true"' : '' ?>>
+                            <input class="input apply-upload" id="cor" name="cor" type="file" accept=".pdf,.jpg,.jpeg,.png"<?= $uploadsPending ? '' : ' required' ?> aria-describedby="cor-help<?= $corError !== null ? ' cor-error' : '' ?>"<?= $corError !== null ? ' aria-invalid="true"' : '' ?>>
                             <p class="field__help" id="cor-help">PDF, JPG or PNG, up to <?= e($maxMb) ?> MB.</p>
                             <?php if ($corError !== null) : ?>
                                 <p class="field__error" id="cor-error"><?= icon('alert') ?> <?= e($corError) ?></p>
                             <?php endif; ?>
                         </div>
 
-                        <div class="field <?= $gradesError !== null ? 'field--error' : '' ?>" data-upload="grades"<?= $requirement !== '' && !$gradesNeeded ? ' hidden' : '' ?>>
-                            <label class="field__label" for="grades"><span data-grades-label><?= e($gradesLabel) ?></span> <span class="field__required" aria-hidden="true">*</span></label>
-                            <input class="input apply-upload" id="grades" name="grades" type="file" accept=".pdf,.jpg,.jpeg,.png"<?= $gradesNeeded ? ' required' : '' ?> aria-describedby="grades-help<?= $gradesError !== null ? ' grades-error' : '' ?>"<?= $gradesError !== null ? ' aria-invalid="true"' : '' ?>>
-                            <p class="field__help" id="grades-help">PDF, JPG or PNG, up to <?= e($maxMb) ?> MB.</p>
+                        <div class="field <?= $gradesError !== null ? 'field--error' : '' ?>" data-upload="grades"<?= $role === 'general' ? ' hidden' : '' ?>>
+                            <label class="field__label" for="grades">Previous semester copy of grades</label>
+                            <input class="input apply-upload" id="grades" name="grades" type="file" accept=".pdf,.jpg,.jpeg,.png" aria-describedby="grades-help<?= $gradesError !== null ? ' grades-error' : '' ?>"<?= $gradesError !== null ? ' aria-invalid="true"' : '' ?>>
+                            <p class="field__help" id="grades-help">PDF, JPG or PNG, up to <?= e($maxMb) ?> MB. 1st years joining in the 2nd semester: your 1st semester grades. 1st years in their 1st semester: leave this empty.</p>
                             <?php if ($gradesError !== null) : ?>
                                 <p class="field__error" id="grades-error"><?= icon('alert') ?> <?= e($gradesError) ?></p>
                             <?php endif; ?>

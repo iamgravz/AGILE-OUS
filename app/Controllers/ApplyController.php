@@ -96,31 +96,20 @@ final class ApplyController
             $errors['position_id'] = $role === 'source_code' ? 'Please choose the post in The Source Code.' : 'Please choose the committee.';
         }
 
-        // The Requirements dropdown is AGILE's table: the row that fits them. A General Membership applicant is a general
-        // member or a 1st year; a position applicant is any row but "General members".
-        $requirement = $request->text('requirement');
-        $group = MembershipService::REQUIREMENT_GROUPS[$requirement] ?? null;
-        $allowed = $forPosition ? $requirement !== 'general' : in_array($requirement, ['general', 'first_year_first_sem', 'first_year_second_sem'], true);
-
-        if ($group === null) {
-            $errors['requirement'] = 'Please choose the row of the requirements that fits you.';
-        } elseif ($choice !== '' && !$allowed) {
-            $errors['requirement'] = $forPosition
-                ? 'For a position, choose the row for officers, committee members, position applicants or 1st years.'
-                : 'For General Membership, choose General members or a 1st year row.';
-        }
-
-        // The documents that row asks for come with this page: the COR always, and the grades when the row needs them.
+        // The documents follow what they apply for: the COR always, and the grades for a position. The grades are optional
+        // here, because a 1st year in a 1st semester has none; the Documents step asks for them once step 2 gives the
+        // year level (MembershipService::requiredDocuments).
         $uploads = [];
         $storage = new \App\Services\FileStorageService();
-        $needsGrades = (bool) ($group[2] ?? false);
 
-        foreach ($needsGrades ? ['cor', 'grades'] : ['cor'] as $type) {
+        foreach ($forPosition ? ['cor', 'grades'] : ['cor'] as $type) {
             $file = $request->files($type);
             $chosen = is_array($file) && ($file['error'] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_NO_FILE;
 
             if (!$chosen) {
-                $errors[$type] = $type === 'cor' ? 'Please upload your current COR.' : 'Please upload your ' . lcfirst((string) $group[3]) . '.';
+                if ($type === 'cor') {
+                    $errors['cor'] = 'Please upload your current COR.';
+                }
 
                 continue;
             }
@@ -139,7 +128,7 @@ final class ApplyController
                 $errors['upload_again'] = 'For your security, files are not kept when something needs fixing. Please choose them again.';
             }
 
-            return $this->backWithErrors(route('apply'), $errors, $data + ['applying_for' => $role, 'position_id' => (string) $positionId, 'requirement' => $requirement]);
+            return $this->backWithErrors(route('apply'), $errors, $data + ['applying_for' => $role, 'position_id' => (string) $positionId]);
         }
 
         Session::set(self::CHOICE_KEY, $choice);

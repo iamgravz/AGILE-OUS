@@ -23,17 +23,17 @@ final class HttpWholeFlowsTest extends TestCase
         $browser = new TestServer();
 
         $browser->get('/apply');
-        // The first page asks what they apply for, which requirements row fits them, and that row's documents.
+        // The first page asks what they apply for and the documents that choice needs (the COR for General Membership).
         $person = ['first_name' => 'Flow', 'last_name' => 'Applicant', 'email' => $email, 'student_no' => $number, 'privacy_consent' => '1'];
         $browser->post('/apply/code', $person);
         $this->assertSame(0, $this->rowCount('notifications', 'recipient_email = ?', [$email]), 'No code without choosing what they apply for.');
 
         $browser->get('/apply');
-        $browser->post('/apply/code', $person + ['applying_for' => 'general', 'requirement' => 'general']);
+        $browser->post('/apply/code', $person + ['applying_for' => 'general']);
         $this->assertSame(0, $this->rowCount('notifications', 'recipient_email = ?', [$email]), 'No code without the COR.');
 
         $browser->get('/apply');
-        $browser->upload('/apply/code', $person + ['applying_for' => 'general', 'requirement' => 'general'], 'cor', 'cor.pdf', self::PDF, 'application/pdf');
+        $browser->upload('/apply/code', $person + ['applying_for' => 'general'], 'cor', 'cor.pdf', self::PDF, 'application/pdf');
         $this->assertSame(0, $this->rowCount('applicants', 'email = ?', [$email]), 'Nothing is saved before the code.');
 
         $browser->get('/apply');
