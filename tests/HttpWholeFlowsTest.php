@@ -67,6 +67,16 @@ final class HttpWholeFlowsTest extends TestCase
         $versionId = (int) TestServer::db()->query("SELECT v.version_id FROM document_versions v JOIN application_documents d ON d.document_id = v.document_id WHERE d.application_id = {$id}")->fetchColumn();
         $this->assertSame(200, TestServer::loggedIn('mswmember@agile.test')->get("/files/document_version/{$versionId}")['status'], 'MSW staff open earlier versions.');
         $this->assertSame(403, TestServer::loggedIn('member@agile.test')->get("/files/document_version/{$versionId}")['status'], 'Someone else cannot.');
+
+        // Removing a draft document removes its earlier versions too; a new upload starts again at version 1.
+        $corId = (int) TestServer::db()->query("SELECT document_id FROM application_documents WHERE application_id = {$id} AND doc_type = 'cor'")->fetchColumn();
+        $browser->get("/apply/{$id}/step/5");
+        $browser->follow($browser->post("/apply/{$id}/documents/{$corId}/remove", []));
+        $this->assertSame(0, $this->rowCount('application_documents', 'application_id = ?', [$id]));
+        $this->assertSame(0, $this->rowCount('document_versions', 'document_id = ?', [$corId]));
+        $browser->get("/apply/{$id}/step/5");
+        $browser->upload("/apply/{$id}/documents/cor", [], 'document', 'cor.pdf', self::PDF, 'application/pdf');
+        $this->assertSame(1, $this->rowCount('application_documents', 'application_id = ? AND version_no = 1', [$id]));
         $browser->get("/apply/{$id}/step/5");
         $browser->follow($browser->post("/apply/{$id}/step/5", ['intent' => 'next']));
 

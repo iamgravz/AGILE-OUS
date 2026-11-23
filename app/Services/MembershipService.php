@@ -56,6 +56,11 @@ final class MembershipService
     ) {
     }
 
+    private function documentFiles(): ApplicationDocumentService
+    {
+        return new ApplicationDocumentService($this->documents, $this->files);
+    }
+
     public static function generateTrackingCode(): string
     {
         $code = '';
@@ -301,7 +306,7 @@ final class MembershipService
             $questionId = (int) $question['question_id'];
 
             if ($question['input_type'] === 'file' && isset($uploads[$questionId])) {
-                $document = $this->replaceDocument($application, "question_{$questionId}", $uploads[$questionId]);
+                $document = $this->documentFiles()->replace($application, "question_{$questionId}", $uploads[$questionId]);
                 Database::transaction(function () use ($id, $questionId, $document): void {
                     $this->answers->put($id, $questionId, $document['original_name']);
                 });
@@ -332,8 +337,8 @@ final class MembershipService
         }
 
         return $docType === 'certificate'
-            ? $this->addDocument($application, $docType, $file)
-            : $this->replaceDocument($application, $docType, $file);
+            ? $this->documentFiles()->add($application, $docType, $file)
+            : $this->documentFiles()->replace($application, $docType, $file);
     }
 
     public function removeDocument(int $id, int $documentId): void
@@ -349,14 +354,7 @@ final class MembershipService
             throw new DomainException('This document was already reviewed, so it cannot be removed.');
         }
 
-        foreach ($this->documents->versions($documentId) as $version) {
-            $this->files->delete($version['stored_path']);
-        }
-
-        \App\Core\Database::connection()->prepare('DELETE FROM document_versions WHERE document_id = ?')->execute([$documentId]);
-        $this->documents->delete($documentId);
-        $this->files->delete($document['stored_path']);
-        AuditService::log('application.document_removed', 'application_document', $documentId, ['doc_type' => $document['doc_type']]);
+        $this->documentFiles()->remove($document);
     }
 
     /**
@@ -872,24 +870,7 @@ final class MembershipService
      */
     public function attachFirstPageDocuments(int $id, array $documents): void
     {
-        $application = $this->editable($id);
-        $existing = array_column($this->documents->forApplication($id), 'doc_type');
-
-        foreach ($documents as $type => $stored) {
-            if (!in_array($type, ['cor', 'grades'], true) || in_array($type, $existing, true) || !isset($stored['stored_path'])) {
-                continue;
-            }
-
-            $documentId = $this->documents->insert([
-                'application_id' => $application['application_id'],
-                'doc_type' => $type,
-                'stored_path' => (string) $stored['stored_path'],
-                'original_name' => (string) $stored['original_name'],
-                'mime_type' => (string) $stored['mime_type'],
-                'size_bytes' => (int) $stored['size_bytes'],
-            ]);
-            AuditService::log('application.document_uploaded', 'application_document', $documentId, ['doc_type' => $type, 'from' => 'apply page']);
-        }
+        $this->documentFiles()->attachFirstPage($this->editable($id), $documents);
     }
 
     /** @return list<string> */
@@ -1389,52 +1370,6 @@ final class MembershipService
 
             $this->answers->put($id, $questionId, mb_substr($answer, 0, self::ANSWER_MAX_LENGTH));
         }
-    }
-
-    /** One copy per type. A new upload replaces the old one, and a needs_correction document returns to pending. */
-    private function replaceDocument(array $application, string $docType, array $file): array
-    {
-        $id = (int) $application['application_id'];
-        $existing = null;
-
-        foreach ($this->documents->forApplication($id) as $document) {
-            if ($document['doc_type'] === $docType && $document['verification_status'] !== 'rejected') {
-                $existing = $document;
-            }
-        }
-
-        if ($existing === null) {
-            return $this->addDocument($application, $docType, $file);
-        }
-
-        $status = $existing['verification_status'];
-
-        if ($status === 'verified') {
-            throw new FileRejectedException('This document is already verified, so it cannot be replaced.');
-        }
-
-        if ($status === 'needs_correction') {
-            DocumentStatus::assertTransition($status, 'pending');
-        }
-
-        // Version history: the earlier file and its review are kept, not deleted.
-        $stored = $this->files->store($file, 'applications');
-        $version = (int) ($existing['version_no'] ?? 1) + 1;
-        $values = $stored + ['version_no' => $version, 'verification_status' => 'pending', 'verification_remarks' => null, 'verified_by' => null, 'verified_at' => null];
-        $this->documents->keepVersion($existing);
-        $this->documents->update((int) $existing['document_id'], $values);
-        AuditService::log('application.document_replaced', 'application_document', (int) $existing['document_id'], ['doc_type' => $docType, 'from' => $status, 'to' => 'pending', 'version' => $version]);
-
-        return $values + ['document_id' => $existing['document_id'], 'doc_type' => $docType];
-    }
-
-    private function addDocument(array $application, string $docType, array $file): array
-    {
-        $stored = $this->files->store($file, 'applications');
-        $documentId = $this->documents->insert($stored + ['application_id' => $application['application_id'], 'doc_type' => $docType]);
-        AuditService::log('application.document_uploaded', 'application_document', $documentId, ['doc_type' => $docType]);
-
-        return $stored + ['document_id' => $documentId, 'doc_type' => $docType];
     }
 
     /**
