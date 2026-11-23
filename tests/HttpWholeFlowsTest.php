@@ -83,7 +83,10 @@ final class HttpWholeFlowsTest extends TestCase
         $db->prepare("UPDATE membership_applications SET status = 'under_review' WHERE application_id = ?")->execute([$id]);
         $db->prepare("UPDATE application_documents SET verification_status = 'verified' WHERE application_id = ?")->execute([$id]);
         $head = TestServer::loggedIn('mswhead@agile.test');
-        $head->get("/applications/{$id}");
+        $page = $head->get("/applications/{$id}")['body'];
+        $this->assertStringContainsString('Applicant profile', $page);
+        $this->assertStringContainsString('Answers to the registration form', $page);
+        $this->assertStringContainsString('Why do you want to join AGILE?', $page, 'The answers from step 4 are on the profile.');
         $head->follow($head->post("/applications/{$id}/approve", ['remarks' => 'Welcome to AGILE']));
 
         $this->assertSame('approved', $this->application($id)['status']);

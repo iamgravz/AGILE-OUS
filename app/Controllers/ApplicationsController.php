@@ -72,7 +72,7 @@ final class ApplicationsController
 
         return Response::html(View::render('applications/show', [
             'application' => $application,
-            'activeTab' => $request->queryText('tab') ?: 'overview',
+            'activeTab' => $request->queryText('tab'),
             'appointment' => $appointments?->forApplication((int) $id),
             'canPrepareAppointment' => $appointments?->forPrepare((int) $id) !== null,
             'breadcrumbs' => [

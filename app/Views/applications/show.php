@@ -25,6 +25,13 @@ $hasActions = $canMarkReview || $canReturn || $canDecide;
 $decisionWord = $decider['committee'] ? 'Accept' : 'Approve';
 
 $tabs = ['overview' => 'Overview'];
+$hasProfile = array_key_exists('assessment', get_defined_vars());
+
+// Applicant profile (Nov 23, 2026): the form answers, the interview and the MSW assessment, for whoever reads the
+// interviews. The Committee Head who decides lands on it first.
+if ($hasProfile) {
+    $tabs['profile'] = 'Applicant profile';
+}
 
 if (can('document.verify') || $isOwnCommitteeHead) {
     $tabs['documents'] = 'Documents';
@@ -38,6 +45,10 @@ if (can('interview.manage') || $isOwnCommitteeHead) {
 
 if (can('application.update_status')) {
     $tabs['activity'] = 'Activity';
+}
+
+if ($activeTab === '' && $hasProfile && ($isOwnCommitteeHead || $mayDecide) && !can('interview.manage')) {
+    $activeTab = 'profile';
 }
 
 $activeTab = isset($tabs[$activeTab]) ? $activeTab : 'overview';
@@ -54,6 +65,8 @@ $actionLabels = [
     'application.ready_for_recruitment' => 'Marked it ready for the recruitment flow',
     'evaluation.submitted' => 'Submitted an evaluation',
     'evaluation.updated' => 'Updated an evaluation',
+    'assessment.created' => 'Assessed the applicant',
+    'assessment.updated' => 'Updated the assessment',
     'interview.scheduled' => 'Scheduled an interview',
     'interview.rescheduled' => 'Rescheduled an interview',
     'interview.result_recorded' => 'Recorded an interview result',
@@ -202,6 +215,19 @@ $actionLabels = [
             
         </div>
     </div>
+
+    <?php if (isset($tabs['profile'])) : ?>
+        <div class="tabs__panel" role="tabpanel" id="panel-profile" aria-labelledby="tab-profile"<?= $activeTab === 'profile' ? '' : ' hidden' ?>>
+            <?= $this->partial('applications/_profile', [
+                'application' => $application,
+                'applicant' => $applicant,
+                'questions' => $questions,
+                'answers' => $answers,
+                'interviews' => $interviews,
+                'assessment' => $assessment,
+            ]) ?>
+        </div>
+    <?php endif; ?>
 
     <?php if (isset($tabs['documents'])) : ?>
         <div class="tabs__panel" role="tabpanel" id="panel-documents" aria-labelledby="tab-documents"<?= $activeTab === 'documents' ? '' : ' hidden' ?>>

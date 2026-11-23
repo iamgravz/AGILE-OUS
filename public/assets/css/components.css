@@ -4228,3 +4228,63 @@ form .grid--2 {
         gap: var(--space-2);
     }
 }
+
+/* Applicant profile tab: the Committee Head's reading of an applicant (Applications). */
+.applicant-profile__head {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-4);
+    align-items: center;
+    justify-content: space-between;
+}
+
+.applicant-profile__score {
+    display: grid;
+    gap: var(--space-2);
+    justify-items: end;
+}
+
+.applicant-profile__score strong {
+    font-size: 2.25rem;
+    line-height: 1;
+}
+
+.applicant-profile__score strong span {
+    font-size: 1rem;
+    color: var(--color-text-muted);
+}
+
+.applicant-profile__rec--highly_recommended,
+.applicant-profile__rec--recommended {
+    background: var(--color-success-bg, #e6f4ea);
+    color: var(--color-success, #1e7b34);
+}
+
+.applicant-profile__rec--recommended_with_considerations,
+.applicant-profile__rec--further_evaluation {
+    background: var(--color-warning-bg, #fff4d6);
+    color: var(--color-warning, #8a5a00);
+}
+
+.applicant-profile__rec--not_recommended {
+    background: var(--color-danger-bg, #fde8e8);
+    color: var(--color-danger, #b42318);
+}
+
+.applicant-profile__table caption {
+    text-align: left;
+    font-weight: 700;
+    padding-bottom: var(--space-2);
+}
+
+.applicant-profile .table-wrap {
+    margin-bottom: var(--space-4);
+}
+
+.detail-list--stacked > div {
+    display: block;
+}
+
+.detail-list--stacked dd {
+    margin: var(--space-1) 0 0;
+}
