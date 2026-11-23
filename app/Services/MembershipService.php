@@ -31,9 +31,6 @@ final class MembershipService
 {
     public const LAST_STEP = 6;
 
-    /** Step 4 (written questions) was not on AGILE's own form and was removed on Nov 23, 2026; the wizard skips it. */
-    public const SKIPPED_STEP = 4;
-
     /** AGILE's requirements live in ApplicationRequirements; these names stay for existing callers. */
     public const DOCUMENT_TYPES = ApplicationRequirements::DOCUMENT_TYPES;
     public const REQUIREMENT_GROUPS = ApplicationRequirements::REQUIREMENT_GROUPS;
@@ -1332,26 +1329,28 @@ final class MembershipService
     }
 
     /**
-     * The written questions of step 4. None since Nov 23, 2026: AGILE's own form does not ask them, so the wizard skips
-     * the step. Answers given before then stay in the database.
+     * The written questions of step 4: those of AGILE's own registration form for what the person applies for
+     * (general membership when no position is chosen). Since Nov 23, 2026.
      *
      * @param array<string, mixed> $application
      * @return list<array<string, mixed>>
      */
     private function stepFourQuestions(array $application): array
     {
-        return [];
+        $roleType = $application['role_type'] ?? null;
+
+        return $this->questions->forRoleTypes([is_string($roleType) && $roleType !== '' ? $roleType : 'general']);
     }
 
-    /** The step after or before $step, past the skipped one. */
+    /** The step after or before $step. */
     public static function nextStep(int $step): int
     {
-        return $step + 1 === self::SKIPPED_STEP ? $step + 2 : $step + 1;
+        return $step + 1;
     }
 
     public static function previousStep(int $step): int
     {
-        return $step - 1 === self::SKIPPED_STEP ? $step - 2 : $step - 1;
+        return $step - 1;
     }
 
     /**

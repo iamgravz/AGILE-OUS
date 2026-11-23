@@ -41,10 +41,12 @@ return static function (PDO $db): void {
     $answers = [
         'What is your current year level?' => '2nd Year',
         'Why do you want to join AGILE?' => 'I want to study with other BSIT-OU students and help with org activities.',
-        'What skills can you contribute to the organization?' => 'Web development and technical writing.',
-        'How many hours per week are you available for AGILE activities?' => '5 hours',
+        'What skills, interests, or areas of Information Technology are you interested in developing?' => 'Web development and technical writing.',
+        'How would you like to participate in AGILE?' => 'By helping in workshops and writing event recaps.',
+        'Are you willing to participate in AGILE programs and activities based on your availability?' => 'Yes',
     ];
-    $findQuestion = $db->prepare('SELECT question_id FROM application_questions WHERE question_text = ? LIMIT 1');
+    // The general-membership questions of AGILE's registration form (an older copy of a question may be inactive).
+    $findQuestion = $db->prepare("SELECT question_id FROM application_questions WHERE question_text = ? AND role_type IN ('academic', 'general') ORDER BY is_active DESC LIMIT 1");
     $now = date('Y-m-d H:i:s');
 
     foreach ($people as [$email, $firstName, $lastName, $studentNo, $contactNo, $code, $status, $documentStatus, $remarks]) {

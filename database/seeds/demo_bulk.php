@@ -173,10 +173,11 @@ return static function (PDO $db): void {
     $answers = [
         'What is your current year level?' => null,
         'Why do you want to join AGILE?' => 'I want to learn with other BSIT-OU students and help run AGILE activities.',
-        'What skills can you contribute to the organization?' => 'Programming, graphic design and event support.',
-        'How many hours per week are you available for AGILE activities?' => '4 hours',
+        'What skills, interests, or areas of Information Technology are you interested in developing?' => 'Programming, graphic design and event support.',
+        'How would you like to participate in AGILE?' => 'By joining workshops and helping at events.',
+        'Are you willing to participate in AGILE programs and activities based on your availability?' => 'Yes',
     ];
-    $findQuestion = $db->prepare('SELECT question_id FROM application_questions WHERE question_text = ? LIMIT 1');
+    $findQuestion = $db->prepare("SELECT question_id FROM application_questions WHERE question_text = ? AND role_type IN ('academic', 'general') ORDER BY is_active DESC LIMIT 1");
     $insertHistory = $db->prepare('INSERT INTO application_status_history (application_id, old_status, new_status, remarks, changed_by, changed_at) VALUES (?, ?, ?, ?, ?, ?)');
 
     // [status, how many, remarks]. The path through the status map (ApplicationStatus) is written to the history.

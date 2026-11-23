@@ -53,6 +53,7 @@ $seeders = [
     'email templates' => 'email_templates',
     'settings' => 'settings',
     'application questions' => 'application_questions',
+    'interview question bank' => 'interview_questions',
 ];
 
 // Demo accounts share a published password, so they never go into production.

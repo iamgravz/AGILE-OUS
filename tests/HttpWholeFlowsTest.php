@@ -51,7 +51,7 @@ final class HttpWholeFlowsTest extends TestCase
         $browser->follow($browser->post("/apply/{$id}/step/2", $this->answers('academic', '2nd Year') + ['enrolled' => '1', 'intent' => 'next']));
         $this->assertStringContainsString('value="general" checked', $browser->get("/apply/{$id}/step/3")['body'], 'The first page\'s choice is already selected.');
         $browser->follow($browser->post("/apply/{$id}/step/3", ['membership_type' => 'general', 'intent' => 'next']));
-        $browser->follow($browser->post("/apply/{$id}/step/4", $this->answers('common', '5 hours a week') + ['intent' => 'next']));
+        $browser->follow($browser->post("/apply/{$id}/step/4", $this->answers('general', 'Yes') + ['intent' => 'next']));
 
         // General Membership: the current COR only. A School ID is no longer asked for, so its upload is refused; a new
         // COR replaces the one from the first page, which is still pending.
@@ -153,7 +153,7 @@ final class HttpWholeFlowsTest extends TestCase
     /** @return array<string, string> */
     private function answers(string $roleType, string $value): array
     {
-        $statement = TestServer::db()->prepare('SELECT question_id FROM application_questions WHERE role_type = ? AND is_required = 1');
+        $statement = TestServer::db()->prepare('SELECT question_id FROM application_questions WHERE role_type = ? AND is_required = 1 AND is_active = 1');
         $statement->execute([$roleType]);
         $answers = [];
 

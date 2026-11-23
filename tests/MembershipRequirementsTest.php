@@ -83,12 +83,11 @@ final class MembershipRequirementsTest extends TestCase
         });
     }
 
-    public function testTheQuestionsStepIsSkipped(): void
+    public function testTheQuestionsStepIsBack(): void
     {
-        // Step 4 (written questions) is not on AGILE's form: Membership type leads to Documents, and Back returns.
-        $this->assertSame(5, MembershipService::nextStep(3));
-        $this->assertSame(3, MembershipService::previousStep(5));
-        $this->assertSame(2, MembershipService::nextStep(1));
+        // Step 4 asks the questions of AGILE's registration form again (Nov 23, 2026).
+        $this->assertSame(4, MembershipService::nextStep(3));
+        $this->assertSame(4, MembershipService::previousStep(5));
         $this->assertSame(6, MembershipService::nextStep(5));
     }
 

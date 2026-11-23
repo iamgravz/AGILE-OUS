@@ -4,9 +4,7 @@
  * @var int $step the current step
  * @var int $reached the furthest step saved
  */
-// Step 4 (questions) is skipped since Nov 23, 2026; the steps people see are numbered 1 to 5 on screen.
-$labels = [1 => 'Personal info', 2 => 'Academic info', 3 => 'Membership type', 5 => 'Documents', 6 => 'Review'];
-$shown = 0;
+$labels = [1 => 'Personal info', 2 => 'Academic info', 3 => 'Membership type', 4 => 'Questions', 5 => 'Documents', 6 => 'Review'];
 ?>
 <?php $inPanel ??= false; ?>
 <?php if (!$inPanel && $application !== null && $application['status'] === 'for_revision') : ?>
@@ -17,9 +15,9 @@ $shown = 0;
 <?php endif; ?>
 <ol class="stepper wizard-stepper <?= $inPanel ? 'wizard-stepper--panel' : 'wizard-stepper--top' ?>">
     <?php foreach ($labels as $number => $label) : ?>
-        <?php $isDone = $number < $step; $shown++; ?>
+        <?php $isDone = $number < $step; ?>
         <li class="stepper__step <?= $isDone ? 'stepper__step--done' : '' ?> <?= $number === $step ? 'stepper__step--current' : '' ?>"<?= $number === $step ? ' aria-current="step"' : '' ?>>
-            <span class="stepper__marker"><?= $isDone ? icon('check') : e($shown) ?></span>
+            <span class="stepper__marker"><?= $isDone ? icon('check') : e($number) ?></span>
             <?php if ($application !== null && $number <= $reached && $number !== $step) : ?>
                 <a href="<?= e(route('apply.step', ['id' => $application['application_id'], 'step' => $number])) ?>"><?= $isDone ? '<span class="sr-only">Completed: </span>' : '' ?><?= e($label) ?></a>
             <?php else : ?>

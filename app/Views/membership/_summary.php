@@ -45,6 +45,17 @@ $section = static function (int $number, string $title) use ($application, $with
 <?= $section(3, 'Membership type') ?>
 <p><?= e($application['vacancy_title'] ?? 'General Membership') ?></p>
 
+<?= $section(4, 'Questions') ?>
+<dl class="detail-list">
+    <?php foreach ($questions as $question) : ?>
+        <?php $answer = $answers[(int) $question['question_id']] ?? ''; ?>
+        <div>
+            <dt><?= e($question['question_text']) ?></dt>
+            <dd class="review__answer"><?= e($answer !== '' ? $answer : 'Not answered') ?></dd>
+        </div>
+    <?php endforeach; ?>
+</dl>
+
 <?php if ($hideDocuments ?? false) {
     return;
 } ?>

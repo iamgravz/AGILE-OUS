@@ -373,15 +373,6 @@ final class ApplyController
             return Response::error(Response::HTTP_NOT_FOUND);
         }
 
-        // The removed questions step: a draft that stopped there moves on to the documents.
-        if ($number === MembershipService::SKIPPED_STEP) {
-            if ((int) $application['wizard_step'] === MembershipService::SKIPPED_STEP) {
-                $this->membership->advance((int) $application['application_id'], MembershipService::SKIPPED_STEP + 1);
-            }
-
-            return redirect($this->stepUrl((int) $application['application_id'], (int) $application['wizard_step'] >= MembershipService::SKIPPED_STEP ? MembershipService::SKIPPED_STEP + 1 : (int) $application['wizard_step']));
-        }
-
         // Steps cannot be skipped by editing the address.
         if ($number > (int) $application['wizard_step']) {
             return redirect($this->stepUrl((int) $application['application_id'], (int) $application['wizard_step']));

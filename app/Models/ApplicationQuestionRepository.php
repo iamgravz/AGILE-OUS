@@ -17,7 +17,7 @@ final class ApplicationQuestionRepository extends BaseRepository
     {
         $marks = implode(',', array_fill(0, count($roleTypes), '?'));
         $statement = $this->pdo()->prepare(
-            "SELECT * FROM application_questions WHERE role_type IN ({$marks}) ORDER BY FIELD(role_type, {$marks}), sort_order, question_id"
+            "SELECT * FROM application_questions WHERE is_active = 1 AND role_type IN ({$marks}) ORDER BY FIELD(role_type, {$marks}), sort_order, question_id"
         );
         $statement->execute([...$roleTypes, ...$roleTypes]);
 

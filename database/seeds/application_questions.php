@@ -2,39 +2,62 @@
 
 declare(strict_types=1);
 
+// The application questions, from AGILE's own registration form (Google Form, Nov 23, 2026), by what the person applies
+// for: general membership, Committee Member, Deputy Committee Head, Committee Head, or a post in The Source Code.
+// The form's "which committee / position" questions are left out: the apply page already asks them. The year level
+// is asked on the wizard's academic step. Questions from before stay in the table, inactive (migration
+// 2026_11_23_applicant_assessment), so old answers keep their question.
 return static function (PDO $db): void {
-    // Year level is asked on the wizard's academic step. Earlier seeds stored it as a common question.
     $db->exec("UPDATE application_questions SET role_type = 'academic' WHERE role_type = 'common' AND question_text = 'What is your current year level?'");
 
+    $yesNo = ['Yes', 'No'];
     $questions = [
         'academic' => [
             ['select', 'What is your current year level?', ['1st Year', '2nd Year', '3rd Year', '4th Year'], true],
         ],
-        'common' => [
+        'general' => [
             ['textarea', 'Why do you want to join AGILE?', null, true],
-            ['textarea', 'What skills can you contribute to the organization?', null, true],
-            ['text', 'How many hours per week are you available for AGILE activities?', null, true],
-        ],
-        'officer' => [
-            ['textarea', 'What leadership experience do you have?', null, true],
-            ['textarea', 'What would you prioritize during your term?', null, true],
-        ],
-        'committee_head' => [
-            ['textarea', 'How would you lead and organize your committee?', null, true],
-            ['textarea', 'Describe a project or activity you have led before.', null, true],
-        ],
-        'deputy' => [
-            ['textarea', 'How would you support the committee head in their work?', null, true],
-            ['textarea', 'Describe a time you helped a team finish a task on schedule.', null, true],
+            ['textarea', 'What skills, interests, or areas of Information Technology are you interested in developing?', null, true],
+            ['textarea', 'How would you like to participate in AGILE?', null, true],
+            ['select', 'Are you willing to participate in AGILE programs and activities based on your availability?', $yesNo, true],
         ],
         'committee_member' => [
-            ['textarea', 'What tasks would you like to take on in this committee?', null, true],
-            ['textarea', 'What do you hope to learn from joining this committee?', null, false],
+            ['textarea', 'Why do you want to join this committee?', null, true],
+            ['textarea', 'What activities, projects, or responsibilities are you interested in helping with?', null, true],
+            ['textarea', 'How will you balance your academic responsibilities and your responsibilities as a Committee Member?', null, true],
+            ['select', 'Are you willing to attend meetings, participate in activities, and perform responsibilities assigned to Committee Members?', $yesNo, true],
+        ],
+        'deputy' => [
+            ['textarea', 'Why did you choose this committee?', null, true],
+            ['textarea', 'Why do you want to serve as Deputy Committee Head of AGILE?', null, true],
+            ['textarea', 'What skills, knowledge, or experience can you contribute to this committee?', null, true],
+            ['select', 'Do you have previous leadership or organizational experience?', $yesNo, true],
+            ['textarea', 'If yes, briefly describe your previous leadership or organizational experience.', null, false],
+            ['textarea', 'How would you assist the Committee Head in managing and supporting the committee?', null, true],
+            ['textarea', 'What activities, projects, or improvements would you propose for this committee?', null, true],
+            ['textarea', 'How will you balance your academic responsibilities and your responsibilities as Deputy Committee Head?', null, true],
+            ['select', 'Are you willing to attend meetings, participate in activities, and perform responsibilities assigned to the Deputy Committee Head?', $yesNo, true],
+        ],
+        'committee_head' => [
+            ['textarea', 'Why did you choose this committee?', null, true],
+            ['textarea', 'Why do you want to serve as Committee Head of AGILE?', null, true],
+            ['textarea', 'What skills, knowledge, leadership experience, or qualifications can you contribute as Committee Head?', null, true],
+            ['select', 'Do you have previous leadership or organizational experience?', $yesNo, true],
+            ['textarea', 'If yes, briefly describe your previous leadership or organizational experience.', null, false],
+            ['textarea', 'How would you lead, coordinate, and support the members of your committee?', null, true],
+            ['textarea', 'What activities, projects, or improvements would you propose for this committee?', null, true],
+            ['textarea', 'How would you handle disagreements or problems within your committee?', null, true],
+            ['textarea', 'How will you balance your academic responsibilities and your responsibilities as Committee Head?', null, true],
+            ['select', 'Are you willing to attend meetings, lead committee activities, and fulfill the responsibilities assigned to the Committee Head?', $yesNo, true],
         ],
         'source_code' => [
-            ['text', 'What is your GitHub or portfolio link?', null, true],
-            ['textarea', 'Which programming languages and tools are you comfortable with?', null, true],
-            ['textarea', 'Describe a software project you have worked on.', null, true],
+            ['textarea', 'Why are you applying for this position in The Source Code?', null, true],
+            ['textarea', 'What relevant skills, knowledge, or experience can you contribute to The Source Code?', null, true],
+            ['textarea', 'Please describe any previous experience related to writing, editing, design, illustration, photography, videography, or student publications.', null, true],
+            ['text', 'Portfolio or Work Sample Link', null, false],
+            ['textarea', 'Why do you want to become part of The Source Code?', null, true],
+            ['textarea', 'How will you balance your academic responsibilities and your responsibilities in The Source Code?', null, true],
+            ['select', 'Are you willing to attend meetings, participate in publication activities, and fulfill the responsibilities of your selected position?', $yesNo, true],
         ],
     ];
 
@@ -44,6 +67,7 @@ return static function (PDO $db): void {
                 'input_type' => $inputType,
                 'options_json' => $options === null ? null : json_encode($options, JSON_THROW_ON_ERROR),
                 'is_required' => $required ? 1 : 0,
+                'is_active' => 1,
                 'sort_order' => ($index + 1) * 10,
             ]);
         }

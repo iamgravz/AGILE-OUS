@@ -37,7 +37,7 @@ final class DemoDataRemover
         'appointments.application_id', 'appointments.member_id', 'welfare_cases.user_id', 'case_notes.case_id',
         'referrals.case_id', 'case_followups.case_id', 'case_resolutions.case_id', 'welfare_case_history.case_id',
         'welfare_attachments.case_id', 'notifications.user_id', 'eligibility_screenings.member_id',
-        'eligibility_documents.screening_id', 'eligibility_reviews.screening_id', 'vacancies.request_id', 'officer_terms.member_id', 'election_candidacies.user_id', 'member_committees.member_id', 'credential_requests.member_id'];
+        'eligibility_documents.screening_id', 'eligibility_reviews.screening_id', 'vacancies.request_id', 'officer_terms.member_id', 'election_candidacies.user_id', 'member_committees.member_id', 'credential_requests.member_id', 'applicant_assessments.application_id'];
 
     /** Columns that record who did something. Any other link not listed here must not point to a removed row. */
     private const ACTOR_COLUMNS = ['approved_by', 'decided_by', 'changed_by', 'verified_by', 'evaluator_id',
