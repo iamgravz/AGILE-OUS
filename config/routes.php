@@ -65,10 +65,10 @@ return static function (Router $router): void {
     $router->post('/cms/{id}/return', 'CmsController@returnToAuthor', 'cms.return')->middleware('perm:content.publish');
     $router->post('/cms/{id}/archive', 'CmsController@archive', 'cms.archive')->middleware('perm:content.publish');
 
-    $router->get('/applications', 'ApplicationsController@index', 'applications')->middleware('perm:evaluation.view');
+    $router->get('/applications', 'ApplicationsController@index', 'applications')->middleware('perm:application.view');
     $router->get('/applications/my-committee', 'ApplicationsController@committee', 'applications.committee')->middleware('perm:application.decide');
-    $router->get('/applications/{id}', 'ApplicationsController@show', 'applications.show')->middleware('perm:evaluation.view');
-    $router->get('/applications/{id}/drawer', 'ApplicationsController@drawer', 'applications.drawer')->middleware('perm:evaluation.view');
+    $router->get('/applications/{id}', 'ApplicationsController@show', 'applications.show')->middleware('perm:application.view');
+    $router->get('/applications/{id}/drawer', 'ApplicationsController@drawer', 'applications.drawer')->middleware('perm:application.view');
     $router->post('/applications/{id}/documents/{documentId}/verify', 'ApplicationsController@verifyDocument', 'applications.verify_document')->middleware('perm:document.verify');
     $router->post('/applications/{id}/under-review', 'ApplicationsController@markUnderReview', 'applications.under_review')->middleware('perm:application.update_status');
     $router->post('/applications/{id}/return', 'ApplicationsController@returnForRevision', 'applications.return')->middleware('perm:application.return');
@@ -263,8 +263,8 @@ return static function (Router $router): void {
         $router->post('/events/attendance/{id}/undo/{registrationId}', 'EventAttendanceController@undo', 'events.attendance.undo')->middleware('perm:event.attendance');
         $router->get('/events/attendance/{id}/export', 'EventAttendanceController@export', 'events.attendance.export')->middleware('perm:event.attendance');
         // Run for office (Article VI). Members only; CandidacyService checks membership, and the file route its owner.
-        $router->get('/elections/candidacy', 'CandidaciesController@form', 'candidacy');
-        $router->post('/elections/candidacy', 'CandidaciesController@file');
+        $router->get('/elections/candidacy', 'CandidaciesController@form', 'candidacy')->middleware('perm:candidacy.file');
+        $router->post('/elections/candidacy', 'CandidaciesController@file')->middleware('perm:candidacy.file');
         $router->post('/elections/candidacy/{id}/withdraw', 'CandidaciesController@withdraw', 'candidacy.withdraw');
         $router->get('/elections/candidacy/{id}/files/{kind}', 'CandidaciesController@document', 'candidacy.document');
         $router->get('/my-eligibility', 'EligibilityController@mine', 'my_eligibility');

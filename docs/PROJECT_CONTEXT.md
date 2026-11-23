@@ -114,12 +114,13 @@ Codes (stored in `permissions.code`; mapped to roles in `role_permissions`; extr
 | `application.submit` (vacancy applications while logged in) | ✔ | | | | | |
 | `service_request.submit` | ✔ | ✔ | ✔ | ✔ | ✔ | ✔ |
 | `service_request.manage` | | | | ✔ | ✔ | |
+| `candidacy.file` | ✔ | ✔ | ✔ | ✔ | ✔ | ✔ |
 | `welfare.submit` | ✔ | ✔ | ✔ | ✔ | ✔ | ✔ |
 | `profile.manage_own` (profile, ID, certificate) | ✔ | ✔ | ✔ | ✔ | ✔ | ✔ |
 | `hr_request.submit` (own committee) | | ✔ | | | ✔ | |
 | `hr_request.approve` / `vacancy.manage` | | | | | ✔ | |
 | `document.verify` / `application.update_status` | | | | ✔ | ✔ | |
-| `evaluation.view` (read applications and their assessment) | | ✔ (read) | | ✔ | ✔ | |
+| `application.view` (read applications and their assessment) | | ✔ (read) | | ✔ | ✔ | |
 | `event.attendance` | | ✔ | | ✔ | ✔ | |
 | `interview.manage` | | | | ✔ | ✔ | |
 | `application.decide` (approve/reject; committee heads: own committee only, BR-20) | | ✔ | | | ✔ | |

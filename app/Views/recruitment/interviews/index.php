@@ -28,7 +28,7 @@ $choices = ['pending' => 'Pending'] + \App\Services\InterviewService::RESULTS;
 <?php if ($result['data'] === []) : ?>
     <div class="empty-state">
         <p class="empty-state__text">Interviews appear here after one is scheduled from an application.</p>
-        <?php if (can('evaluation.view')) : ?><a class="btn btn--secondary btn--sm" href="<?= e(route('applications')) ?>">Go to applications</a><?php endif; ?>
+        <?php if (can('application.view')) : ?><a class="btn btn--secondary btn--sm" href="<?= e(route('applications')) ?>">Go to applications</a><?php endif; ?>
     </div>
 <?php else : ?>
     <div class="table-wrap">

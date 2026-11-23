@@ -21,7 +21,7 @@ final class SearchService
     public static function modules(): array
     {
         return array_keys(array_filter([
-            'applications' => can('evaluation.view'),
+            'applications' => can('application.view'),
             'members' => can('member.view'),
             'vacancies' => can('vacancy.manage'),
             'content' => can('content.draft'),

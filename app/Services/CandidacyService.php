@@ -69,6 +69,7 @@ final class CandidacyService
      */
     public function file(array $data, array $files): int
     {
+        authorize('candidacy.file');
         $userId = (int) current_user_id();
 
         if (!$this->filingOpen()) {

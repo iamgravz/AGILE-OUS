@@ -16,6 +16,10 @@ return [
         'description' => 'Handle service requests',
         'roles' => ['msw_member', 'msw_head'],
     ],
+    'candidacy.file' => [
+        'description' => 'File a candidacy for an elected office',
+        'roles' => ['general_member', 'committee_head', 'execomm', 'msw_member', 'msw_head', 'president'],
+    ],
     'welfare.submit' => [
         'description' => 'Submit a welfare concern',
         'roles' => ['general_member', 'committee_head', 'execomm', 'msw_member', 'msw_head', 'president'],
@@ -44,8 +48,8 @@ return [
         'description' => 'Update application status',
         'roles' => ['msw_member', 'msw_head'],
     ],
-    'evaluation.view' => [
-        'description' => 'Review evaluations and approved applications',
+    'application.view' => [
+        'description' => 'Read applications and their assessment',
         'roles' => ['committee_head', 'msw_member', 'msw_head'],
     ],
     'event.attendance' => [

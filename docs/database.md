@@ -39,7 +39,7 @@ The database has 46 tables (45 for the system and `schema_migrations`), 76 forei
 |---|---|
 | `schema_migrations` | Which migration files have run on this database |
 | `roles` | The 7 system roles, including `guest` for the public (no account, no permissions) |
-| `permissions` | The 36 permission codes |
+| `permissions` | The 37 permission codes |
 | `role_permissions` | Which permissions each role has |
 | `users` | Login accounts and profile basics |
 | `user_permissions` | Extra permissions granted to one user |

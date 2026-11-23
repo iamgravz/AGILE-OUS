@@ -503,7 +503,7 @@ final class MembershipService
      */
     public function listForStaff(array $filters, string $sort, string $direction, int $page): array
     {
-        authorize('evaluation.view');
+        authorize('application.view');
 
         if (!can('application.update_status')) {
             $filters['reviewed_only'] = true;
@@ -515,7 +515,7 @@ final class MembershipService
     /** @return list<array<string, mixed>> */
     public function vacancyFilterOptions(): array
     {
-        authorize('evaluation.view');
+        authorize('application.view');
 
         return $this->applications->vacanciesWithApplications();
     }
@@ -528,7 +528,7 @@ final class MembershipService
      */
     public function openForStaff(int $id): ?array
     {
-        authorize('evaluation.view');
+        authorize('application.view');
 
         $application = $this->applications->findDetailed($id);
 

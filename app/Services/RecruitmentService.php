@@ -607,7 +607,7 @@ final class RecruitmentService
      */
     public function committeeVacancies(): array
     {
-        authorize('evaluation.view');
+        authorize('application.view');
 
         $applications = new \App\Models\MembershipApplicationRepository();
         $vacancies = $this->vacancies->forCommitteesHeadedBy((int) current_user_id());

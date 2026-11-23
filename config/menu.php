@@ -36,7 +36,7 @@ return [
             'heading' => 'Membership',
             'items' => [
                 ['label' => 'My Applications', 'url' => '/my-applications', 'icon' => 'clipboard', 'permission' => 'application.submit'],
-                ['label' => 'Run for office', 'url' => '/elections/candidacy', 'icon' => 'award', 'permission' => 'welfare.submit'],
+                ['label' => 'Run for office', 'url' => '/elections/candidacy', 'icon' => 'award', 'permission' => 'candidacy.file'],
                 ['label' => 'Members', 'url' => '/members', 'icon' => 'users', 'permission' => 'member.view'],
                 // Manual mode (config/credentials.php): members request, the MSW Committee Head uploads from the template.
                 ['label' => 'ID and certificate requests', 'url' => '/credentials/requests', 'icon' => 'award', 'permission' => 'credential.approve', 'badge' => 'credential_requests'],
@@ -48,7 +48,7 @@ return [
                 ['label' => 'HR Requests', 'url' => '/recruitment/hr-requests', 'icon' => 'file', 'permission' => 'hr_request.submit'],
                 ['label' => 'Vacancies', 'url' => '/recruitment/vacancies', 'icon' => 'briefcase', 'permission' => 'vacancy.manage'],
                 ['label' => 'Open for application', 'url' => '/admin/open-positions', 'icon' => 'clipboard', 'permission' => 'admin.settings'],
-                ['label' => 'Applications', 'url' => '/applications', 'icon' => 'inbox', 'permission' => 'evaluation.view'],
+                ['label' => 'Applications', 'url' => '/applications', 'icon' => 'inbox', 'permission' => 'application.view'],
                 ['label' => 'Applications to my committee', 'url' => '/applications/my-committee', 'icon' => 'inbox', 'permission' => 'application.decide'],
                 ['label' => 'My Committee', 'url' => '/recruitment/committee', 'icon' => 'users', 'permission' => 'hr_request.submit'],
                 ['label' => 'Interviews', 'url' => '/recruitment/interviews', 'icon' => 'calendar', 'permission' => 'interview.manage'],
