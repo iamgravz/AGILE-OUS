@@ -39,7 +39,7 @@ The database has 46 tables (45 for the system and `schema_migrations`), 76 forei
 |---|---|
 | `schema_migrations` | Which migration files have run on this database |
 | `roles` | The 7 system roles, including `guest` for the public (no account, no permissions) |
-| `permissions` | The 34 permission codes |
+| `permissions` | The 36 permission codes |
 | `role_permissions` | Which permissions each role has |
 | `users` | Login accounts and profile basics |
 | `user_permissions` | Extra permissions granted to one user |
@@ -61,13 +61,20 @@ The database has 46 tables (45 for the system and `schema_migrations`), 76 forei
 | `vacancies` | Approved openings created from HR requests |
 | `membership_applications` | Applications, with tracking codes and decisions |
 | `application_status_history` | Status timeline of each application |
-| `application_questions` | Common and role-specific questions |
+| `application_questions` | The questions of AGILE's registration form, by what the person applies for; older questions are kept inactive |
 | `application_answers` | Applicants' answers |
-| `application_documents` | Uploaded documents and their verification results |
-| `ai_extractions` | AI-suggested values awaiting human confirmation |
-| `evaluations` | Rubric scores, one per evaluator per application |
+| `application_documents` | Uploaded documents, their verification results and current version number |
+| `document_versions` | Earlier files of a re-uploaded document, with the review each had |
+| `ai_extractions` | AI-suggested values awaiting human confirmation (optional feature, off by default) |
+| `evaluations` | History only: rubric scores saved before the rubric was replaced by `applicant_assessments` |
+| `interview_questions` | AGILE's interview question bank (65 questions) by applicant type, committee and position |
 | `interviews` | Interview schedules and results |
+| `applicant_assessments` | The MSW interviewer's assessment after the interview: ratings per criterion, totals, recommendation |
 | `appointments` | Appointment records awaiting or having MSW Head approval |
+| `member_committees` | A member's second committee, besides the one from their position |
+| `credential_requests` | A member's request for an ID or certificate, with the half-body photo; the MSW Committee Head uploads the file |
+| `officer_terms` | Terms served by elected officers, for the term limit in `config/elections.php` |
+| `election_candidacies` | Candidacies for elected offices (Article VI), with COR and grades |
 
 ### Welfare
 
@@ -95,6 +102,10 @@ The database has 46 tables (45 for the system and `schema_migrations`), 76 forei
 | `eligibility_screenings` | Screening record per officer per term (its unused `document_path` was dropped) |
 | `eligibility_documents` | Files an officer submitted for a screening |
 | `eligibility_reviews` | MSW Head decision on a flagged screening |
+| `event_registrations` | Members registered for an event, walk-ins, and who checked them in |
+| `notification_preferences` | Which optional notices a person turned off, by channel |
+| `service_requests` | Requests to the MSW Committee that are not welfare concerns |
+| `service_request_messages` | The reply thread of a service request |
 
 ## Additions to the SAD data dictionary
 
@@ -111,6 +122,15 @@ The database has 46 tables (45 for the system and `schema_migrations`), 76 forei
 | `email_drafts` | FR-COM-02 requires saved email drafts addressed to selected groups. |
 | `applicants` | BR-18: people apply with no account, so their details live here. One row per email. |
 | `application_access_links` | BR-18: emailed links to continue a draft, revise or withdraw. Only hashes are stored. |
+| `officer_terms` | Article VI term limits: each term an elected officer served (Nov 23, 2026). |
+| `election_candidacies` | Article VI: members file candidacy with their COR and grades; the MSW Committee Head qualifies or disqualifies (Nov 23, 2026). |
+| `member_committees` | A member may serve in a second committee (Nov 23, 2026). |
+| `credential_requests` | IDs and certificates are made from AGILE's own template; members request, the MSW Committee Head uploads (Nov 23, 2026). |
+| `interview_questions`, `applicant_assessments` | AGILE's interview question bank and its Applicant Evaluation sheet; replaces rubric scoring (Nov 23, 2026). |
+| `document_versions` | A re-uploaded document keeps its earlier files and their review (Nov 23, 2026). |
+| `event_registrations` | Event registration and attendance (Nov 23, 2026). |
+| `notification_preferences` | People choose which optional notices they get (Nov 23, 2026). |
+| `service_requests`, `service_request_messages` | Requests to the MSW Committee that are not welfare concerns, with a reply thread (Nov 23, 2026). |
 
 ### New columns
 
@@ -157,6 +177,11 @@ The database has 46 tables (45 for the system and `schema_migrations`), 76 forei
 | `academic_terms.grace_days` | Sets how long after the deadline a screening is marked Incomplete. |
 | `academic_terms.current_flag` | Generated from `is_current` so a UNIQUE index allows only one current term. |
 | `positions.committee_key` | Generated `IFNULL(committee_id, 0)` so a UNIQUE index covers executive posts too. |
+| `users.year_level`, `users.section`; `welfare_cases.submitter_contact_no`, `submitter_year_level`, `submitter_section` | Every form with a contact number also asks year level and section (Nov 23, 2026). |
+| `members.verify_token` | The token in the QR printed on AGILE's ID; `/verify/member/{token}` shows whether the member is active. |
+| `application_questions.is_active` | Questions replaced by AGILE's registration form stay, inactive, so earlier answers keep their question. |
+| `application_documents.version_no` | The current version of a document (see `document_versions`). |
+| `content_posts.registration_open`, `content_posts.capacity` | Whether members can register for an event, and its slots (blank = no limit). |
 
 ## Other changes
 

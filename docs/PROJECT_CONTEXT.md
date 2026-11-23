@@ -18,12 +18,12 @@
 A responsive, secure, database-driven web app for **AGILE** (Academic Guild of IT Learners and Experts), the BSIT student organization of PUP Open University System. It replaces Google Forms + Sheets.
 
 Seven modules:
-1. **Public Portal** – mission/vision, news, events, publications, announcements, open positions, links to apply / ask for help, status tracking by code.
-2. **Membership** – registration, profile, application wizard, role-specific questions, document upload, decisions, member records, digital ID + certificate (PDF with QR), status/history, audit logs, expiration reminders.
-3. **Recruitment** – HR requests → vacancies → document verification → evaluations (rubric) → interviews → appointments; vacancy auto-status.
+1. **Public Portal** – mission/vision, news, events (with registration), publications, announcements, open positions, links to apply / ask for help, status tracking by code.
+2. **Membership** – registration, profile, application wizard with the questions of AGILE's registration form by role, document upload with version history, decisions, member records, second committee, ID and certificate requests (made from AGILE's template and uploaded by the MSW Committee Head), member verification by the QR on the ID, status/history, audit logs, expiration reminders, candidacy for elected offices and term limits (Article VI).
+3. **Recruitment** – HR requests → vacancies → document verification → interviews (AGILE's question bank) → the MSW interviewer's assessment → the Committee Head reads the Applicant profile and decides → appointments; vacancy auto-status.
 4. **Welfare** – confidential cases: 7 categories, 4 priorities, attachments, referrals, follow-ups, notes, history, resolution, closure.
 5. **Internal Administration** – auth, RBAC, personalized dashboards, search/filter, reports (PDF/CSV), audit trail, user/role/settings management.
-6. **Communications & CMS** – branded email templates, drafts, queued notifications, in-app notifications, publishing workflow.
+6. **Communications & CMS** – branded email templates, drafts, queued notifications, in-app notifications with per-person preferences, publishing workflow, event attendance, service requests (record corrections, documents, questions) with a reply thread.
 7. **Academic Eligibility** – semestral screening of officers (not General Members); flag → MSW Committee Head decides → role expires, person stays Active General Member. Optional AI extraction (suggest only).
 
 ---
@@ -90,9 +90,9 @@ Seven modules:
 |---|---|---|
 | `guest` | Guest / Applicant | **No account, no profile, no login.** Public portal. Fills in the **membership application form** (then called an *Applicant*) or the **welfare concern form**, after verifying their email with a one-time code. Tracks applications and welfare cases at `/track` with code + email; edits a draft or an application returned *For Revision* through a secure link emailed to them. |
 | `general_member` | General Member | Active member, no officer role. First role with an account: an approved applicant registers at `/register`, and the account is usable once the MSW Head approves it (BR-21). Profile, ID, certificate, welfare, applies for vacancies while logged in. Excluded from eligibility screening. |
-| `committee_head` | Committee Head | Files HR requests (own committee), evaluates applicants, reviews evaluations, drafts content. |
+| `committee_head` | Committee Head | Files HR requests (own committee), reads the Applicant profile (answers, interview, assessment) and decides applications to their committee (BR-20), takes event attendance, drafts content. |
 | `execomm` | Executive Committee | View-only dashboards. |
-| `msw_member` | MSW Deputy Head / MSW Member | Read/write applications, status, document verification, evaluations, interviews, appointment prep. **Cannot** approve/reject applications, approve appointments, or see welfare cases. |
+| `msw_member` | MSW Deputy Head / MSW Member | Read/write applications, status, document verification, interviews and the applicant assessment, appointment prep, event attendance, service requests. **Cannot** approve/reject applications, approve appointments, or see welfare cases. |
 | `msw_head` | MSW Committee Head | **System administrator.** Only role that sees all data. Final decisions on applications, HR requests, vacancies, appointments, welfare, eligibility, content publishing. Manages users/roles/settings. |
 | `president` | President | View-only dashboards + full access to welfare cases (view, notes, referrals, follow-ups). Cannot assign/reassign/close cases. |
 
@@ -119,7 +119,7 @@ Codes (stored in `permissions.code`; mapped to roles in `role_permissions`; extr
 | `hr_request.submit` (own committee) | | ✔ | | | ✔ | |
 | `hr_request.approve` / `vacancy.manage` | | | | | ✔ | |
 | `document.verify` / `application.update_status` | | | | ✔ | ✔ | |
-| `evaluation.view` (review evaluations & approved apps) | | ✔ (read) | | ✔ | ✔ | |
+| `evaluation.view` (read applications and their assessment) | | ✔ (read) | | ✔ | ✔ | |
 | `event.attendance` | | ✔ | | ✔ | ✔ | |
 | `interview.manage` | | | | ✔ | ✔ | |
 | `application.decide` (approve/reject; committee heads: own committee only, BR-20) | | ✔ | | | ✔ | |
@@ -151,7 +151,7 @@ Guest / Applicant access (no account, no permission rows; public routes with rat
 Record-level rules (checked in services, on top of permissions):
 - Everyone (guests/applicants and all logged-in roles) can track/view **their own** applications and **status only** of their own welfare cases. People without an account prove ownership with code + the email used on the form.
 - Committee heads submit HR requests only for **their own committee**.
-- Each evaluator submits **one evaluation per application**.
+- **One assessment per application**, by an MSW interviewer after a passed or failed interview; saving again replaces it. An interviewer who declared a conflict of interest cannot assess (BR-25), and nobody assesses their own application.
 
 ---
 
@@ -161,7 +161,7 @@ Record-level rules (checked in services, on top of permissions):
 - **BR-02** One active application per vacancy per applicant email / student number (general membership = vacancy NULL counts as one).
 - **BR-03** Application can't be approved until **all required documents are Verified**. Who approves or rejects is in BR-20.
 - **BR-04** Only MSW Committee Head creates vacancies, only from an **approved** HR request. Vacancy closes automatically on closing date or when slots are filled.
-- **BR-05** Evaluators: MSW Head, MSW Deputy/Members, all committee heads; one evaluation each. Who accepts an application is in BR-20. Only MSW Head approves appointments.
+- **BR-05** *(update, Nov 23 2026)* The MSW interviewer assesses the applicant after the interview, following AGILE's Applicant Evaluation sheet (one assessment per application). Rubric scoring by several evaluators was retired. Who accepts an application is in BR-20. Only MSW Head approves appointments.
 - **BR-06** Welfare cases (details, notes, attachments) visible **only** to MSW Head and President. Every view is logged.
 - **BR-07** Only MSW Head assigns/reassigns/closes cases. Urgent and Harassment/Bullying cases must be acknowledged within 24 hours.
 - **BR-08** Eligibility screening each semester for officers (executive, committee heads/deputies/members, The Source Code). General Members excluded.
@@ -235,7 +235,7 @@ Implement each lifecycle as a small transition map in the related service, e.g. 
 - `application_answers` (answer_id PK, application_id FK, question_id FK, answer_text TEXT NULL)
 - `application_documents` (document_id PK, application_id FK, doc_type VARCHAR(50) e.g. school_id/cor/certificate, original_name, stored_path, mime_type, size_bytes, verification_status ENUM('pending','verified','needs_correction','rejected') DEFAULT 'pending', verification_remarks NULL *(addition)*, verified_by NULL, verified_at NULL)
 - `ai_extractions` (extraction_id PK, source_type ENUM('application_document','eligibility_screening') *(addition)*, source_id INT, extracted_json JSON, confidence DECIMAL(4,3) NULL, status ENUM('suggested','confirmed','discarded'), verified_by NULL, verified_at NULL)
-- `evaluations` (evaluation_id PK, application_id FK, evaluator_id FK users, score DECIMAL(5,2), rubric_json JSON, recommendation ENUM('recommend','hold','not_recommend'), remarks TEXT) — UNIQUE(application_id, evaluator_id); CHECK score BETWEEN 0 AND 100
+- `evaluations` *(history only since Nov 23 2026; replaced by `applicant_assessments`)* (evaluation_id PK, application_id FK, evaluator_id FK users, score DECIMAL(5,2), rubric_json JSON, recommendation ENUM('recommend','hold','not_recommend'), remarks TEXT) — UNIQUE(application_id, evaluator_id); CHECK score BETWEEN 0 AND 100
 - `interviews` (interview_id PK, application_id FK, interviewer_id FK users, scheduled_at, mode ENUM('online','onsite'), location VARCHAR(255), result ENUM('pending','passed','failed','no_show') DEFAULT 'pending', notes TEXT NULL, reminder_sent_at NULL *(addition)*)
 - `appointments` (appointment_id PK, application_id FK, member_id FK NULL, position_id FK, status ENUM('prepared','approved','returned') *(addition)*, prepared_by FK users *(addition)*, appointed_by FK users NULL, remarks TEXT NULL, effective_date DATE)
 
@@ -260,6 +260,20 @@ Implement each lifecycle as a small transition map in the related service, e.g. 
 - `eligibility_screenings` (screening_id PK, term_id FK, member_id FK, has_failed_subject BOOL NULL, is_officially_enrolled BOOL NULL, result ENUM('pending','submitted','eligible','flagged','incomplete','confirmed_ineligible','cleared'), flagged_at NULL, verified_by NULL, verified_at NULL) — UNIQUE(term_id, member_id)
 - `eligibility_documents` *(addition, step 17: an officer may submit several files; it replaced `eligibility_screenings.document_path`, which was dropped)* (document_id PK, screening_id FK, original_name, stored_path, mime_type, size_bytes)
 - `eligibility_reviews` (review_id PK, screening_id FK UNIQUE, decision ENUM('confirm_ineligible','clear'), remarks TEXT NOT NULL, decided_by FK, decided_at)
+
+**Additions, November 22–23, 2026** (details and reasons in [database.md](database.md))
+- `interview_questions` (question_id PK, applicant_type VARCHAR(30) (core, general, committee_member, deputy, committee_head, source_code), committee VARCHAR(100) NULL, position VARCHAR(100) NULL, code VARCHAR(10), question VARCHAR(500), competency VARCHAR(100), sort_order)
+- `applicant_assessments` (assessment_id PK, application_id FK UNIQUE, evaluator_id FK users, ratings_json JSON, application_score, interview_score, role_score, total_score TINYINT, recommendation ENUM('highly_recommended','recommended','recommended_with_considerations','further_evaluation','not_recommended'), strengths/development/remarks TEXT NULL)
+- `document_versions` (version_id PK, document_id FK application_documents, version_no, original_name, stored_path, mime_type, size_bytes, verification_status, verification_remarks NULL, uploaded_at, replaced_at) — UNIQUE(document_id, version_no)
+- `member_committees` (member_committee_id PK, member_id FK, committee_id FK, joined_at DATE, added_by FK NULL) — UNIQUE(member_id, committee_id)
+- `credential_requests` (request_id PK, member_id FK, type ENUM('digital_id','certificate'), note NULL, photo_path NULL, status ENUM('requested','issued','declined','cancelled'), credential_id FK NULL, remarks NULL, handled_by FK NULL, handled_at NULL)
+- `officer_terms` (term_id PK, member_id FK, position_id FK, academic_year CHAR(9), year_level, recorded_by FK NULL) — UNIQUE(member_id, position_id, academic_year)
+- `election_candidacies` (candidacy_id PK, user_id FK, position_id FK, academic_year, year_level, section, contact_no, statement NULL, cor_path, grades_path, status ENUM('filed','qualified','disqualified','withdrawn','elected'), remarks NULL, decided_by FK NULL, decided_at NULL)
+- `event_registrations` (registration_id PK, post_id FK content_posts, member_id FK, status ENUM('registered','cancelled'), walk_in BOOL, registered_at, cancelled_at NULL, attended_at NULL, checked_in_by FK NULL) — UNIQUE(post_id, member_id)
+- `notification_preferences` (user_id FK + category VARCHAR(30) PK, email BOOL, in_app BOOL) — no row means all on
+- `service_requests` (request_id PK, user_id FK, type ENUM('record_update','document','inquiry','technical','other'), subject VARCHAR(150), status ENUM('open','in_progress','resolved','closed','cancelled'), assigned_to FK NULL, resolved_at NULL)
+- `service_request_messages` (message_id PK, request_id FK, author_id FK users, from_staff BOOL, body TEXT)
+- New columns: `users.year_level`, `users.section`, `welfare_cases.submitter_contact_no/_year_level/_section`, `members.verify_token`, `application_questions.is_active`, `application_documents.version_no`, `content_posts.registration_open`, `content_posts.capacity`
 
 Seed data: 7 roles (no applicant role), all permission codes + role mapping from §6, 7 welfare categories, AGILE's real structure (update R6): Executive Committee positions (President, Vice President for Internal Affairs, Vice President for External Affairs, Secretary, Assistant Secretary, Treasurer, Auditor), the 7 committees (Academics and Training; Research and Extensions; Creatives, Social Media and Communication; Finance and Fund Raising; Logistics; Membership and Student Welfare; Events and External Relations) each with Committee Head / Deputy Committee Head / Committee Member, and The Source Code with its 11 positions (Editor-in-Chief first) and no committee head, email templates from §10, default settings (incl. `welfare.guest_submission=1`), one sample user per role (password `Password123!`), 3 sample applicants without accounts (with submitted applications in different statuses), 1 approved applicant who has not registered yet, sample application questions.
 

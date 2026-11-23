@@ -2,6 +2,16 @@
 
 Web application for the Academic Guild of IT Learners and Experts (AGILE), the BSIT student organization of the PUP Open University System. The full specification is in [docs/PROJECT_CONTEXT.md](docs/PROJECT_CONTEXT.md), and build progress is in [docs/PROGRESS.md](docs/PROGRESS.md).
 
+## What it does
+
+- **Public portal:** about AGILE, committees, news, events (members register), publications, open positions, Ask for Help, tracking by code.
+- **Membership:** apply without an account (email code), the questions of AGILE's registration form, documents with version history, decisions by the Committee Head (BR-20), member records, ID and certificate requests, member verification by the QR on the ID, candidacy for elected offices.
+- **Recruitment:** HR requests, vacancies, interviews with AGILE's question bank, the MSW interviewer's assessment, the Applicant profile, appointments.
+- **Student welfare:** confidential, encrypted cases with categories, priority, referrals, follow-ups and closure.
+- **Eligibility screening** of officers each semester.
+- **Communications:** email templates and drafts, in-app notifications with preferences, content publishing, event attendance, service requests.
+- **Administration:** six roles with a tested permission matrix, dashboards, search, reports (PDF/CSV), audit log, settings, backups and document archiving.
+
 ## Requirements
 
 - PHP 8.2 or newer with the `fileinfo`, `gd`, `mbstring`, `openssl`, `pdo_mysql` and `zip` extensions. `exif` is recommended, so sideways phone photos are straightened
