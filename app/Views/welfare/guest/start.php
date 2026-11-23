@@ -32,7 +32,7 @@ $field = static fn (string $name, string $label, array $extra = []): array => ['
         <div class="form-layout">
             <div class="form-layout__main robot-stage">
                 <h1>Ask for help</h1>
-                <p class="portal-lead">Step 1 of 3. Tell us your concern. Only the MSW Committee Head and the President can read it.</p>
+                <p class="portal-lead">Step 1 of 3. Tell us your concern. It stays confidential.</p>
 
                 <?= $this->partial('partials/robot', ['bubble' => "I'm Iskobot. You're not alone. We're here to help."]) ?>
 
