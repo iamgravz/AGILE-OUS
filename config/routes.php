@@ -301,15 +301,6 @@ return static function (Router $router): void {
         $router->post('/styleguide/upload', 'StyleguideController@upload');
     }
 
-    // Temporary pages for sidebar items not built yet. They stay last because the first matching route wins,
-    // so a real route declared above replaces its placeholder. Remove this block when the last one is gone.
-    $router->get('/admin', 'PlaceholderController@show')->middleware('perm:admin.users');
-
-    foreach (config('menu.dashboard', []) as $group) {
-        foreach ($group['items'] as $item) {
-            if ($item['permission'] !== null) {
-                $router->get($item['url'], 'PlaceholderController@show')->middleware('perm:' . $item['permission']);
-            }
-        }
-    }
+    // /admin opens the first administration page.
+    $router->get('/admin', 'AdminUsersController@home')->middleware('perm:admin.users');
 };

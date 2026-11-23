@@ -20,6 +20,11 @@ final class AdminUsersController
     {
     }
 
+    public function home(Request $request): Response
+    {
+        return redirect(route('admin.users'));
+    }
+
     public function index(Request $request): Response
     {
         $form = ['q' => $request->queryText('q'), 'role' => $request->queryText('role'), 'status' => $request->queryText('status')];

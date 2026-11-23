@@ -123,7 +123,7 @@ Verified controls (code inspected and covered by tests in `tests/SecurityReviewT
 
 | Control | Where | Result |
 |---|---|---|
-| CSRF | `app/Core/Router.php` line 135 adds `CsrfMiddleware` to every POST route | Implemented in code. The HTTP tests check that valid tokens are accepted (`HttpAccessTest.php` line 84); **no test yet posts without a token** (added to section K) |
+| CSRF | `app/Core/Router.php` line 135 adds `CsrfMiddleware` to every POST route | Implemented and tested: `tests/CsrfTest.php` posts without a token and with a wrong one (419, nothing saved), and the same form with the token succeeds |
 | SQL injection | All queries use PDO prepared statements. Interpolated parts are fixed identifiers, placeholders or integers (for example `ContentPostRepository.php` line 61, whose `$order` comes from fixed choices) | No user input reaches SQL text |
 | XSS | Views escape with `e()`. The 36 raw echoes are integers, layout sections already escaped, or HTML cleaned by HTMLPurifier (`HtmlSanitizer`) | No unescaped user input found |
 | Access control | `perm:` route middleware plus `authorize()` in services; every protected route is tested for all six roles against the §6 matrix | Implemented and tested |
@@ -230,6 +230,8 @@ None during the inspection. Changes made afterward, one item at a time, each fol
 | H-1 | Removed `EvaluationService.php`, `EvaluationRepository.php`, `EvaluationsController.php`, `public/assets/js/rubric-total.js`, the rubric part of `admin/settings.php` and `SettingsService.php`, the rubric seed, `DashboardRepository::applicationsAwaitingEvaluationBy()` (no caller), permission `evaluation.submit` (migration `2026_11_23_retire_rubric`), and their CSS. Added `MyCommitteeController` and `RecruitmentService::committeeVacancies()` (moved, unchanged). | The removed feature no longer had a screen that pretends to work. |
 | H-1 (rule kept) | `AssessmentService::save()` | BR-25 (an interviewer who declared a conflict cannot score) and "no one assesses their own application" lived only in the removed rubric code. Both now guard the assessment; `AppointmentFlowTest::testAConflictBlocksTheResultAndTheScoreUntilRescheduled` checks it. |
 | H-2 | `README.md` (new "What it does"), `docs/PROJECT_CONTEXT.md` (§1 modules, §5 roles, §6 record rules, BR-05, §9 additions and `evaluations` marked history), `docs/database.md` (36 permissions; 11 tables and 10 columns added with reasons) | The documents now describe the system as built. Table and column lists were taken from the live database, not written from memory. The inspection found 11 undocumented tables, not 7 as first reported. |
+| M-1 | Removed `PlaceholderController.php`, `dashboard/placeholder.php`, `portal/coming_soon.php` and the fallback block in `config/routes.php`; `/admin` now redirects to Users (`AdminUsersController::home()`). Added `tests/MenuLinksTest.php`. | The fallback hid missing pages. The new test fails if a sidebar link has no page of its own; all 39 have one. |
+| 4b | Added `tests/CsrfTest.php` | The CSRF control was implemented but no test proved a forged POST is refused. |
 | H-1 (tests) | `AppointmentFlowTest`, `AdministrationTest`, `LandingPageTest`, `AccessMatrixTest`, `docs/test-cases.md` (BR-05) | Tests of the removed code were removed (414 → 404); BR-05 now points to the assessment test. |
 
 ---
