@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 // AGILE's interview question bank, copied from the QUESTION_BANK sheet of AGILE_Applicant_Evaluation_Interview_Management
-// (Nov 23, 2026). [applicant type, committee (null = all), position (null = all), code, question, competency].
+// [applicant type, committee (null = all), position (null = all), code, question, competency].
 // The interviewer sees the core questions, then the ones for the applicant's role, committee and position.
 return static function (PDO $db): void {
     $bank = [

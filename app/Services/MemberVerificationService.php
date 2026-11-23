@@ -9,7 +9,7 @@ use App\Models\MemberRepository;
 
 /**
  * The member verification page (/verify/member/<token>): the member's current digital ID and that they are an active
- * member. Since Nov 23, 2026 the QR is part of AGILE's own ID template, so the system no longer hands out QR images;
+ * member. The QR is part of AGILE's own ID template, so the system no longer hands out QR images;
  * the page stays for a token set on a member. The token is random and says nothing about the member.
  */
 final class MemberVerificationService

@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-// Outside production only (Nov 23, 2026): five positions open for application, so Open Positions and Committees show
+// Outside production only: five positions open for application, so Open Positions and Committees show
 // real-looking cards. It only opens positions that still have slots; the MSW Committee Head can close them in
 // Administration, Open for application. Safe to run again.
 return static function (PDO $db): void {

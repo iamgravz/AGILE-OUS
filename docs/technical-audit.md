@@ -101,10 +101,12 @@ The "Run for office" menu item is gated by `welfare.submit` (`config/menu.php` l
 `evaluation.view`. They work, but a reader cannot tell from the name. *Fix:* rename to `candidacy.file` and
 `application.view` with a migration that keeps every role's access unchanged, and update `docs/PROJECT_CONTEXT.md` §6.
 
-**M-4 (Medium): views call services directly in two places.**
-`app/Views/portal/post.php` creates `EventRegistrationService`, and `app/Views/dashboard/_cards.php` creates
-`NotificationService`. Elsewhere, controllers or `DashboardService` pass data to views. *Fix:* pass both from the
-controller / `DashboardService`.
+**M-4 (Medium): views call services or repositories directly.**
+The first count said two places; a full search found nine. `app/Views/portal/post.php` loaded the author, related posts
+and event registration, and `app/Views/dashboard/_cards.php` loaded unread notifications. Also: the unread count in
+`layouts/dashboard.php`, and `FileStorageService::maxUploadMb()` in four upload views. *Fix:* the page data moves to the
+controller or `DashboardService`. The unread count (needed by every page, with no single controller) and the upload
+limit (one setting) stay in the views as read-only lookups.
 
 **M-5 (Medium): comments narrate change history.**
 40 comments carry dates such as "(Nov 23, 2026)" or say what used to be there ("Rubric scoring was removed").
@@ -232,6 +234,8 @@ None during the inspection. Changes made afterward, one item at a time, each fol
 | H-2 | `README.md` (new "What it does"), `docs/PROJECT_CONTEXT.md` (§1 modules, §5 roles, §6 record rules, BR-05, §9 additions and `evaluations` marked history), `docs/database.md` (36 permissions; 11 tables and 10 columns added with reasons) | The documents now describe the system as built. Table and column lists were taken from the live database, not written from memory. The inspection found 11 undocumented tables, not 7 as first reported. |
 | M-1 | Removed `PlaceholderController.php`, `dashboard/placeholder.php`, `portal/coming_soon.php` and the fallback block in `config/routes.php`; `/admin` now redirects to Users (`AdminUsersController::home()`). Added `tests/MenuLinksTest.php`. | The fallback hid missing pages. The new test fails if a sidebar link has no page of its own; all 39 have one. |
 | 4b | Added `tests/CsrfTest.php` | The CSRF control was implemented but no test proved a forged POST is refused. |
+| M-4 | `PortalController::post()`, `portal/post.php`, `DashboardService::forCurrentUser()` (`unread`), `dashboard/_cards.php` | Page data comes from the controller or service; the two read-only lookups above stay, by choice. |
+| M-5 | 40 files: comments in `app/`, `config/`, `database/seeds/`, `jobs/`, `public/assets/css/` | Dated and "was removed" comments now describe the code as it is; reasons are kept. Dates that are data (styleguide samples, email preview values, the privacy page date, date-format examples) were left. Two rewritten comments were checked against the code and corrected. |
 | H-1 (tests) | `AppointmentFlowTest`, `AdministrationTest`, `LandingPageTest`, `AccessMatrixTest`, `docs/test-cases.md` (BR-05) | Tests of the removed code were removed (414 → 404); BR-05 now points to the assessment test. |
 
 ---

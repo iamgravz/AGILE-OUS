@@ -10,7 +10,7 @@
 <link rel="stylesheet" href="<?= e(asset('css/tokens.css')) ?>">
 <link rel="stylesheet" href="<?= e(asset('css/components.css')) ?>">
 <link rel="stylesheet" href="<?= e(asset('css/layout.css')) ?>">
-<?php /* One look for every page: the bands, cards and buttons of the public redesign (Nov 23, 2026). */ ?>
+<?php /* One look for every page: the bands, cards and buttons of the public pages. */ ?>
 <link rel="stylesheet" href="<?= e(asset('css/modern.css')) ?>">
 <link rel="stylesheet" href="<?= e(asset('css/glass.css')) ?>">
 <?= $this->section('head') ?>

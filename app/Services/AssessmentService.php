@@ -10,8 +10,8 @@ use DomainException;
 use PDO;
 
 /**
- * The MSW interviewer's assessment of an applicant, after the interview, from AGILE's own Applicant Evaluation sheet
- * (Nov 23, 2026): each criterion rated 1 to 5 with a remark, totals per section, a recommendation, strengths and areas
+ * The MSW interviewer's assessment of an applicant, after the interview, from AGILE's own Applicant Evaluation sheet:
+ * each criterion rated 1 to 5 with a remark, totals per section, a recommendation, strengths and areas
  * for development. The Committee Head reads it on the Applicant profile tab and still makes the decision (BR-20).
  */
 final class AssessmentService

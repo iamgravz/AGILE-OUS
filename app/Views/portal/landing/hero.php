@@ -35,5 +35,5 @@ $eyebrow = 'PUP Open University System';
             </div>
         </div>
     </div>
-<?php /* The scroll arrow and the Pause animation button were removed on request (Nov 23, 2026). The photos still stay still for anyone whose device asks for reduced motion. */ ?>
+<?php /* No scroll arrow or Pause button. The photos stay still for anyone whose device asks for reduced motion. */ ?>
 </section>

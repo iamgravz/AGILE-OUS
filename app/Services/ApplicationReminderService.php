@@ -13,7 +13,7 @@ use App\Models\UserRepository;
 use Throwable;
 
 /**
- * The application reminders jobs/application_reminders.php sends (Nov 23, 2026: moved out of MembershipService, ISO
+ * The application reminders jobs/application_reminders.php sends (kept apart from MembershipService, ISO
  * 25010 finding F-2): MSW staff about applications waiting, and applicants about applications returned for revision.
  */
 final class ApplicationReminderService

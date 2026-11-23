@@ -8,7 +8,7 @@ use App\Core\Request;
 use App\Core\Validator;
 
 /**
- * Year level, section and contact number, asked together on every form a student submits (Nov 23, 2026): wherever
+ * Year level, section and contact number, asked together on every form a student submits: wherever
  * there is a contact number, it is required, and a year level always comes with a section.
  */
 final class StudentDetails

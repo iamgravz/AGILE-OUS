@@ -1336,7 +1336,7 @@ final class MembershipService
 
     /**
      * The written questions of step 4: those of AGILE's own registration form for what the person applies for
-     * (general membership when no position is chosen). Since Nov 23, 2026.
+     * (general membership when no position is chosen).
      *
      * @param array<string, mixed> $application
      * @return list<array<string, mixed>>
@@ -1417,7 +1417,7 @@ final class MembershipService
             DocumentStatus::assertTransition($status, 'pending');
         }
 
-        // Version history (Nov 23, 2026): the earlier file and its review are kept, not deleted.
+        // Version history: the earlier file and its review are kept, not deleted.
         $stored = $this->files->store($file, 'applications');
         $version = (int) ($existing['version_no'] ?? 1) + 1;
         $values = $stored + ['version_no' => $version, 'verification_status' => 'pending', 'verification_remarks' => null, 'verified_by' => null, 'verified_at' => null];

@@ -246,7 +246,7 @@ return static function (Router $router): void {
         // Own records only, like applications. A linked guest case stays visible whatever the role.
         $router->get('/my-welfare-cases', 'WelfareController@index', 'my_welfare_cases');
         $router->get('/my-welfare-cases/{id}', 'WelfareController@show', 'my_welfare_cases.show');
-        // Service requests (Nov 23, 2026). The owner or MSW staff; ServiceRequestService checks which.
+        // Service requests. The owner or MSW staff; ServiceRequestService checks which.
         $router->get('/requests', 'ServiceRequestsController@index', 'requests')->middleware('perm:service_request.submit');
         $router->post('/requests', 'ServiceRequestsController@store', 'requests.store')->middleware('perm:service_request.submit');
         $router->get('/service-requests', 'ServiceRequestsController@queue', 'requests.queue')->middleware('perm:service_request.manage');
@@ -254,7 +254,7 @@ return static function (Router $router): void {
         $router->get('/requests/{id}', 'ServiceRequestsController@show', 'requests.show');
         $router->post('/requests/{id}/reply', 'ServiceRequestsController@reply', 'requests.reply');
         $router->post('/requests/{id}/cancel', 'ServiceRequestsController@cancel', 'requests.cancel');
-        // Event registration (Nov 23, 2026). Members only; EventRegistrationService checks membership and the event.
+        // Event registration. Members only; EventRegistrationService checks membership and the event.
         $router->post('/events/{id}/register', 'EventRegistrationsController@register', 'events.register');
         $router->post('/events/{id}/cancel', 'EventRegistrationsController@cancel', 'events.cancel');
         $router->get('/events/attendance', 'EventAttendanceController@index', 'events.attendance')->middleware('perm:event.attendance');
@@ -292,7 +292,7 @@ return static function (Router $router): void {
         $router->get('/my-submissions', 'MySubmissionsController@index', 'my_submissions');
     });
 
-    // Must not exist outside local development: the styleguide pages. (The passwordless sample login was removed, Nov 23, 2026.)
+    // Must not exist outside local development: the styleguide pages. There is no passwordless login.
     if (config('app.env') === 'local') {
         $router->get('/styleguide', 'StyleguideController@public', 'styleguide');
         $router->get('/styleguide/dashboard', 'StyleguideController@dashboard', 'styleguide.dashboard');

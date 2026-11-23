@@ -9,14 +9,14 @@ use App\Models\ApplicationAnswerRepository;
 use App\Models\ApplicationQuestionRepository;
 
 /**
- * AGILE's membership requirements (Nov 23, 2026: moved out of MembershipService, ISO 25010 finding F-2). Which
+ * AGILE's membership requirements, kept apart from MembershipService (ISO 25010 finding F-2). Which
  * documents an application needs: the current COR always; the previous semester copy of grades for a position, except
  * for a 1st year in a 1st semester, who has no grades yet. MembershipService keeps one-line wrappers for its callers.
  */
 final class ApplicationRequirements
 {
     /**
-     * Every document type an application can hold. doc_type => label. School ID is no longer asked for (Nov 22, 2026);
+     * Every document type an application can hold. doc_type => label. School ID is not asked for;
      * it stays here so documents uploaded before then still show their name.
      */
     public const DOCUMENT_TYPES = [

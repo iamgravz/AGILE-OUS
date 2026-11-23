@@ -27,7 +27,7 @@ $decisionWord = $decider['committee'] ? 'Accept' : 'Approve';
 $tabs = ['overview' => 'Overview'];
 $hasProfile = array_key_exists('assessment', get_defined_vars());
 
-// Applicant profile (Nov 23, 2026): the form answers, the interview and the MSW assessment, for whoever reads the
+// Applicant profile: the form answers, the interview and the MSW assessment, for whoever reads the
 // interviews. The Committee Head who decides lands on it first.
 if ($hasProfile) {
     $tabs['profile'] = 'Applicant profile';
@@ -37,7 +37,6 @@ if (can('document.verify') || $isOwnCommitteeHead) {
     $tabs['documents'] = 'Documents';
 }
 
-// Rubric scoring (Evaluations) was removed on Nov 23, 2026: the Committee Head decides from the documents and interview.
 
 if (can('interview.manage') || $isOwnCommitteeHead) {
     $tabs['interviews'] = 'Interviews';

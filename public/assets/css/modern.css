@@ -1,5 +1,5 @@
 /*
- * One look for every page (Nov 23, 2026), after the public redesign (portal.css): the sidebar pages and the long public
+ * One look for every page, after the public redesign (portal.css): the sidebar pages and the long public
  * pages take the same navy-to-maroon band with a gold glow, code-comment eyebrows ("// recruitment"), rounder cards that
  * lift, mono table headings, and pill buttons. Loaded on every page after layout.css; it only restyles, so no view changes.
  */
@@ -17,7 +17,7 @@
 /* ---------- Buttons and controls ---------- */
 
 /*
- * Pages where someone submits something keep their own card and Iskobot exactly as designed (Nov 23, 2026): login and
+ * Pages where someone submits something keep their own card and Iskobot exactly as designed: login and
  * registration, apply, Track Status, Ask for Help, Run for office. Nothing below reaches inside these.
  */
 :where(.app-main, .site-main:has(.px-hero), .docs__main) .btn:not(:where(.glass-stage, .robot-stage, .auth-page, .wizard-form, .welfare-page, .centered-page) .btn) {

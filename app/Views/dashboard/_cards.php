@@ -16,8 +16,8 @@ $semester = $dash['semester'] ?? null;
 ?>
 <p class="dashboard-intro"><?= e($greeting . ', ' . $user['first_name']) ?>. <?= e($today) ?><?= $semester === null ? '' : ' · AY ' . e($semester) ?></p>
 <?php
-// One bar (Nov 23, 2026): the eligibility notice, then new notifications, rolling upward a line at a time.
-$unread = array_values(array_filter((new \App\Services\NotificationService())->latest((int) $user['user_id'], 10), static fn (array $n): bool => $n['read_at'] === null));
+// One bar: the eligibility notice, then new notifications, rolling upward a line at a time.
+$unread = $dash['unread'] ?? [];
 $lines = [];
 
 if ($notice !== null) {

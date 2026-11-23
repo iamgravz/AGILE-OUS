@@ -8,7 +8,7 @@ use App\Core\Database;
 use PDO;
 
 /**
- * Notification preferences (Nov 23, 2026). A person can turn off some kinds of notice, by channel. Everything not
+ * Notification preferences. A person can turn off some kinds of notice, by channel. Everything not
  * listed here always goes out: sign-in codes, passwords, decisions on their application, their welfare concern, their
  * ID or certificate, eligibility, and urgent welfare alerts. With no saved choice, every channel is on.
  */

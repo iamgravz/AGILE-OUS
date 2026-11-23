@@ -105,7 +105,7 @@ final class CmsService
             'event_start' => $data['type'] === 'event' ? $data['event_start'] : null,
             'event_end' => $data['type'] === 'event' ? $data['event_end'] : null,
             'venue_or_link' => $data['type'] === 'event' ? $data['venue_or_link'] : null,
-            // Event registration (Nov 23, 2026): on unless turned off; no slot limit when left blank.
+            // Event registration: on unless turned off; no slot limit when left blank.
             'registration_open' => $data['type'] !== 'event' || ($data['registration_open'] ?? '1') === '1' ? 1 : 0,
             'capacity' => $data['type'] === 'event' && ctype_digit((string) ($data['capacity'] ?? '')) && (int) $data['capacity'] > 0 ? (int) $data['capacity'] : null,
         ];

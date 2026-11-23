@@ -11,7 +11,7 @@ return static function (PDO $db): void {
         // The official email (Constitution letterhead). The MSW Committee's own address is ORG_MSW_EMAIL in .env.
         'org.contact_email' => 'agile.pupous@gmail.com',
         'org.full_name' => 'AGILE OUS — Academic Guild of IT Learners and Experts',
-        'org.facebook_url' => '', // The page is not published yet (Nov 23, 2026).
+        'org.facebook_url' => '', // Left empty until AGILE publishes its page.
         // Sample signatory. Replace it with the real Committee Head.
         'email.signatory_name' => 'Elena Ramos',
         'email.signatory_position' => 'Committee Head',

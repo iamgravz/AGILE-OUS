@@ -12,7 +12,7 @@ use App\Models\UserRepository;
 use DomainException;
 
 /**
- * A second standing committee (Article VI Section 4-A; decided Nov 23, 2026). Every member keeps one main position in
+ * A second standing committee (Article VI Section 4-A). Every member keeps one main position in
  * members.position_id. A Committee Member or a Year-Level Representative may also be a Committee Member of one other
  * standing committee, kept in member_committees. The Executive Board, Committee Heads and Deputies hold one office only.
  * The role stays the main position's, except that MSW committee work gives an MSW Member role to someone who would

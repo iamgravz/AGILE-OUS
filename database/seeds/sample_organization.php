@@ -93,7 +93,7 @@ return static function (PDO $db): void {
         $member->execute([$applicantId]);
         $existing = $member->fetch(PDO::FETCH_ASSOC);
 
-        // Already seeded: only an Executive Board member seeded before they had accounts (Nov 23, 2026) gets one now.
+        // Already seeded: only an Executive Board member seeded before they had accounts gets one now.
         if ($existing !== false && ($accountRole === null || $existing['user_id'] !== null)) {
             continue;
         }

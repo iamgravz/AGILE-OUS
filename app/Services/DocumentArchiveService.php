@@ -8,7 +8,7 @@ use App\Core\Database;
 use Throwable;
 
 /**
- * The semester archive (Article III Section 6; Nov 23, 2026: archive only). The COR and copy of grades of a decided
+ * The semester archive (Article III Section 6): files are archived, never deleted. The COR and copy of grades of a decided
  * application, and of a closed candidacy, move to storage/uploads/archive/<academic year>-<semester>/ once
  * config/retention.php's days have passed since the decision. Records stay, the files still open from the same pages,
  * and nothing is ever deleted: a file is renamed into the archive, its row updated, and moved back if the update fails.
@@ -46,7 +46,7 @@ final class DocumentArchiveService
             $files[] = $this->entry('application_documents', 'document_id', (int) $row['id'], 'stored_path', $row, (int) $row['size_bytes']);
         }
 
-        // Earlier versions of those documents (version history, Nov 23, 2026) go with them.
+        // Earlier versions of those documents (document_versions) go with them.
         $versions = $db->prepare(
             "SELECT v.version_id AS id, v.stored_path, v.size_bytes, COALESCE(a.decided_at, a.updated_at) AS decided_at
              FROM document_versions v

@@ -1,6 +1,6 @@
 <?php
 /**
- * Registration on an event page (Nov 23, 2026): members register or cancel; guests are asked to sign in.
+ * Registration on an event page: members register or cancel; guests are asked to sign in.
  *
  * @var array<string, mixed> $post
  * @var array{enabled: bool, open: bool, reason: string, registered: int, capacity: ?int, mine: ?array<string, mixed>, isMember: bool} $registration

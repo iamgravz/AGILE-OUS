@@ -13,7 +13,7 @@ use App\Services\CredentialRequestService;
 use App\Services\WelfareService;
 
 /**
- * My Submissions (Nov 23, 2026; was a placeholder): everything the signed-in person sent, in one place, newest first,
+ * My Submissions: everything the signed-in person sent, in one place, newest first,
  * with its status and a link to its own page. Only their own records.
  */
 final class MySubmissionsController

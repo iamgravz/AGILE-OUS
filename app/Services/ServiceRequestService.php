@@ -10,7 +10,7 @@ use DomainException;
 use PDO;
 
 /**
- * Service requests (Nov 23, 2026): what a member asks the MSW Committee that is not a welfare concern. One thread of
+ * Service requests: what a member asks the MSW Committee that is not a welfare concern. One thread of
  * replies per request. The member sees only their own; MSW staff (service_request.manage) handle all of them.
  * Welfare concerns stay in Ask for Help, which is confidential.
  */

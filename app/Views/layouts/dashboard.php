@@ -77,7 +77,7 @@ $avatar = static function () use ($user, $account): string {
                     </ul>
                 <?php endforeach; ?>
             </nav>
-            <?php // The name and role live in the top bar's account menu only (removed from the sidebar foot, Nov 23, 2026). ?>
+            <?php // The name and role live in the top bar's account menu, not in the sidebar. ?>
         </aside>
         <div class="sidebar-backdrop" data-sidebar-backdrop hidden></div>
 

@@ -811,7 +811,7 @@ html {
 }
 
 /*
- * No Pause button on the hero (removed on request, Nov 23, 2026). The photos and the grid still stop while the pointer
+ * No Pause button on the hero. The photos and the grid still stop while the pointer
  * rests on the hero or keyboard focus is inside it, so anyone can hold the picture still (WCAG 2.2.2, partly), and they
  * never move for people whose device asks for reduced motion.
  */

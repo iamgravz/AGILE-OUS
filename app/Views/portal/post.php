@@ -3,9 +3,10 @@
  * @var \App\Core\View $this
  * @var array<string, mixed> $post
  * @var array{title: string, route: string} $list
+ * @var array<string, mixed>|null $author
+ * @var list<array<string, mixed>> $related other posts of the same type (none for events)
+ * @var array<string, mixed>|null $registration EventRegistrationService::summary(), for events
  */
-use App\Models\ContentPostRepository;
-use App\Models\UserRepository;
 ?>
 <?php $this->start('title') ?><?= e($post['title']) ?><?php $this->end() ?>
 <?php $this->start('description') ?><?= e($post['excerpt']) ?><?php $this->end() ?>
@@ -21,11 +22,6 @@ use App\Models\UserRepository;
 <?php
 $isEvent = $post['type'] === 'event';
 $typeLabel = ucfirst($post['type']);
-$author = (new UserRepository())->find((int) $post['author_id']);
-$related = $isEvent ? [] : array_slice(array_values(array_filter(
-    (new ContentPostRepository())->publishedList($post['type'], '', 1, 4)['data'],
-    static fn (array $other): bool => $other['slug'] !== $post['slug'],
-)), 0, 3);
 $venue = (string) $post['venue_or_link'];
 ?>
 <?php $this->start('docs_group') ?><?= e($list['title']) ?><?php $this->end() ?>
@@ -68,8 +64,8 @@ $venue = (string) $post['venue_or_link'];
         <?php if ($isEvent && $post['event_start'] !== null) : ?>
             <?= $this->partial('portal/_ics_link', ['post' => $post]) ?>
         <?php endif; ?>
-        <?php if ($isEvent) : ?>
-            <?= $this->partial('portal/_event_registration', ['post' => $post, 'registration' => (new \App\Services\EventRegistrationService())->summary($post)]) ?>
+        <?php if ($registration !== null) : ?>
+            <?= $this->partial('portal/_event_registration', ['post' => $post, 'registration' => $registration]) ?>
         <?php endif; ?>
         <?php if ($related !== []) : ?>
             <h3 class="docs-card__heading">Related posts</h3>

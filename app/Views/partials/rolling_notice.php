@@ -1,6 +1,6 @@
 <?php
 /**
- * A notice bar whose lines roll upward one at a time (Nov 23, 2026): the eligibility reminder and new notifications
+ * A notice bar whose lines roll upward one at a time: the eligibility reminder and new notifications
  * share one bar. A single line holds still. Rolling stops while the pointer or keyboard focus is on the bar, and with
  * reduced motion every line is shown at once. Screen readers get each line as a list item. app.js runs the rolling.
  *

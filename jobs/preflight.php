@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 /*
- * Go-live check (Nov 23, 2026). Run on the server before opening AGILE to real users:
+ * Go-live check. Run on the server before opening AGILE to real users:
  *
  *   php jobs/preflight.php
  *

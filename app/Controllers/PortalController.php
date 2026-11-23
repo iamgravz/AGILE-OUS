@@ -70,9 +70,23 @@ final class PortalController
     {
         $post = $this->portal->post($slug);
 
-        return $post === null
-            ? Response::error(Response::HTTP_NOT_FOUND)
-            : $this->page('portal/post', ['post' => $post, 'list' => self::LISTS[$post['type']]], 'layouts/docs');
+        if ($post === null) {
+            return Response::error(Response::HTTP_NOT_FOUND);
+        }
+
+        $isEvent = $post['type'] === 'event';
+        $related = $isEvent ? [] : array_slice(array_values(array_filter(
+            (new \App\Models\ContentPostRepository())->publishedList($post['type'], '', 1, 4)['data'],
+            static fn (array $other): bool => $other['slug'] !== $post['slug'],
+        )), 0, 3);
+
+        return $this->page('portal/post', [
+            'post' => $post,
+            'list' => self::LISTS[$post['type']],
+            'author' => (new \App\Models\UserRepository())->find((int) $post['author_id']),
+            'related' => $related,
+            'registration' => $isEvent ? (new \App\Services\EventRegistrationService())->summary($post) : null,
+        ], 'layouts/docs');
     }
 
     public function positions(Request $request): Response

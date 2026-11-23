@@ -5,7 +5,7 @@ declare(strict_types=1);
 use App\Core\Config;
 use App\Services\EncryptionService;
 
-// Outside production only (Nov 23, 2026): sample activity in every module, so each page has something to show:
+// Outside production only: sample activity in every module, so each page has something to show:
 // welfare cases with notes, follow-ups, referrals and resolutions; HR requests and vacancies; interviews and an
 // appointment; candidacies; officer terms; a second committee; ID requests; email drafts. Everyone is a sample
 // account (@agile.test) and every text is marked [Sample] or is plainly sample text. Each part checks for its own rows

@@ -12,7 +12,7 @@ use DomainException;
 use RuntimeException;
 
 /**
- * ID and certificate requests (Nov 23, 2026). A member asks for their digital ID or certificate of membership; the
+ * ID and certificate requests. A member asks for their digital ID or certificate of membership; the
  * MSW Committee Head makes it from AGILE's own template and uploads it here, or declines with the reason. An upload
  * becomes the member's current, approved credential of that type, and replaces any earlier one.
  */

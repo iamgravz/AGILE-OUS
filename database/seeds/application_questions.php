@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-// The application questions, from AGILE's own registration form (Google Form, Nov 23, 2026), by what the person applies
+// The application questions, from AGILE's own registration form (Google Form), by what the person applies
 // for: general membership, Committee Member, Deputy Committee Head, Committee Head, or a post in The Source Code.
 // The form's "which committee / position" questions are left out: the apply page already asks them. The year level
 // is asked on the wizard's academic step. Questions from before stay in the table, inactive (migration

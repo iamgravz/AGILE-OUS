@@ -10,7 +10,7 @@ use DomainException;
 use PDO;
 
 /**
- * Event registration and attendance (Nov 23, 2026). An active member registers for a published event before it
+ * Event registration and attendance. An active member registers for a published event before it
  * starts, while its registration is open and slots remain; they can cancel until it starts. Officers with
  * event.attendance check registrants in at the event (EventAttendanceController).
  */

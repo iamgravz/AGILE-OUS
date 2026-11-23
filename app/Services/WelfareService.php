@@ -196,7 +196,7 @@ final class WelfareService
 
     /**
      * @param array<string, mixed> $case A welfare_cases row.
-     * @return array{contact_no: string, year_level: string, section: string} Empty strings for cases from before Nov 23, 2026.
+     * @return array{contact_no: string, year_level: string, section: string} Empty strings for cases filed before these were asked.
      */
     public function submitterDetails(array $case): array
     {
