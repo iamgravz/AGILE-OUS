@@ -16,20 +16,28 @@ $semester = $dash['semester'] ?? null;
 ?>
 <p class="dashboard-intro"><?= e($greeting . ', ' . $user['first_name']) ?>. <?= e($today) ?><?= $semester === null ? '' : ' · AY ' . e($semester) ?></p>
 <?php
-// New notifications roll across the top (Nov 23, 2026), with the way to choose which ones arrive.
+// One bar (Nov 23, 2026): the eligibility notice, then new notifications, rolling upward a line at a time.
 $unread = array_values(array_filter((new \App\Services\NotificationService())->latest((int) $user['user_id'], 10), static fn (array $n): bool => $n['read_at'] === null));
+$lines = [];
+
+if ($notice !== null) {
+    $lines[] = ['text' => (string) $notice['message'], 'url' => route('my_eligibility'), 'linkText' => 'My Eligibility'];
+}
+
+foreach (array_slice($unread, 0, 5) as $n) {
+    $lines[] = ['text' => 'New: ' . $n['title'], 'url' => (string) ($n['link'] ?? '') !== '' ? (string) $n['link'] : route('notifications'), 'linkText' => null];
+}
+
+// A warning or problem with eligibility sets the colour; otherwise it is an information bar.
+$tone = $notice !== null && in_array($notice['tone'], ['warning', 'danger'], true) ? $notice['tone'] : ($unread !== [] ? 'info' : ($notice['tone'] ?? 'info'));
 ?>
-<?php if ($unread !== []) : ?>
+<?php if ($lines !== []) : ?>
     <?= $this->partial('partials/rolling_notice', [
-        'tone' => 'info',
-        'message' => count($unread) === 1 ? '1 new notification:' : count($unread) . ' new notifications:',
-        'items' => array_map(static fn (array $n): array => ['text' => (string) $n['title'], 'url' => (string) ($n['link'] ?? '') !== '' ? (string) $n['link'] : route('notifications')], array_slice($unread, 0, 5)),
-        'linkUrl' => route('account') . '#notifications',
-        'linkText' => '· Notification settings',
+        'tone' => $tone,
+        'lines' => $lines,
+        'asideUrl' => $unread !== [] ? route('account') . '#notifications' : null,
+        'asideText' => $unread !== [] ? count($unread) . ' new · Settings' : null,
     ]) ?>
-<?php endif; ?>
-<?php if ($notice !== null) : ?>
-    <?= $this->partial('partials/rolling_notice', ['tone' => $notice['tone'], 'message' => $notice['message'], 'linkUrl' => route('my_eligibility'), 'linkText' => 'My Eligibility']) ?>
 <?php endif; ?>
 <?php if ($tasks !== [] || $isInternal) : ?>
     <section class="card dashboard-section" aria-labelledby="dashboard-tasks">

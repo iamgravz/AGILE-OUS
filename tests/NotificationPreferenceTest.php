@@ -59,7 +59,7 @@ final class NotificationPreferenceTest extends TestCase
         $db->exec("INSERT INTO notifications (user_id, channel, title, payload_json, status) SELECT user_id, 'in_app', 'Rolling test notice', '{}', 'sent' FROM users WHERE email = 'member@agile.test'");
         $dashboard = $browser->get('/dashboard')['body'];
         $db->exec("DELETE FROM notifications WHERE title = 'Rolling test notice'");
-        $this->assertMatchesRegularExpression('/rolling-notice[\s\S]*Rolling test notice[\s\S]*Notification settings/', $dashboard);
+        $this->assertMatchesRegularExpression('/rolling-notice__lines[\s\S]*New: Rolling test notice[\s\S]*new · Settings/', $dashboard);
     }
 
     private function inRollback(callable $test): void

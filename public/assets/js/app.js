@@ -709,3 +709,52 @@
         }).observe(siteHeader);
     }
 })();
+
+
+// Rolling notice bars (partials/rolling_notice): with more than one line, show each for a few seconds, moving up.
+// The first line is copied to the end so the loop never runs backwards. Hover or focus holds it; reduced motion skips it.
+(() => {
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+        return;
+    }
+
+    document.querySelectorAll('[data-rolling-up]').forEach((bar) => {
+        const list = bar.querySelector('.rolling-notice__lines');
+        const count = list ? list.children.length : 0;
+
+        if (count < 2) {
+            return;
+        }
+
+        const copy = list.firstElementChild.cloneNode(true);
+        copy.setAttribute('aria-hidden', 'true');
+        copy.querySelectorAll('a').forEach((link) => link.setAttribute('tabindex', '-1'));
+        list.appendChild(copy);
+
+        let index = 0;
+        let held = false;
+        bar.addEventListener('mouseenter', () => { held = true; });
+        bar.addEventListener('mouseleave', () => { held = false; });
+        bar.addEventListener('focusin', () => { held = true; });
+        bar.addEventListener('focusout', () => { held = false; });
+
+        window.setInterval(() => {
+            if (held || document.hidden) {
+                return;
+            }
+
+            index += 1;
+            list.style.setProperty('--rolling-index', String(index));
+
+            if (index === count) {
+                window.setTimeout(() => {
+                    list.classList.add('is-resetting');
+                    index = 0;
+                    list.style.setProperty('--rolling-index', '0');
+                    void list.offsetHeight;
+                    list.classList.remove('is-resetting');
+                }, 500);
+            }
+        }, 3500);
+    });
+})();

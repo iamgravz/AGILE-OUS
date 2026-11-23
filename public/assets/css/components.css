@@ -4104,47 +4104,60 @@ form .grid--2 {
     flex: none;
 }
 
-.rolling-notice__track {
+/* The lines sit in a one-line window and move up one at a time (app.js sets --rolling-index). */
+.rolling-notice__window {
     flex: 1;
     min-width: 0;
+    height: 1.5rem;
     overflow: hidden;
-    mask-image: linear-gradient(90deg, transparent, #000 3%, #000 97%, transparent);
 }
 
-.rolling-notice__text {
-    display: inline-block;
-    max-width: none;
+.rolling-notice__lines {
     margin: 0;
-    padding-left: 100%;
-    white-space: nowrap;
-    animation: rolling-notice 22s linear infinite;
+    padding: 0;
+    list-style: none;
+    transform: translateY(calc(var(--rolling-index, 0) * -1.5rem));
+    transition: transform 0.45s ease;
 }
 
-.rolling-notice__text a {
+.rolling-notice__lines.is-resetting {
+    transition: none;
+}
+
+.rolling-notice__line {
+    height: 1.5rem;
+    overflow: hidden;
+    line-height: 1.5rem;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+
+.rolling-notice__line a,
+.rolling-notice__aside {
     color: inherit;
     font-weight: 600;
 }
 
-/* It stops while someone points at it or tabs into it, so the link can be read and clicked. */
-.rolling-notice:hover .rolling-notice__text,
-.rolling-notice:focus-within .rolling-notice__text {
-    animation-play-state: paused;
+.rolling-notice__aside {
+    flex: none;
+    font-size: 0.875rem;
+    white-space: nowrap;
 }
 
-@keyframes rolling-notice {
-    from { transform: translateX(0); }
-    to { transform: translateX(-100%); }
-}
-
+/* With reduced motion nothing moves: every line shows, wrapped. */
 @media (prefers-reduced-motion: reduce) {
-    .rolling-notice__track {
-        mask-image: none;
+    .rolling-notice__window {
+        height: auto;
     }
 
-    .rolling-notice__text {
-        padding-left: 0;
+    .rolling-notice__lines {
+        transform: none;
+        transition: none;
+    }
+
+    .rolling-notice__line {
+        height: auto;
         white-space: normal;
-        animation: none;
     }
 }
 
@@ -4326,11 +4339,6 @@ form .grid--2 {
     .attendance-checkin {
         grid-template-columns: 1fr;
     }
-}
-
-.rolling-notice__sep {
-    margin: 0 var(--space-2);
-    opacity: 0.6;
 }
 
 /* Earlier versions of an application document (Applications › Documents). */
