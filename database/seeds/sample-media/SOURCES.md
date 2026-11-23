@@ -1,6 +1,6 @@
 # Sample cover photos
 
-Free photos from [Pexels](https://www.pexels.com/), used under the [Pexels License](https://www.pexels.com/license/) (free to use, no attribution required). They are covers for the `[Sample]` posts in `content_posts.php` only, copied into `storage/uploads/media` outside production. `remove_samples` moves them out with the sample posts.
+Free photos from [Pexels](https://www.pexels.com/), used under the [Pexels License](https://www.pexels.com/license/) (free to use, no attribution required). They are covers for the posts in `content_post_list.php` only, copied into `storage/uploads/media` outside production. `remove_samples` moves them out with the sample posts.
 
 | File | Pexels photo |
 |---|---|

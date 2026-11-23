@@ -8,7 +8,7 @@ use App\Services\EncryptionService;
 // Outside production only: sample activity in every module, so each page has something to show:
 // welfare cases with notes, follow-ups, referrals and resolutions; HR requests and vacancies; interviews and an
 // appointment; candidacies; officer terms; a second committee; ID requests; email drafts. Everyone is a sample
-// account (@agile.test) and every text is marked [Sample] or is plainly sample text. Each part checks for its own rows
+// account (@agile.test) and every text is made up. Each part checks for its own rows
 // first, so running it again adds nothing. People missing from a smaller sample set are skipped.
 return static function (PDO $db): void {
     $now = time();
@@ -104,11 +104,11 @@ return static function (PDO $db): void {
                 sprintf('SMPLCASE%04d', $index + 1), $isGuest ? null : $ownerId,
                 $isGuest ? $encryption->encrypt($guestName) : null, $isGuest ? $encryption->encrypt($guestEmail) : null, $isGuest ? $encryption->blindIndex($guestEmail) : null,
                 (int) ($categories[$category % max(1, count($categories))] ?? 1), $priority, $urgent ? 1 : 0,
-                $encryption->encrypt('[Sample] ' . $subject), $encryption->encrypt($description),
+                $encryption->encrypt($subject), $encryption->encrypt($description),
                 $encryption->encrypt($contact), $encryption->encrypt($year), $encryption->encrypt($section),
                 $status === 'submitted' ? null : $mswHead, $status,
                 $status === 'submitted' ? null : $at('-' . max(0, $daysAgo - 1) . ' days'),
-                $closed === null ? null : $encryption->encrypt('Sample closing remarks: the student confirmed the concern is settled.'),
+                $closed === null ? null : $encryption->encrypt('The student confirmed the concern is settled.'),
                 $closed === null ? null : $mswHead, $submitted, $closed,
             ]);
             $caseId = (int) $db->lastInsertId();
@@ -145,7 +145,7 @@ return static function (PDO $db): void {
     }
 
     // ---------- HR requests and vacancies ----------
-    if ($count("SELECT COUNT(*) FROM hr_requests WHERE justification LIKE '[Sample]%'") === 0) {
+    if ($count("SELECT COUNT(*) FROM hr_requests WHERE justification LIKE '%Committee needs more hands for this semester%'") === 0) {
         $requests = [
             // [head email, committee, position title, slots, status, remarks, vacancy status or null]
             ['ramon.agustin@agile.test', 'Logistics', 'Committee Member', 2, 'approved', 'Approved for the General Assembly season.', 'open'],
@@ -164,14 +164,14 @@ return static function (PDO $db): void {
             }
 
             $db->prepare('INSERT INTO hr_requests (committee_id, position_id, requested_by, slots, justification, qualifications, status, remarks, approved_by, approved_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)')
-                ->execute([$committeeId, $positionId, $head, $slots, "[Sample] The {$committeeName} Committee needs more hands for this semester's activities.", 'Organized, can attend Saturday meetings, comfortable with Google Workspace.', $status, $remarks,
+                ->execute([$committeeId, $positionId, $head, $slots, "The {$committeeName} Committee needs more hands for this semester's activities.", 'Organized, can attend Saturday meetings, comfortable with Google Workspace.', $status, $remarks,
                     $status === 'approved' ? $mswHead : null, $status === 'approved' ? $at('-10 days') : null]);
             $requestId = (int) $db->lastInsertId();
 
             if ($vacancyStatus !== null) {
                 $open = $vacancyStatus === 'open';
                 $db->prepare('INSERT INTO vacancies (request_id, position_id, title, description, qualifications, slots, slots_filled, opens_at, closes_at, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)')
-                    ->execute([$requestId, $positionId, "{$title}, {$committeeName}", "[Sample] Help the {$committeeName} Committee run AGILE's activities this semester.", 'Organized and reliable; available on Saturdays.',
+                    ->execute([$requestId, $positionId, "{$title}, {$committeeName}", "Help the {$committeeName} Committee run AGILE's activities this semester.", 'Organized and reliable; available on Saturdays.',
                         $slots, $open ? 0 : $slots, $at($open ? '-3 days' : '-40 days'), $at($open ? '+14 days' : '-20 days'), $open ? 'open' : 'filled']);
             }
         }
@@ -185,7 +185,7 @@ return static function (PDO $db): void {
             $past = $index >= 4;
             $db->prepare('INSERT INTO interviews (application_id, interviewer_id, scheduled_at, mode, location, result, notes, identity_verified, role_confirmed, privacy_reminder_given, conflict_of_interest, checklist_by, checklist_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)')
                 ->execute([(int) $applicationId, $mswMember, $at(($past ? '-' : '+') . (2 + $index) . ' days 14:00'), $index % 2 === 0 ? 'online' : 'onsite',
-                    $index % 2 === 0 ? 'https://example.com/agile-interview' : 'NALLRC, Room 204', $past ? 'passed' : 'pending', $past ? '[Sample] Clear answers; ready to help with events.' : null,
+                    $index % 2 === 0 ? 'https://example.com/agile-interview' : 'NALLRC, Room 204', $past ? 'passed' : 'pending', $past ? 'Clear answers; ready to help with events.' : null,
                     $past ? 1 : 0, $past ? 1 : 0, $past ? 1 : 0, $past ? 0 : null, $past ? $mswMember : null, $past ? $at('-' . (2 + $index) . ' days 14:00') : null]);
         }
     }
@@ -211,13 +211,13 @@ return static function (PDO $db): void {
                 $values = ['application' => $application, 'interview' => $interview, 'role' => $role][$section];
 
                 foreach ($criteria as $i => $criterion) {
-                    $ratings[$section][] = ['criterion' => $criterion, 'rating' => $values[$i], 'remark' => $i === 0 ? '[Sample] Answered with clear examples.' : ''];
+                    $ratings[$section][] = ['criterion' => $criterion, 'rating' => $values[$i], 'remark' => $i === 0 ? 'Answered with clear examples.' : ''];
                 }
             }
 
             $db->prepare('INSERT INTO applicant_assessments (application_id, evaluator_id, ratings_json, application_score, interview_score, role_score, total_score, recommendation, strengths, development, remarks) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)')
                 ->execute([(int) $applicationId, $mswMember, json_encode($ratings, JSON_THROW_ON_ERROR), array_sum($application), array_sum($interview), array_sum($role),
-                    array_sum($application) + array_sum($interview) + array_sum($role), $recommendation, $strengths, $development, '[Sample] Assessment for testing.']);
+                    array_sum($application) + array_sum($interview) + array_sum($role), $recommendation, $strengths, $development, 'Ready for the committee. Best placed where there is event work.']);
         }
     }
 
@@ -232,7 +232,7 @@ return static function (PDO $db): void {
 
         if ($approved !== false && $mswMember !== 0) {
             $db->prepare('INSERT INTO appointments (application_id, member_id, position_id, status, prepared_by, remarks, effective_date) VALUES (?, ?, ?, ?, ?, ?, ?)')
-                ->execute([(int) $approved['application_id'], $approved['member_id'] ?: null, (int) $approved['position_id'], 'prepared', $mswMember, '[Sample] Prepared for the MSW Committee Head to approve.', date('Y-m-d', strtotime('+7 days', $now))]);
+                ->execute([(int) $approved['application_id'], $approved['member_id'] ?: null, (int) $approved['position_id'], 'prepared', $mswMember, 'Prepared for the MSW Committee Head to approve.', date('Y-m-d', strtotime('+7 days', $now))]);
         }
     }
 
@@ -292,7 +292,7 @@ return static function (PDO $db): void {
             $contact = sprintf('091712302%02d', $index + 1);
             $db->prepare('UPDATE users SET year_level = ?, section = ?, contact_no = ? WHERE user_id = ?')->execute([$year, $section, $contact, $candidate]);
             $db->prepare('INSERT INTO election_candidacies (user_id, position_id, academic_year, year_level, section, contact_no, statement, cor_path, grades_path, status, remarks, decided_by, decided_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)')
-                ->execute([$candidate, $positionId, $academicYear, $year, $section, $contact, '[Sample] I want more review sessions and a faster way to ask for help.', $cor, $grades, $status, $remarks,
+                ->execute([$candidate, $positionId, $academicYear, $year, $section, $contact, 'I want more review sessions and a faster way to ask for help.', $cor, $grades, $status, $remarks,
                     in_array($status, ['qualified', 'disqualified'], true) ? $mswHead : null, $status === 'filed' ? null : $at('-2 days')]);
         }
     }
@@ -341,12 +341,12 @@ return static function (PDO $db): void {
     }
 
     // ---------- Service requests: one of each status, with a short thread ----------
-    if ($mswMember !== 0 && $count("SELECT COUNT(*) FROM service_requests WHERE subject LIKE '[Sample]%'") === 0) {
+    if ($mswMember !== 0 && $count("SELECT COUNT(*) FROM service_requests WHERE subject = 'My section is wrong'") === 0) {
         $requests = [
-            ['member@agile.test', 'record_update', '[Sample] My section is wrong', 'open', 'My record says BSITOUMN 3-1, but I moved to 3-2 this semester.', null],
-            ['rosa.garcia@agile.test', 'document', '[Sample] Endorsement letter for an internship', 'in_progress', 'May I ask for an endorsement letter from AGILE for my internship application?', 'Noted. We will prepare it and send it within the week.'],
-            ['trisha.olivares@agile.test', 'technical', '[Sample] I cannot upload my COR', 'resolved', 'The upload says the file is too large.', 'Please save it as a PDF under 5 MB. It should go through now.'],
-            ['vince.panganiban@agile.test', 'inquiry', '[Sample] When is the General Assembly?', 'closed', 'Is there a date for the General Assembly?', 'It is on the Events page. See you there!'],
+            ['member@agile.test', 'record_update', 'My section is wrong', 'open', 'My record says BSITOUMN 3-1, but I moved to 3-2 this semester.', null],
+            ['rosa.garcia@agile.test', 'document', 'Endorsement letter for an internship', 'in_progress', 'May I ask for an endorsement letter from AGILE for my internship application?', 'Noted. We will prepare it and send it within the week.'],
+            ['trisha.olivares@agile.test', 'technical', 'I cannot upload my COR', 'resolved', 'The upload says the file is too large.', 'Please save it as a PDF under 5 MB. It should go through now.'],
+            ['vince.panganiban@agile.test', 'inquiry', 'When is the General Assembly?', 'closed', 'Is there a date for the General Assembly?', 'It is on the Events page. See you there!'],
         ];
         $insertRequest = $db->prepare('INSERT INTO service_requests (user_id, type, subject, status, assigned_to, resolved_at, created_at) VALUES (?, ?, ?, ?, ?, ?, ?)');
         $insertMessage = $db->prepare('INSERT INTO service_request_messages (request_id, author_id, from_staff, body, created_at) VALUES (?, ?, ?, ?, ?)');
@@ -370,12 +370,12 @@ return static function (PDO $db): void {
     }
 
     // ---------- ID and certificate requests ----------
-    if ($count("SELECT COUNT(*) FROM credential_requests WHERE note LIKE '[Sample]%'") === 0) {
+    if ($count("SELECT COUNT(*) FROM credential_requests WHERE note = 'For the General Assembly.'") === 0) {
         $requests = [
-            ['rosa.garcia@agile.test', 'digital_id', 'requested', '[Sample] For the General Assembly.', null, true],
-            ['trisha.olivares@agile.test', 'certificate', 'requested', '[Sample] For my scholarship application.', null, false],
-            ['vince.panganiban@agile.test', 'digital_id', 'declined', '[Sample] Please use my new photo.', 'The picture is not half-body. Please send a new one.', true],
-            ['aaron.quiambao@agile.test', 'certificate', 'cancelled', '[Sample] Sent by mistake.', null, false],
+            ['rosa.garcia@agile.test', 'digital_id', 'requested', 'For the General Assembly.', null, true],
+            ['trisha.olivares@agile.test', 'certificate', 'requested', 'For my scholarship application.', null, false],
+            ['vince.panganiban@agile.test', 'digital_id', 'declined', 'Please use my new photo.', 'The picture is not half-body. Please send a new one.', true],
+            ['aaron.quiambao@agile.test', 'certificate', 'cancelled', 'Sent by mistake.', null, false],
         ];
 
         foreach ($requests as [$email, $type, $status, $note, $remarks, $withPhoto]) {
@@ -392,11 +392,11 @@ return static function (PDO $db): void {
     }
 
     // ---------- Email drafts ----------
-    if ($count("SELECT COUNT(*) FROM email_drafts WHERE subject LIKE '[Sample]%'") === 0) {
+    if ($count("SELECT COUNT(*) FROM email_drafts WHERE subject = 'See you at the General Assembly'") === 0) {
         $drafts = [
-            ['[Sample] See you at the General Assembly', '<p>Hello AGILE members,</p><p>Join us at the General Assembly in the NALLRC Function Hall. Bring your digital ID.</p>', 'all_members', 'draft', null],
-            ['[Sample] Officers\' meeting this Saturday', '<p>Officers, please attend the planning meeting this Saturday at 9 AM, online.</p>', 'officers', 'draft', null],
-            ['[Sample] Your interview schedule is ready', '<p>Thank you for applying to AGILE. Your interview schedule is now in your email from the MSW team.</p>', 'applicants', 'sent', $at('-3 days')],
+            ['See you at the General Assembly', '<p>Hello AGILE members,</p><p>Join us at the General Assembly in the NALLRC Function Hall. Bring your digital ID.</p>', 'all_members', 'draft', null],
+            ['Officers\' meeting this Saturday', '<p>Officers, please attend the planning meeting this Saturday at 9 AM, online.</p>', 'officers', 'draft', null],
+            ['Your interview schedule is ready', '<p>Thank you for applying to AGILE. Your interview schedule is now in your email from the MSW team.</p>', 'applicants', 'sent', $at('-3 days')],
         ];
 
         foreach ($drafts as [$subject, $body, $target, $status, $sentAt]) {

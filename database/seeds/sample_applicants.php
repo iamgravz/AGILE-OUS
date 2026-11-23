@@ -129,16 +129,16 @@ return static function (PDO $db): void {
     $exists = $db->query("SELECT COUNT(*) FROM membership_applications WHERE tracking_code = 'DEMVACANCY01'")->fetchColumn();
 
     if ($position !== false && $position['head_user_id'] !== null && $memberUser !== false && (int) $exists === 0) {
-        $requestId = seed_row($db, 'hr_requests', 'request_id', ['committee_id' => $position['committee_id'], 'position_id' => $position['position_id'], 'justification' => 'Sample: tutors for the coming term.'], [
+        $requestId = seed_row($db, 'hr_requests', 'request_id', ['committee_id' => $position['committee_id'], 'position_id' => $position['position_id'], 'justification' => 'Tutors for the coming term.'], [
             'requested_by' => $position['head_user_id'],
             'slots' => 1,
-            'qualifications' => 'Sample: good standing in programming subjects.',
+            'qualifications' => 'Good standing in programming subjects.',
             'status' => 'approved',
         ]);
         $vacancyId = seed_row($db, 'vacancies', 'vacancy_id', ['request_id' => $requestId], [
             'position_id' => $position['position_id'],
-            'title' => '[Sample] Academics and Training Committee Member',
-            'description' => 'A sample position for testing.',
+            'title' => 'Academics and Training Committee Member',
+            'description' => 'Help the Academics and Training Committee run review sessions and workshops this semester.',
             'qualifications' => 'Good standing in programming subjects.',
             'slots' => 1,
             'opens_at' => date('Y-m-d H:i:s', time() - 86400),

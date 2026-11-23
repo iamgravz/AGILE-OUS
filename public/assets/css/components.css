@@ -1129,9 +1129,11 @@ a.tabs__tab {
 
 .article__body blockquote {
     margin: 0 0 var(--space-4);
-    padding-left: var(--space-4);
-    border-left: 4px solid var(--gold);
+    padding: var(--space-3) var(--space-4);
+    border-radius: var(--radius-md);
+    background: var(--color-subtle);
     color: var(--color-text-muted);
+    font-style: italic;
 }
 
 .article__body h2,

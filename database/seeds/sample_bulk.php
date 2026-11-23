@@ -112,7 +112,7 @@ return static function (PDO $db): void {
 
         if ($president > 0) {
             $history = $db->prepare('INSERT INTO membership_status_history (member_id, old_role, new_role, reason, changed_by, changed_at) VALUES (?, ?, ?, ?, ?, ?)');
-            $history->execute([$memberId, $title, 'General Member', 'Sample: term of office ended.', $president, $expiredAt]);
+            $history->execute([$memberId, $title, 'General Member', 'Term of office ended.', $president, $expiredAt]);
         }
     }
 

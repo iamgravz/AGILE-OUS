@@ -393,8 +393,8 @@
     outline-offset: -3px;
 }
 
+/* The current page: a lighter row and the gold icon (modern.css), no side bar. */
 .sidebar__link[aria-current="page"] {
-    border-left-color: var(--gold);
     background: var(--ink-2);
     color: var(--ink-active);
     font-weight: 500;
@@ -893,7 +893,6 @@
 }
 
 .docs-toc__link[aria-current] {
-    border-left-color: var(--gold);
     color: var(--color-link);
     font-weight: 500;
 }
