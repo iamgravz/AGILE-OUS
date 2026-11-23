@@ -76,6 +76,7 @@ Set up every job in [scheduling.md](scheduling.md), with crontab on Linux or Tas
 
 ## 8. Last checks
 
+- [ ] Run `php jobs/preflight.php` on the server. It checks the settings in step 3, demo data, a real MSW Committee Head, migrations, folders and PHP. It must end with "Ready to go live." (exit code 0).
 - [ ] Log in as the MSW Committee Head and open Administration › System health: no warnings.
 - [ ] No `@agile.test` users: `php database/remove_demo.php` says "There is no demo data".
 - [ ] Check that a real email arrives (the set-password email from step 5 is one) and looks right in Gmail.

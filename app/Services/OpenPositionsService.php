@@ -16,6 +16,57 @@ final class OpenPositionsService
 {
     public const MAX_TARGET = 99;
 
+    /**
+     * Every position the MSW Committee Head can open for application, with AGILE's dashboard numbers: target, filled
+     * (active holders) and remaining. Committees in name order, The Source Code last.
+     *
+     * @return list<array{position_id: int, title: string, role_type: string, committee_id: int, committee_name: string, is_open: bool, target_slots: ?int, filled: int, remaining: ?int, label: string}>
+     */
+    public static function all(): array
+    {
+        $marks = implode(',', array_fill(0, count(MembershipService::APPLICATION_ROLE_TYPES), '?'));
+        $statement = Database::connection()->prepare(
+            "SELECT p.position_id, p.title, p.role_type, p.is_open, p.target_slots, c.committee_id, c.name AS committee_name,
+                    (SELECT COUNT(*) FROM members m WHERE m.position_id = p.position_id AND m.role_status = 'active')
+                    + IF(p.role_type = 'committee_member', (SELECT COUNT(*) FROM member_committees mc WHERE mc.committee_id = p.committee_id), 0) AS filled
+             FROM positions p JOIN committees c ON c.committee_id = p.committee_id
+             WHERE p.role_type IN ({$marks})
+             ORDER BY p.role_type = 'source_code', c.name, FIELD(p.role_type, 'committee_head', 'deputy', 'committee_member'), p.position_id"
+        );
+        $statement->execute(MembershipService::APPLICATION_ROLE_TYPES);
+
+        return array_map(static function (array $row): array {
+            $target = $row['target_slots'] === null ? null : (int) $row['target_slots'];
+            $filled = (int) $row['filled'];
+
+            return [
+                'position_id' => (int) $row['position_id'],
+                'title' => (string) $row['title'],
+                'role_type' => (string) $row['role_type'],
+                'committee_id' => (int) $row['committee_id'],
+                'committee_name' => (string) $row['committee_name'],
+                'is_open' => (int) $row['is_open'] === 1,
+                'target_slots' => $target,
+                'filled' => $filled,
+                'remaining' => $target === null ? null : max(0, $target - $filled),
+                'label' => $row['title'] . ', ' . $row['committee_name'],
+            ];
+        }, $statement->fetchAll());
+    }
+
+    /**
+     * What applicants can choose: positions that are open and not yet full (no target means no limit).
+     *
+     * @return list<array<string, mixed>> Rows of all().
+     */
+    public static function openNow(): array
+    {
+        return array_values(array_filter(
+            self::all(),
+            static fn (array $p): bool => $p['is_open'] && ($p['remaining'] === null || $p['remaining'] > 0)
+        ));
+    }
+
     public function __construct(private readonly MembershipService $membership = new MembershipService())
     {
     }

@@ -8,7 +8,6 @@ use App\Core\Database;
 use App\Core\ForbiddenException;
 use App\Core\Validator;
 use App\Models\ApplicantRepository;
-use App\Models\ApplicationAccessLinkRepository;
 use App\Models\ApplicationAnswerRepository;
 use App\Models\ApplicationDocumentRepository;
 use App\Models\ApplicationQuestionRepository;
@@ -16,14 +15,12 @@ use App\Models\AuditLogRepository;
 use App\Models\CommitteeRepository;
 use App\Models\MemberRepository;
 use App\Models\MembershipApplicationRepository;
-use App\Models\NotificationRepository;
 use App\Models\PositionRepository;
 use App\Models\RoleRepository;
 use App\Models\UserRepository;
 use App\Models\VacancyRepository;
 use DomainException;
 use RuntimeException;
-use Throwable;
 
 /**
  * Membership applications. The applicant's methods act only on the visitor's own records: a logged-in member, or
@@ -34,37 +31,13 @@ final class MembershipService
 {
     public const LAST_STEP = 6;
 
-    /**
-     * Every document type an application can hold. doc_type => label. Which ones the documents step asks for depends on
-     * what the person applies for: see requiredDocuments(). School ID is no longer asked for (Nov 22, 2026); it stays
-     * here so documents uploaded before then still show their name.
-     */
-    public const DOCUMENT_TYPES = [
-        'cor' => 'Current COR (Certificate of Registration)',
-        'grades' => 'Previous semester copy of grades',
-        'certificate' => 'Certificates (optional)',
-        'school_id' => 'School ID',
-    ];
-    /**
-     * AGILE's membership requirements table, row by row: key => [who, required documents, grades needed, grades label].
-     * The apply page's Requirements dropdown, the table (membership/_requirements) and the first page's checks use it.
-     */
-    public const REQUIREMENT_GROUPS = [
-        'general' => ['General members', 'Current COR', false, null],
-        'committee' => ['Committee Heads, Deputy Heads and committee members', 'Current COR and previous semester copy of grades', true, 'Previous semester copy of grades'],
-        'applicant' => ['Applicants for any committee position or The Source Code', 'Current COR and previous semester copy of grades', true, 'Previous semester copy of grades'],
-        'first_year_first_sem' => ['1st year, 1st semester joiners', 'Current COR only (no grades yet)', false, null],
-        'first_year_second_sem' => ['1st years joining in the 2nd semester', 'Current COR and 1st semester copy of grades', true, '1st semester copy of grades'],
-    ];
-
-    /** The year level answer that, in a 1st semester, means there are no grades yet. */
-    private const FIRST_YEAR = '1st Year';
+    /** AGILE's requirements live in ApplicationRequirements; these names stay for existing callers. */
+    public const DOCUMENT_TYPES = ApplicationRequirements::DOCUMENT_TYPES;
+    public const REQUIREMENT_GROUPS = ApplicationRequirements::REQUIREMENT_GROUPS;
 
     // No 0/O, 1/I or L, so a code can be read aloud or retyped without mistakes.
     private const CODE_ALPHABET = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789';
     private const CODE_LENGTH = 12;
-    private const PENDING_REMINDER_DAYS = 3;
-    private const REVISION_REMINDER_DAYS = 3;
     private const ACTIVE_MESSAGE_GENERAL = 'You already have an active general membership application (%s). Only one is allowed.';
     private const ACTIVE_MESSAGE_STUDENT = 'This student number already has an active general membership application (%s). Only one is allowed.';
     private const ACTIVE_MESSAGE_VACANCY = 'You already have an active application for this position (%s). Only one is allowed per position.';
@@ -860,55 +833,29 @@ final class MembershipService
 
     public static function documentLabel(string $docType): string
     {
-        return self::DOCUMENT_TYPES[$docType] ?? 'Attachment';
+        return ApplicationRequirements::documentLabel($docType);
     }
 
-    /**
-     * AGILE's membership requirements. General Membership: the current COR. A committee or officer position (a vacancy,
-     * or joining a committee as a Committee Member): the current COR and the previous semester's copy of grades, except
-     * for 1st years in their 1st semester, who have no grades yet. 1st years joining in the 2nd semester give their 1st
-     * semester grades, which is the same "previous semester" document.
-     *
-     * @param array<string, mixed> $application A row from findDetailed().
-     * @return list<string> doc_types
-     */
+    /** @return list<string> See ApplicationRequirements::requiredDocuments(). */
     public function requiredDocuments(array $application): array
     {
-        return $this->needsGrades($application) ? ['cor', 'grades'] : ['cor'];
+        return (new ApplicationRequirements($this->questions, $this->answers))->requiredDocuments($application);
     }
 
-    /**
-     * The upload slots on the documents step: the required ones, then optional certificates.
-     *
-     * @param array<string, mixed> $application A row from findDetailed().
-     * @return list<string>
-     */
+    /** @return list<string> */
     public function documentsToAsk(array $application): array
     {
-        return [...$this->requiredDocuments($application), 'certificate'];
+        return (new ApplicationRequirements($this->questions, $this->answers))->documentsToAsk($application);
     }
 
-    /** @param array<string, mixed> $application A row from findDetailed(). */
     public function needsGrades(array $application): bool
     {
-        $forPosition = $application['vacancy_id'] !== null || ($application['position_id'] ?? null) !== null;
-
-        return $forPosition && !$this->isFirstYearFirstSemester($application);
+        return (new ApplicationRequirements($this->questions, $this->answers))->needsGrades($application);
     }
 
-    /**
-     * A 1st year applying in a 1st semester: the year level from step 2, and the current academic term set by the MSW
-     * Committee Head. With no current term set, grades are asked for, so nothing is skipped by mistake.
-     *
-     * @param array<string, mixed> $application
-     */
     public function isFirstYearFirstSemester(array $application): bool
     {
-        $academic = $this->questions->forRoleTypes(['academic']);
-        $yearLevel = $academic === [] ? '' : (string) ($this->answers->forApplication((int) $application['application_id'])[(int) $academic[0]['question_id']] ?? '');
-        $term = (new \App\Models\AcademicTermRepository())->current();
-
-        return $yearLevel === self::FIRST_YEAR && ($term['semester'] ?? null) === '1st';
+        return (new ApplicationRequirements($this->questions, $this->answers))->isFirstYearFirstSemester($application);
     }
 
     /**
@@ -939,36 +886,21 @@ final class MembershipService
         }
     }
 
-    /** @return list<string> The year levels step 2 offers, so the first apply page asks with the same words. */
+    /** @return list<string> */
     public function yearLevelOptions(): array
     {
-        $academic = $this->questions->forRoleTypes(['academic']);
-        $options = $academic === [] ? [] : json_decode((string) $academic[0]['options_json'], true);
-
-        return is_array($options) ? array_values(array_map('strval', $options)) : [];
+        return (new ApplicationRequirements($this->questions, $this->answers))->yearLevelOptions();
     }
 
-    /** The current academic term's semester ('1st', '2nd', 'summer'), or null when the MSW Committee Head set none. */
     public function currentSemester(): ?string
     {
-        return (new \App\Models\AcademicTermRepository())->current()['semester'] ?? null;
+        return (new ApplicationRequirements($this->questions, $this->answers))->currentSemester();
     }
 
-    /**
-     * What the first apply page asks for a position, by year level (AGILE's requirements): no grades for a 1st year in a
-     * 1st semester, the 1st semester grades for a 1st year in a later one, and the previous semester's otherwise.
-     *
-     * @return array{needed: bool, label: string}
-     */
+    /** @return array{needed: bool, label: string} */
     public function gradesForYear(string $yearLevel): array
     {
-        if ($yearLevel !== self::FIRST_YEAR) {
-            return ['needed' => true, 'label' => 'Previous semester copy of grades'];
-        }
-
-        return $this->currentSemester() === '1st'
-            ? ['needed' => false, 'label' => 'Previous semester copy of grades']
-            : ['needed' => true, 'label' => '1st semester copy of grades'];
+        return (new ApplicationRequirements($this->questions, $this->answers))->gradesForYear($yearLevel);
     }
 
     /** The year level from the first apply page becomes the step 2 answer, unless they already answered it. */
@@ -988,55 +920,16 @@ final class MembershipService
     /** The role types the Open for application module covers: Committee Head down to The Source Code. */
     public const APPLICATION_ROLE_TYPES = ['committee_head', 'deputy', 'committee_member', 'source_code'];
 
-    /**
-     * Every position the MSW Committee Head can open for application, with AGILE's dashboard numbers: target, filled
-     * (active holders) and remaining. Committees in name order, The Source Code last.
-     *
-     * @return list<array{position_id: int, title: string, role_type: string, committee_id: int, committee_name: string, is_open: bool, target_slots: ?int, filled: int, remaining: ?int, label: string}>
-     */
+    /** @return list<array<string, mixed>> See OpenPositionsService::all(). */
     public function applicationPositions(): array
     {
-        $marks = implode(',', array_fill(0, count(self::APPLICATION_ROLE_TYPES), '?'));
-        $statement = Database::connection()->prepare(
-            "SELECT p.position_id, p.title, p.role_type, p.is_open, p.target_slots, c.committee_id, c.name AS committee_name,
-                    (SELECT COUNT(*) FROM members m WHERE m.position_id = p.position_id AND m.role_status = 'active')
-                    + IF(p.role_type = 'committee_member', (SELECT COUNT(*) FROM member_committees mc WHERE mc.committee_id = p.committee_id), 0) AS filled
-             FROM positions p JOIN committees c ON c.committee_id = p.committee_id
-             WHERE p.role_type IN ({$marks})
-             ORDER BY p.role_type = 'source_code', c.name, FIELD(p.role_type, 'committee_head', 'deputy', 'committee_member'), p.position_id"
-        );
-        $statement->execute(self::APPLICATION_ROLE_TYPES);
-
-        return array_map(static function (array $row): array {
-            $target = $row['target_slots'] === null ? null : (int) $row['target_slots'];
-            $filled = (int) $row['filled'];
-
-            return [
-                'position_id' => (int) $row['position_id'],
-                'title' => (string) $row['title'],
-                'role_type' => (string) $row['role_type'],
-                'committee_id' => (int) $row['committee_id'],
-                'committee_name' => (string) $row['committee_name'],
-                'is_open' => (int) $row['is_open'] === 1,
-                'target_slots' => $target,
-                'filled' => $filled,
-                'remaining' => $target === null ? null : max(0, $target - $filled),
-                'label' => $row['title'] . ', ' . $row['committee_name'],
-            ];
-        }, $statement->fetchAll());
+        return OpenPositionsService::all();
     }
 
-    /**
-     * What applicants can choose: positions that are open and not yet full (no target means no limit).
-     *
-     * @return list<array<string, mixed>> Rows of applicationPositions().
-     */
+    /** @return list<array<string, mixed>> See OpenPositionsService::openNow(). */
     public function openPositions(): array
     {
-        return array_values(array_filter(
-            $this->applicationPositions(),
-            static fn (array $p): bool => $p['is_open'] && ($p['remaining'] === null || $p['remaining'] > 0)
-        ));
+        return OpenPositionsService::openNow();
     }
 
     /**
@@ -1172,80 +1065,6 @@ final class MembershipService
         AuditService::log('member.role_expired', 'member', $memberId, ['position' => $position, 'actor_id' => $actorId]);
 
         $this->notifications->notify((int) $member['user_id'], 'ROLE_EXPIRED', ['position' => $position, 'remarks' => trim($remarks)], '/account');
-    }
-
-    /**
-     * For jobs/application_reminders.php: tells MSW staff about applications waiting over 3 days. Once a day per person.
-     *
-     * @return array{sent: int, failed: int}
-     */
-    public function sendPendingReminders(callable $log): array
-    {
-        $counts = ['sent' => 0, 'failed' => 0];
-        $count = $this->applications->countPendingSince(date('Y-m-d H:i:s', time() - self::PENDING_REMINDER_DAYS * 86400));
-
-        if ($count === 0) {
-            return $counts;
-        }
-
-        $sent = new NotificationRepository();
-
-        foreach (array_merge($this->users->activeIdsByRole('msw_head'), $this->users->activeIdsByRole('msw_member')) as $userId) {
-            try {
-                if (!$sent->sentToday((int) $userId, 'APP_PENDING_REMINDER')) {
-                    $this->notifications->notify((int) $userId, 'APP_PENDING_REMINDER', ['count' => $count, 'link' => '/applications'], null, ['email']);
-                    $counts['sent']++;
-                }
-            } catch (Throwable $exception) {
-                $counts['failed']++;
-                $log("User {$userId}: " . $exception->getMessage());
-            }
-        }
-
-        return $counts;
-    }
-
-    /**
-     * For jobs/application_reminders.php: reminds people whose application is For Revision every 3 days, with a fresh
-     * edit link for those without an account. The queue erases the payload, so for them the edit link's date says when
-     * the last one went out, which also counts the email sent when it was returned.
-     *
-     * @return array{sent: int, failed: int}
-     */
-    public function sendRevisionReminders(callable $log): array
-    {
-        $counts = ['sent' => 0, 'failed' => 0];
-        // By calendar day, so the job's exact run time does not push a reminder to the next day.
-        $since = date('Y-m-d 00:00:00', time() - (self::REVISION_REMINDER_DAYS - 1) * 86400);
-        $sent = new NotificationRepository();
-        $links = new ApplicationAccessLinkRepository();
-
-        foreach ($this->applications->forRevisionWithRemarks() as $row) {
-            $id = (int) $row['application_id'];
-
-            try {
-                $userId = $row['user_id'] ?? ($row['applicant_id'] === null ? null : $this->applicants->find((int) $row['applicant_id'])['user_id'] ?? null);
-                $alreadyToday = $row['applicant_id'] !== null && $links->issuedSince($id, ApplicantAccessService::PURPOSE_REVISE, $since);
-                $alreadyToday = $alreadyToday || ($userId !== null && $sent->sentSince((int) $userId, 'APP_FOR_REVISION', $since));
-
-                if ($alreadyToday) {
-                    continue;
-                }
-
-                Database::transaction(function () use ($row, $id): void {
-                    $this->notifyOwner($row, 'APP_FOR_REVISION', [
-                        'tracking_code' => $row['tracking_code'],
-                        'remarks' => (string) $row['revision_remarks'],
-                    ] + ($row['applicant_id'] !== null ? ['link' => (new ApplicantAccessService())->newRevisionLink($id)] : []), "/my-applications/{$id}");
-                });
-                $counts['sent']++;
-            } catch (Throwable $exception) {
-                $counts['failed']++;
-                $log("Application {$id}: " . $exception->getMessage());
-            }
-        }
-
-        return $counts;
     }
 
     /**

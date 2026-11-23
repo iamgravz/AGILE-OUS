@@ -16,7 +16,7 @@ final class Iso25010Test extends TestCase
 {
     /** Pages a visitor or a member opens most, for the time and usability checks. */
     private const PUBLIC_PAGES = ['/', '/about', '/committees', '/news', '/events', '/publications', '/positions', '/track', '/login', '/apply', '/welfare/guest', '/register', '/forgot-password', '/privacy'];
-    private const MEMBER_PAGES = ['/dashboard', '/account', '/welfare/new', '/elections/candidacy', '/my-applications'];
+    private const MEMBER_PAGES = ['/dashboard', '/account', '/my-submissions', '/welfare/new', '/elections/candidacy', '/my-applications'];
     private const STAFF_PAGES = ['/dashboard', '/applications', '/members', '/welfare', '/admin/users', '/credentials/requests', '/admin/candidacies', '/reports'];
 
     /** Time behaviour target per page on the local PHP server, in seconds. */
@@ -242,9 +242,6 @@ final class Iso25010Test extends TestCase
 
     // ---------- Maintainability ----------
 
-    /** Known finding (docs/iso-25010.md): MembershipService holds the whole application workflow and should be split. */
-    private const LARGE_CLASS_EXCEPTIONS = ['MembershipService.php'];
-
     #[Group('iso-maintainability')]
     public function testModularityAndAnalysabilityEveryPhpFileDeclaresStrictTypesAndStaysSmall(): void
     {
@@ -260,7 +257,7 @@ final class Iso25010Test extends TestCase
             $code = (string) file_get_contents($file->getPathname());
             $this->assertStringContainsString('declare(strict_types=1);', $code, $file->getPathname());
 
-            if (substr_count($code, "\n") > 1600 && !in_array(basename($file->getPathname()), self::LARGE_CLASS_EXCEPTIONS, true)) {
+            if (substr_count($code, "\n") > 1600) {
                 $big[] = basename($file->getPathname());
             }
         }
@@ -288,6 +285,22 @@ final class Iso25010Test extends TestCase
         }
 
         $this->assertSame([], array_values(array_unique($missing)), 'Settings read from .env but missing from .env.example.');
+    }
+
+    #[Group('iso-portability')]
+    public function testInstallabilityThePreflightCheckIsShippedAndRuns(): void
+    {
+        // Linted only: run for real, the check reads the database in .env, and tests never touch real data.
+        $script = dirname(__DIR__) . '/jobs/preflight.php';
+        exec(escapeshellarg(PHP_BINARY) . ' -l ' . escapeshellarg($script), $output, $exit);
+
+        $this->assertSame(0, $exit, implode("
+", $output));
+        $code = (string) file_get_contents($script);
+
+        foreach (['APP_ENV', 'APP_DEBUG', 'APP_URL', 'ENCRYPTION_KEY', 'MAIL_DRIVER', 'Demo people', 'MSW Committee Head'] as $checked) {
+            $this->assertStringContainsString($checked, $code, "The preflight check does not look at {$checked}.");
+        }
     }
 
     #[Group('iso-portability')]

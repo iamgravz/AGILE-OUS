@@ -809,3 +809,17 @@ html {
         scroll-behavior: auto;
     }
 }
+
+/*
+ * No Pause button on the hero (removed on request, Nov 23, 2026). The photos and the grid still stop while the pointer
+ * rests on the hero or keyboard focus is inside it, so anyone can hold the picture still (WCAG 2.2.2, partly), and they
+ * never move for people whose device asks for reduced motion.
+ */
+.hero--landing:hover .hero__campus-slide,
+.hero--landing:focus-within .hero__campus-slide,
+.hero--landing:hover::before,
+.hero--landing:focus-within::before,
+.hero--landing:hover::after,
+.hero--landing:focus-within::after {
+    animation-play-state: paused;
+}

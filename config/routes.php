@@ -275,7 +275,7 @@ return static function (Router $router): void {
         $router->post('/account/photo', 'AccountController@updatePhoto', 'account.photo');
         $router->post('/account/password', 'AccountController@changePassword', 'account.password');
         $router->get('/files/{type}/{id}', 'FileController@show', 'files.show');
-        $router->get('/my-submissions', 'PlaceholderController@show', 'my_submissions');
+        $router->get('/my-submissions', 'MySubmissionsController@index', 'my_submissions');
     });
 
     // Must not exist outside local development: styleguide pages and passwordless demo login.
