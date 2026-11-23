@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 // The posts the seeder publishes outside production, so every public list has content. Made up for the system's
 // presentation: the people, teams and dates are not real. Shared by seeds/content_posts.php and the migration that
-// reworded posts seeded earlier ('old' is the slug they had then). 'photo' is a file in seeds/sample-media.
+// reworded posts seeded earlier ('old' is the slug they had then). 'photo' is a file in seeds/seed-media.
 return static function (callable $inDays): array {
     return [
         ['old' => 'sample-news-recruitment', 'photo' => 'news-recruitment', 'type' => 'news',

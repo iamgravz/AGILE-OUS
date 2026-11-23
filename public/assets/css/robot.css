@@ -211,7 +211,7 @@
     margin: var(--space-3);
 }
 
-/* The local-only sample switcher: folded away under the form, so it never stretches the login card. */
+/* The local-only seeded switcher: folded away under the form, so it never stretches the login card. */
 .login-dev {
     margin-top: var(--space-4);
 }

@@ -2,7 +2,7 @@
 <?php $this->start('title') ?>Style Guide: auth layout<?php $this->end() ?>
 <?php $this->start('head') ?><link rel="stylesheet" href="<?= e(asset('css/styleguide.css')) ?>"><?php $this->end() ?>
 <h1>Log in</h1>
-<p class="sg-note">Sample form for the auth layout. It submits nothing.</p>
+<p class="sg-note">Seeded form for the auth layout. It submits nothing.</p>
 <form>
     <div class="field">
         <label class="field__label" for="sg-auth-email">Email <span class="field__required" aria-hidden="true">*</span></label>

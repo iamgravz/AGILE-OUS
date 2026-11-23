@@ -15,8 +15,8 @@ return [
     // Constitution, Article I Section 3 (domicile).
     'address' => (string) env('ORG_ADDRESS', 'PUP Open University System, Ninoy Aquino Library and Learning Resources Center (NALLRC), PUP Main Campus, Anonas St., Sta. Mesa, Manila'),
     'timezone' => env('APP_TIMEZONE', 'Asia/Manila'),
-    // Adds database/seeds/sample_bulk.php (100 more made-up people) when seeding outside production.
-    'sample_bulk' => env('SAMPLE_BULK', false),
+    // Adds database/seeds/seed_bulk.php (100 more made-up people) when seeding outside production.
+    'seed_bulk' => env('SEED_BULK', false),
     'session_idle_minutes' => (int) env('SESSION_IDLE_MINUTES', 30),
     'encryption_key' => env('ENCRYPTION_KEY', ''),
     'ai' => [

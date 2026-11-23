@@ -37,7 +37,7 @@ Seven modules:
 5. **Business rules live in `app/Services`**, never in controllers or views. Controllers: validate input → call service → render/redirect.
 6. **Every sensitive action is audit-logged** via `AuditService::log()`.
 7. **Every status change goes through the allowed transitions** in §8. Invalid transition = exception, not a silent update.
-8. **No fake data in production code.** Sample data only in `database/seeds/`.
+8. **No fake data in production code.** Seeded data only in `database/seeds/`.
 9. **At the end of every step**: update `docs/PROGRESS.md` (what was built, files touched, how to test, known issues), then stop and print a short summary + manual test checklist. Do not start the next step.
 10. **Ask instead of guessing** when a requirement is ambiguous. Offer 2 options with a recommendation.
 11. **Every screen follows §12.1** (human-made design direction). Never use the patterns in its Avoid list, even if they seem "modern".
@@ -276,7 +276,7 @@ Implement each lifecycle as a small transition map in the related service, e.g. 
 - `service_request_messages` (message_id PK, request_id FK, author_id FK users, from_staff BOOL, body TEXT)
 - New columns: `users.year_level`, `users.section`, `welfare_cases.submitter_contact_no/_year_level/_section`, `members.verify_token`, `application_questions.is_active`, `application_documents.version_no`, `content_posts.registration_open`, `content_posts.capacity`
 
-Seed data: 7 roles (no applicant role), all permission codes + role mapping from §6, 7 welfare categories, AGILE's real structure (update R6): Executive Committee positions (President, Vice President for Internal Affairs, Vice President for External Affairs, Secretary, Assistant Secretary, Treasurer, Auditor), the 7 committees (Academics and Training; Research and Extensions; Creatives, Social Media and Communication; Finance and Fund Raising; Logistics; Membership and Student Welfare; Events and External Relations) each with Committee Head / Deputy Committee Head / Committee Member, and The Source Code with its 11 positions (Editor-in-Chief first) and no committee head, email templates from §10, default settings (incl. `welfare.guest_submission=1`), one sample user per role (password `Password123!`), 3 sample applicants without accounts (with submitted applications in different statuses), 1 approved applicant who has not registered yet, sample application questions.
+Seed data: 7 roles (no applicant role), all permission codes + role mapping from §6, 7 welfare categories, AGILE's real structure (update R6): Executive Committee positions (President, Vice President for Internal Affairs, Vice President for External Affairs, Secretary, Assistant Secretary, Treasurer, Auditor), the 7 committees (Academics and Training; Research and Extensions; Creatives, Social Media and Communication; Finance and Fund Raising; Logistics; Membership and Student Welfare; Events and External Relations) each with Committee Head / Deputy Committee Head / Committee Member, and The Source Code with its 11 positions (Editor-in-Chief first) and no committee head, email templates from §10, default settings (incl. `welfare.guest_submission=1`), one seeded user per role (password `Password123!`), 3 seeded applicants without accounts (with submitted applications in different statuses), 1 approved applicant who has not registered yet, seeded application questions.
 
 ---
 

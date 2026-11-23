@@ -8,7 +8,7 @@ use Tests\Support\RouteList;
 use Tests\Support\TestServer;
 
 /**
- * Every protected route in config/routes.php, for every sample role, over real HTTP. The expected answer comes from
+ * Every protected route in config/routes.php, for every seeded role, over real HTTP. The expected answer comes from
  * the section 6 table in PROJECT_CONTEXT.md, never from the code being tested. Record ids do not exist, so a request
  * that gets past the permission check finds nothing to change.
  */

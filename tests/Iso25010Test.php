@@ -298,7 +298,7 @@ final class Iso25010Test extends TestCase
 ", $output));
         $code = (string) file_get_contents($script);
 
-        foreach (['APP_ENV', 'APP_DEBUG', 'APP_URL', 'ENCRYPTION_KEY', 'MAIL_DRIVER', 'Sample people', 'MSW Committee Head'] as $checked) {
+        foreach (['APP_ENV', 'APP_DEBUG', 'APP_URL', 'ENCRYPTION_KEY', 'MAIL_DRIVER', 'Seeded people', 'MSW Committee Head'] as $checked) {
             $this->assertStringContainsString($checked, $code, "The preflight check does not look at {$checked}.");
         }
     }

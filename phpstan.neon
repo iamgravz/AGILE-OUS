@@ -10,8 +10,8 @@ parameters:
     excludePaths:
         # Templates, analysed through the tests that render them.
         - app/Views
-        # Sample-data scripts. PHPStan narrows the literal rows of their foreach loops wrongly and reports live
-        # branches as dead (for example the 'guest' row in sample_users.php); the tests run every one of them.
+        # Seeded-data scripts. PHPStan narrows the literal rows of their foreach loops wrongly and reports live
+        # branches as dead (for example the 'guest' row in seed_users.php); the tests run every one of them.
         - database/seeds
     bootstrapFiles:
         - app/helpers.php

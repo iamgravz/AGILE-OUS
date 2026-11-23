@@ -49,11 +49,11 @@ $bodyHelp = 'The rich text editor simplifies the details block and the button. T
                 <?= csrf_field() ?>
                 <button type="submit" class="btn btn--secondary btn--sm">Send test to me</button>
             </form>
-            <p class="field__help">Uses the saved wording, with sample values.</p>
+            <p class="field__help">Uses the saved wording, with seeded values.</p>
         </div>
     </aside>
 </div>
 
 <h2 class="admin-preview__heading">Preview</h2>
-<p class="text-muted">Choose Preview below to see it here with sample values, inside the real header and footer. Nothing is saved or sent.</p>
+<p class="text-muted">Choose Preview below to see it here with seeded values, inside the real header and footer. Nothing is saved or sent.</p>
 <iframe class="admin-preview" name="email-preview" title="Email preview" src="about:blank" tabindex="-1" data-email-preview></iframe>

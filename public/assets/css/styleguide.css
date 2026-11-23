@@ -166,7 +166,7 @@
     color: var(--ink-text);
 }
 
-/* Both samples are already two blurred surfaces, so the page's own bars stay solid here. */
+/* Both seeded records are already two blurred surfaces, so the page's own bars stay solid here. */
 body:has(.sg-glass) :is(.site-header, .topbar) {
     --glass-filter: none;
     --glass-bg: var(--glass-solid);

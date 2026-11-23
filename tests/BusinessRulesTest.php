@@ -235,7 +235,7 @@ final class BusinessRulesTest extends TestCase
         $this->inRollback(function (): void {
             $registration = new MemberRegistrationService();
 
-            // Approved in the sample data, with no account yet.
+            // Approved in the seeded data, with no account yet.
             $this->insertCode('lito.ramos@agile.test', '123456', time() + 600);
             $this->assertNotNull($registration->confirmCode('2024-00114-OU-0', '123456'));
 
@@ -366,7 +366,7 @@ final class BusinessRulesTest extends TestCase
 
         foreach (['school_id', 'cor'] as $type) {
             $db->prepare("INSERT INTO application_documents (application_id, doc_type, original_name, stored_path, mime_type, size_bytes, verification_status) VALUES (?, ?, 'x.pdf', ?, 'application/pdf', 1, ?)")
-                ->execute([$id, $type, 'applications/sample/' . md5("sample-{$type}") . '.pdf', $documents]);
+                ->execute([$id, $type, 'applications/seed/' . md5("seed-{$type}") . '.pdf', $documents]);
         }
 
         return $id;

@@ -582,7 +582,7 @@ final class AccountsAndDecisionsTest extends TestCase
                 'application_id' => $id,
                 'doc_type' => $type,
                 'original_name' => "{$type}.pdf",
-                'stored_path' => 'applications/sample/' . md5("sample-{$type}") . '.pdf',
+                'stored_path' => 'applications/seed/' . md5("seed-{$type}") . '.pdf',
                 'mime_type' => 'application/pdf',
                 'size_bytes' => 1,
                 'verification_status' => $documents,

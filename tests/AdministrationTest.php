@@ -261,7 +261,7 @@ final class AdministrationTest extends TestCase
         $this->assertStringNotContainsString('onclick', $clean);
     }
 
-    public function testThePreviewUsesSampleValuesInTheRealWrapper(): void
+    public function testThePreviewUsesSeedValuesInTheRealWrapper(): void
     {
         $this->inRollback(function (): void {
             $this->signIn('mswhead@agile.test');
@@ -315,7 +315,7 @@ final class AdministrationTest extends TestCase
             $committeeId = (int) Database::connection()->query("SELECT committee_id FROM committees WHERE name = 'Academics and Training'")->fetchColumn();
 
             $this->assertGreaterThan($service->recipientCount('officers'), $service->recipientCount('all_members'));
-            // The sample head, plus the sample deputy and member from seeds/sample_organization.php.
+            // The seeded head, plus the seeded deputy and member from seeds/seed_organization.php.
             $this->assertSame(3, $service->recipientCount("committee:{$committeeId}"));
             $this->assertGreaterThan(0, $service->recipientCount('applicants'));
             $this->assertSame(0, $service->recipientCount('everyone_else'));

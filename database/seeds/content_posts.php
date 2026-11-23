@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-// The posts in content_post_list.php, published by the MSW Committee Head's sample account. Outside production only.
+// The posts in content_post_list.php, published by the MSW Committee Head's seeded account. Outside production only.
 // Found again by slug, so running this twice adds nothing.
 return static function (PDO $db): void {
     $author = (int) $db->query("SELECT user_id FROM users WHERE email = 'mswhead@agile.test'")->fetchColumn();
@@ -26,13 +26,13 @@ return static function (PDO $db): void {
         ]);
     }
 
-    // Free Pexels photos as covers (sample-media/SOURCES.md), copied once into storage/uploads/media. A post that already
+    // Free Pexels photos as covers (seed-media/SOURCES.md), copied once into storage/uploads/media. A post that already
     // has a cover, for example one changed in the CMS, keeps it. The files in the repo are copied, never moved.
     $find = $db->prepare('SELECT post_id FROM content_posts WHERE slug = ? AND cover_image IS NULL');
     $set = $db->prepare('UPDATE content_posts SET cover_image = ? WHERE post_id = ?');
 
     foreach ($posts as $post) {
-        $photo = __DIR__ . '/sample-media/' . $post['photo'] . '.jpg';
+        $photo = __DIR__ . '/seed-media/' . $post['photo'] . '.jpg';
 
         if ($post['photo'] === null || !is_file($photo)) {
             continue;

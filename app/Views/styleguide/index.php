@@ -1,6 +1,6 @@
 <?php
 /**
- * Every component in one page, rendered in the public and dashboard layouts. Sample text stays in this view.
+ * Every component in one page, rendered in the public and dashboard layouts. Example text stays in this view.
  *
  * @var \App\Core\View $this
  * @var string $layout public or dashboard
@@ -42,21 +42,21 @@ $rows = [
 <?php $this->start('title') ?>Style Guide: <?= e($layout) ?> layout<?php $this->end() ?>
 <?php $this->start('head') ?><link rel="stylesheet" href="<?= e(asset('css/styleguide.css')) ?>"><?php $this->end() ?>
 <?php $this->start('page_title') ?>Style Guide<?php $this->end() ?>
-<?php $this->start('page_actions') ?><button type="button" class="btn btn--primary btn--sm" data-toast="Sample page action" data-toast-tone="info"><?= icon('plus') ?> Page action</button><?php $this->end() ?>
+<?php $this->start('page_actions') ?><button type="button" class="btn btn--primary btn--sm" data-toast="Example page action" data-toast-tone="info"><?= icon('plus') ?> Page action</button><?php $this->end() ?>
 
 <?php
-$sample = static function (string $theme, string $name): void { ?>
+$example = static function (string $theme, string $name): void { ?>
     <div class="sg-panel">
         <p class="eyebrow"><?= e($name) ?></p>
         <div class="stat-grid sg-panel__stats">
             <div class="stat-card">
                 <div class="stat-card__head"><span class="stat-card__icon"><?= icon('clipboard') ?></span><p class="stat-card__label">New applications</p></div>
                 <p class="stat-card__value">12 <span class="chip chip--up"><?= icon('arrow-up') ?>3</span></p>
-                <p class="stat-card__sub">Sample: 12 of 40 applications</p>
+                <p class="stat-card__sub">Example: 12 of 40 applications</p>
                 <progress class="progress" value="12" max="40" aria-hidden="true"></progress>
             </div>
             <div class="stat-card">
-                <div class="stat-card__head"><span class="stat-card__icon"><?= icon('users') ?></span><p class="stat-card__label">Daily sample</p></div>
+                <div class="stat-card__head"><span class="stat-card__icon"><?= icon('users') ?></span><p class="stat-card__label">Daily example</p></div>
                 <p class="stat-card__value">9</p>
                 <p class="stat-card__sub">Sparkline, only from real daily counts</p>
                 <svg class="sparkline" viewBox="0 0 70 24" preserveAspectRatio="none" aria-hidden="true"><?php foreach ([4, 8, 6, 12, 9, 16, 11] as $i => $h) : ?><rect x="<?= $i * 10 ?>" y="<?= 24 - $h ?>" width="7" height="<?= $h ?>" rx="1"/><?php endforeach; ?></svg>
@@ -65,7 +65,7 @@ $sample = static function (string $theme, string $name): void { ?>
         <div class="card sg-panel__card">
             <div class="card__header">
                 <h3 class="card__title">Card title</h3>
-                <div class="segmented" role="group" aria-label="Sample range">
+                <div class="segmented" role="group" aria-label="Example range">
                     <button type="button" class="segmented__item" aria-pressed="false">3 months</button>
                     <button type="button" class="segmented__item" aria-pressed="true">6 months</button>
                 </div>
@@ -88,7 +88,7 @@ $sample = static function (string $theme, string $name): void { ?>
         </p>
         <div class="table-wrap">
             <table class="table table--stack">
-                <caption class="sr-only">Sample table</caption>
+                <caption class="sr-only">Example table</caption>
                 <thead><tr><th scope="col">Applicant</th><th scope="col">Status</th><th scope="col" class="num">Score</th></tr></thead>
                 <tbody>
                     <tr><td data-label="Applicant">Andrea Santos</td><td data-label="Status"><?= status_badge('under_review') ?></td><td class="num" data-label="Score">87</td></tr>
@@ -110,7 +110,7 @@ $sample = static function (string $theme, string $name): void { ?>
             <div class="glass sg-glass__box">
                 <p class="eyebrow">.glass, light</p>
                 <p>Dark text on frosted white. <a href="#sg-glass">A link</a></p>
-                <input class="input" type="text" value="Fields stay solid" aria-label="Sample field">
+                <input class="input" type="text" value="Fields stay solid" aria-label="Example field">
             </div>
             <div class="glass--dark sg-glass__box">
                 <p class="eyebrow">.glass--dark</p>
@@ -122,10 +122,10 @@ $sample = static function (string $theme, string $name): void { ?>
 </section>
 
 <section class="sg-section" aria-labelledby="sg-both">
-    <h2 id="sg-both">Sample panel</h2>
-    <p class="sg-note">Sample numbers stay on this page.</p>
+    <h2 id="sg-both">Example panel</h2>
+    <p class="sg-note">Example numbers stay on this page.</p>
     <div class="sg-panels">
-        <?php $sample('light', 'Light'); ?>
+        <?php $example('light', 'Light'); ?>
     </div>
 </section>
 
@@ -139,7 +139,7 @@ $sample = static function (string $theme, string $name): void { ?>
     <p>Codes use IBM Plex Mono 500: <code>AGILE-2026-0001</code>. Press <kbd>/</kbd> to search.</p>
 </section>
 
-<p class="sg-note">Available only when <code>APP_ENV=local</code>. Sample text on this page is not real data.</p>
+<p class="sg-note">Available only when <code>APP_ENV=local</code>. Example text on this page is not real data.</p>
 <nav class="sg-layout-links" aria-label="Layouts">
     <a class="btn btn--secondary btn--sm" href="/styleguide"<?= $layout === 'public' ? ' aria-current="page"' : '' ?>>Public layout</a>
     <a class="btn btn--secondary btn--sm" href="/styleguide/dashboard"<?= $layout === 'dashboard' ? ' aria-current="page"' : '' ?>>Dashboard layout</a>
@@ -269,7 +269,7 @@ $sample = static function (string $theme, string $name): void { ?>
             </div>
         </div>
         <div class="card__footer cluster">
-            <button type="button" class="btn btn--primary" data-toast="Sample only. Nothing was saved." data-toast-tone="success">Save</button>
+            <button type="button" class="btn btn--primary" data-toast="Example only. Nothing was saved." data-toast-tone="success">Save</button>
             <button type="reset" class="btn btn--ghost">Reset</button>
         </div>
     </form>
@@ -310,7 +310,7 @@ $sample = static function (string $theme, string $name): void { ?>
     </form>
     <div class="table-wrap">
         <table class="table table--stack">
-            <caption class="sr-only">Sample applications</caption>
+            <caption class="sr-only">Example applications</caption>
             <thead>
                 <tr>
                     <th scope="col">Applicant</th>
@@ -363,8 +363,8 @@ $sample = static function (string $theme, string $name): void { ?>
 <section class="sg-section" aria-labelledby="sg-modal">
     <h2 id="sg-modal">Confirm modal</h2>
     <p class="sg-note">Add <code>data-confirm</code> to a form or submit button. Cancel keeps you here. Confirm submits the form, and the double-submit guard then shows the loading state until the page reloads.</p>
-    <form class="cluster" method="get" action="<?= e(parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH)) ?>" data-confirm="This sample rejects the application and cannot be undone." data-confirm-title="Reject this application?" data-confirm-action="Reject">
-        <input type="hidden" name="sample" value="confirmed">
+    <form class="cluster" method="get" action="<?= e(parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH)) ?>" data-confirm="This example rejects the application and cannot be undone." data-confirm-title="Reject this application?" data-confirm-action="Reject">
+        <input type="hidden" name="example" value="confirmed">
         <button type="submit" class="btn btn--danger"><?= icon('trash') ?> Reject application</button>
     </form>
 </section>
@@ -427,7 +427,7 @@ $sample = static function (string $theme, string $name): void { ?>
 
 <section class="sg-section" aria-labelledby="sg-pagination">
     <h2 id="sg-pagination">Pagination</h2>
-    <nav aria-label="Sample pagination">
+    <nav aria-label="Example pagination">
         <ul class="pagination__list">
             <li><a class="pagination__link" href="#sg-pagination" aria-label="Previous page"><?= icon('chevron-left') ?></a></li>
             <li><a class="pagination__link" href="#sg-pagination">1</a></li>
@@ -444,7 +444,7 @@ $sample = static function (string $theme, string $name): void { ?>
     <h2 id="sg-empty">Empty state</h2>
     <div class="empty-state">
         <p class="empty-state__text">Applications appear here after applicants submit them.</p>
-        <a class="btn btn--secondary" href="#sg-empty">Sample action</a>
+        <a class="btn btn--secondary" href="#sg-empty">Example action</a>
     </div>
 </section>
 

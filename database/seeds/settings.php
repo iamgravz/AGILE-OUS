@@ -12,7 +12,7 @@ return static function (PDO $db): void {
         'org.contact_email' => 'agile.pupous@gmail.com',
         'org.full_name' => 'AGILE OUS — Academic Guild of IT Learners and Experts',
         'org.facebook_url' => '', // Left empty until AGILE publishes its page.
-        // Sample signatory. Replace it with the real Committee Head.
+        // Seeded signatory. Replace it with the real Committee Head.
         'email.signatory_name' => 'Elena Ramos',
         'email.signatory_position' => 'Committee Head',
         'email.signatory_committee' => 'Membership and Student Welfare Committee',

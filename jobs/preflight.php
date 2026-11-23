@@ -33,11 +33,11 @@ $check((string) env('DB_PASS', '') === '' ? 'FAIL' : 'PASS', 'Database password 
 
 try {
     $db = Database::connection();
-    $sample = (int) $db->query("SELECT COUNT(*) FROM users WHERE email LIKE '%@agile.test'")->fetchColumn()
+    $seeded = (int) $db->query("SELECT COUNT(*) FROM users WHERE email LIKE '%@agile.test'")->fetchColumn()
         + (int) $db->query("SELECT COUNT(*) FROM applicants WHERE email LIKE '%@agile.test'")->fetchColumn();
-    $check($sample === 0 ? 'PASS' : 'FAIL', "Sample people in the database: {$sample}", 'Start from a new database, or run php database/remove_samples.php --yes.');
-    $samplePosts = (int) $db->query("SELECT COUNT(*) FROM content_posts p JOIN users u ON u.user_id = p.author_id WHERE u.email LIKE '%@agile.test'")->fetchColumn();
-    $check($samplePosts === 0 ? 'PASS' : 'FAIL', "Sample posts: {$samplePosts}", 'Remove them with remove_samples, or delete them in Content.');
+    $check($seeded === 0 ? 'PASS' : 'FAIL', "Seeded people in the database: {$seeded}", 'Start from a new database, or run php database/remove_seed_data.php --yes.');
+    $seedPosts = (int) $db->query("SELECT COUNT(*) FROM content_posts p JOIN users u ON u.user_id = p.author_id WHERE u.email LIKE '%@agile.test'")->fetchColumn();
+    $check($seedPosts === 0 ? 'PASS' : 'FAIL', "Seeded posts: {$seedPosts}", 'Remove them with remove_seed_data, or delete them in Content.');
     $heads = (int) $db->query("SELECT COUNT(*) FROM users u JOIN roles r ON r.role_id = u.role_id WHERE r.slug = 'msw_head' AND u.status = 'active' AND u.email NOT LIKE '%@agile.test'")->fetchColumn();
     $check($heads > 0 ? 'PASS' : 'FAIL', "Real MSW Committee Head accounts: {$heads}", 'Create one with php jobs/create_user.php.');
     $pending = (int) $db->query("SELECT COUNT(*) FROM schema_migrations")->fetchColumn();

@@ -115,7 +115,7 @@ final class CredentialRequestsTest extends TestCase
         $page = $public->get("/verify/member/{$token}");
         $this->assertSame(200, $page['status']);
         $this->assertStringContainsString('Active AGILE member', $page['body']);
-        $this->assertStringContainsString('Sample Requester', $page['body']);
+        $this->assertStringContainsString('Seeded Requester', $page['body']);
         $this->assertSame(200, $public->get("/verify/member/{$token}/id")['status']);
         $this->assertSame(404, $public->get('/verify/member/' . str_repeat('a', 64))['status']);
 
@@ -146,7 +146,7 @@ final class CredentialRequestsTest extends TestCase
         $db = TestServer::db();
         $email = 'idrequest.' . bin2hex(random_bytes(4)) . '@agile.test';
         $role = (int) $db->query("SELECT role_id FROM roles WHERE slug = 'general_member'")->fetchColumn();
-        $db->prepare("INSERT INTO users (role_id, email, password_hash, first_name, last_name, contact_no, status, email_verified_at) VALUES (?, ?, ?, 'Sample', 'Requester', '09170000000', 'active', NOW())")
+        $db->prepare("INSERT INTO users (role_id, email, password_hash, first_name, last_name, contact_no, status, email_verified_at) VALUES (?, ?, ?, 'Seeded', 'Requester', '09170000000', 'active', NOW())")
             ->execute([$role, $email, password_hash('Password123!', PASSWORD_DEFAULT)]);
         $db->prepare("INSERT INTO members (user_id, member_no, membership_type, joined_at, registered_at) VALUES (?, ?, 'general', CURDATE(), NOW())")
             ->execute([(int) $db->lastInsertId(), 'TR-' . bin2hex(random_bytes(4))]);

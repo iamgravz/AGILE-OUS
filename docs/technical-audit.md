@@ -153,8 +153,8 @@ Not tested: penetration testing by a third party, and brute-force behaviour unde
 
 - 57 tables, all InnoDB, utf8mb4. `schema.sql` and the live database have the same tables (checked by script).
 - Every `*_id`, `*_by` and `assigned_to` column has a foreign key except the two polymorphic columns in L-3.
-- Foreign keys use `ON DELETE RESTRICT`, so records are never deleted silently; removal of sample data is done by
-  `SampleDataRemover` with an explicit plan.
+- Foreign keys use `ON DELETE RESTRICT`, so records are never deleted silently; removal of seeded data is done by
+  `SeedDataRemover` with an explicit plan.
 - Status columns are `ENUM`s matching the transition maps in code (`ApplicationStatus`, `DocumentStatus`), tested in
   `TransitionMapsTest.php`.
 - Multi-step changes run in `Database::transaction()`; rows that must not change concurrently are locked
@@ -175,7 +175,7 @@ Run on November 23, 2026, on PHP 8.3 and MySQL 8.0, against throwaway test datab
 | Check | Command | Result |
 |---|---|---|
 | Syntax | `php -l` on every tracked PHP file | No errors |
-| Unit, database and HTTP tests | `composer test` | 414 tests, 4,893 assertions, all passed, 1 skipped (needs an upcoming sample event when none exists) |
+| Unit, database and HTTP tests | `composer test` | 414 tests, 4,893 assertions, all passed, 1 skipped (needs an upcoming seeded event when none exists) |
 | Dependency vulnerabilities | `composer audit` | None found |
 | Static analysis | `composer analyse` (PHPStan 2.3, level 5) | Added after the inspection (L-1). First run: 30 findings; after fixes: no errors |
 | Access matrix | `AccessMatrixTest`, `HttpAccessTest` (in the suite) | Every protected route matches §6 for all six roles |
@@ -236,7 +236,7 @@ None during the inspection. Changes made afterward, one item at a time, each fol
 | M-1 | Removed `PlaceholderController.php`, `dashboard/placeholder.php`, `portal/coming_soon.php` and the fallback block in `config/routes.php`; `/admin` now redirects to Users (`AdminUsersController::home()`). Added `tests/MenuLinksTest.php`. | The fallback hid missing pages. The new test fails if a sidebar link has no page of its own; all 39 have one. |
 | 4b | Added `tests/CsrfTest.php` | The CSRF control was implemented but no test proved a forged POST is refused. |
 | M-4 | `PortalController::post()`, `portal/post.php`, `DashboardService::forCurrentUser()` (`unread`), `dashboard/_cards.php` | Page data comes from the controller or service; the two read-only lookups above stay, by choice. |
-| M-5 | 40 files: comments in `app/`, `config/`, `database/seeds/`, `jobs/`, `public/assets/css/` | Dated and "was removed" comments now describe the code as it is; reasons are kept. Dates that are data (styleguide samples, email preview values, the privacy page date, date-format examples) were left. Two rewritten comments were checked against the code and corrected. |
+| M-5 | 40 files: comments in `app/`, `config/`, `database/seeds/`, `jobs/`, `public/assets/css/` | Dated and "was removed" comments now describe the code as it is; reasons are kept. Dates that are data (styleguide seeded records, email preview values, the privacy page date, date-format examples) were left. Two rewritten comments were checked against the code and corrected. |
 | M-3 | `config/permissions.php`, `config/menu.php`, `config/routes.php`, `CandidacyService::file()`, `MembershipService`, `RecruitmentService`, `SearchService`, two views, `docs/PROJECT_CONTEXT.md` §6, `docs/database.md`, `AccessMatrixTest`; migration `2026_11_23_permission_names` | `evaluation.view` is renamed `application.view` (same row, same grants). New `candidacy.file` guards Run for office (menu, both routes, and the service), granted to exactly the holders of `welfare.submit`. On the real database a before/after snapshot of every role's and user's permissions showed the same access. |
 | M-2 | New `app/Services/ApplicationDocumentService.php` (add, replace with versions, remove with versions, take over first-page files); `MembershipService` delegates to it; `HttpWholeFlowsTest` now also removes a draft document | Document storage lives in one class. `MembershipService`'s public methods, permission checks and staff verification are unchanged, so no controller changed. Honest result: 1,590 → 1,525 lines. The class stays large because it holds the apply wizard and staff decisions; splitting those touches every application path and is left for after the evaluation. Removing a document had no test before; it has one now. |
 | L-1 | `composer.json` (dev: phpstan/phpstan; script `analyse`), `phpstan.neon`, `README.md`; fixes in `ApplicantAccessService`, `ElectedOfficersController`, `ElectedOfficerService`, `ApplicationDocumentService`, `MembershipService`, `DashboardService`, `FileAccessPolicy`, `WelfareService`, `InterviewService`, `jobs/preflight.php` | First run found 30 issues. The 11 in `app/` and `jobs/`: no runtime bug; docblocks that did not match the code (6), a list passed to the text validator, an unused injected property, a redundant `??`, and a PHP-version check in `preflight.php` that can never fail because Composer's platform check stops earlier. The session value read by `ApplicantAccessService::current()` is now checked for shape instead of trusted. The 19 in `database/seeds` were false positives (PHPStan treats live rows of literal arrays as impossible, e.g. the `guest` row); seeders are excluded from analysis, with the reason in `phpstan.neon`. No ignore comments or baseline were used. |

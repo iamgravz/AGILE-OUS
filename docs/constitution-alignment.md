@@ -45,7 +45,7 @@ Status: **Aligned**, **Partly** (works, but differs in a detail), **Gap** (the b
 
 **C3. Address (Article I, Section 3).** NALLRC, PUP Main Campus, Anonas St., Sta. Mesa, Manila. Not shown anywhere. *Fix:* add it to the footer and the About page.
 
-**C4. Vision and mission (Article II).** Settings hold sample text. *Fix:* copy Article II Sections 1 to 3 into Settings › Vision, Mission (and the objectives onto About).
+**C4. Vision and mission (Article II).** Settings hold seeded text. *Fix:* copy Article II Sections 1 to 3 into Settings › Vision, Mission (and the objectives onto About).
 
 **C5. The Source Code.** The system treats it as a committee with 11 positions, decided by the MSW Committee Head, and it is open for application. The by-laws list seven standing committees and give newsletters and publications to the Creatives, Social Media & Communication Committee. *Decision needed:* keep The Source Code as a publication staff outside the by-laws, or move its positions under Creatives.
 
@@ -102,7 +102,7 @@ Migration `2026_11_22_constitution_alignment.php` (applied to `agile_ams` after 
 
 - **G3** Migration `2026_11_23_year_level_council.php`: the Year-Level Council with one 1st, 2nd, 3rd and 4th Year Representative (`role_type 'general'`, never open for application; the holder keeps the General Member role).
 - **Administration, Elected officers** (`/admin/elected-officers`, `admin.users`): the MSW Committee Head records each election winner for the Executive Board or the Year-Level Council. A new email gets an account and the password link; an existing account keeps its login and gains the position (one office per person). The role follows `config/role_mapping.php`: President, Executive Committee, or General Member.
-- Sample data: the whole Executive Board has sample accounts (`Password123!`), and four sample Year-Level Representatives. No real names.
+- Seeded data: the whole Executive Board has seeded accounts (`Password123!`), and four seeded Year-Level Representatives. No real names.
 
 ### Decided and added on November 23, 2026 (second round)
 

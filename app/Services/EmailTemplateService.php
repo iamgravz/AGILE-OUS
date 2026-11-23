@@ -11,14 +11,14 @@ use DomainException;
 /** Email templates, for email_template.manage. A template may use only the values its code passes in. */
 final class EmailTemplateService
 {
-    private const SAMPLES = [
+    private const EXAMPLES = [
         'name' => 'Andrea', 'tracking_code' => 'AGL7K2M9QX4B', 'case_code' => 'CAS4T8N2PL6R', 'link' => '/track', 'member_no' => 'AGILE-2026-0001',
         'student_no' => '2024-00101-OU-0', 'register_url' => 'http://localhost:8000/register', 'remarks' => 'Please upload a clearer copy.', 'status' => 'Under review',
         'count' => '3', 'code' => '482915', 'position' => 'Committee Member', 'committee' => 'Academics and Training', 'slots' => '2', 'slots_filled' => '1', 'deadline' => 'November 30, 2026',
         'term' => '2026-2027, 1st Semester', 'scheduled_at' => 'November 3, 2026, 2:30 PM', 'mode' => 'Online', 'location' => 'https://meet.example.test/agile', 'effective_date' => 'November 15, 2026',
-        'title' => 'Sample title', 'author' => 'Bianca Cruz', 'document' => 'School ID', 'due_at' => 'November 10, 2026', 'link_text' => 'Open my member profile',
+        'title' => 'Example title', 'author' => 'Bianca Cruz', 'document' => 'School ID', 'due_at' => 'November 10, 2026', 'link_text' => 'Open my member profile',
         'next_step' => 'Your digital ID and certificate will be ready after the MSW Committee Head reviews them.', 'message' => 'Your application draft is saved. Use this link to continue it.', 'action' => 'Continue my application',
-        'subject' => 'Sample announcement', 'body_html' => '<p>This is where your message goes.</p>',
+        'subject' => 'Example announcement', 'body_html' => '<p>This is where your message goes.</p>',
     ];
 
     public function __construct(
@@ -69,7 +69,7 @@ final class EmailTemplateService
         ]);
     }
 
-    /** The real wrapper and sample values, for the unsaved text. */
+    /** The real wrapper and example values, for the unsaved text. */
     public function preview(int $id, string $subject, string $body): string
     {
         authorize('email_template.manage');
@@ -78,19 +78,19 @@ final class EmailTemplateService
         $body = (new HtmlSanitizer())->cleanEmail($body);
         $this->assertUsable($template['code'], $subject, $body);
 
-        $html = $this->renderer->renderText($subject, $body, $this->samples($template['code'], $subject, $body))['html'];
+        $html = $this->renderer->renderText($subject, $body, $this->examples($template['code'], $subject, $body))['html'];
 
         return str_replace('cid:' . Mail\EmailBanner::CID, asset('img/email-banner.jpg'), $html);
     }
 
-    /** Sends the saved template, with sample values, to the person signed in. */
+    /** Sends the saved template, with example values, to the person signed in. */
     public function sendTest(int $id): void
     {
         authorize('email_template.manage');
 
         $template = $this->find($id);
         $userId = (int) current_user_id();
-        $payload = $this->samples($template['code'], $template['subject'], $template['body_html']);
+        $payload = $this->examples($template['code'], $template['subject'], $template['body_html']);
         unset($payload['contact_email'], $payload['name']);
 
         (new NotificationService())->notify($userId, $template['code'], $payload, null, ['email']);
@@ -116,13 +116,13 @@ final class EmailTemplateService
     }
 
     /** @return array<string, mixed> */
-    private function samples(string $code, string $subject, string $body): array
+    private function examples(string $code, string $subject, string $body): array
     {
         $payload = [];
 
         foreach ($this->placeholders($code, $subject, $body) as $key) {
             if ($key !== 'contact_email') {
-                $payload[$key] = self::SAMPLES[$key] ?? 'Sample ' . str_replace('_', ' ', $key);
+                $payload[$key] = self::EXAMPLES[$key] ?? 'Example ' . str_replace('_', ' ', $key);
             }
         }
 

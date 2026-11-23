@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 // AGILE's real structure (update R6): the Executive Committee, seven committees and The Source Code.
-// The 2026_11_18_real_committees migration renames the old sample rows first, so this only adds what is missing.
+// The 2026_11_18_real_committees migration renames the old seeded rows first, so this only adds what is missing.
 return static function (PDO $db): void {
     // The Executive Committee as AGILE has it (AGILE-OUS Applicant Assessment Report, Positions Dashboard).
     $executive = ['President', 'Vice President for Internal Affairs', 'Vice President for External Affairs', 'General Secretary',

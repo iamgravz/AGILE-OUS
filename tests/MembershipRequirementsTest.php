@@ -288,7 +288,7 @@ final class MembershipRequirementsTest extends TestCase
 
         foreach ($documents as $type => $status) {
             $db->prepare("INSERT INTO application_documents (application_id, doc_type, original_name, stored_path, mime_type, size_bytes, verification_status) VALUES (?, ?, 'x.pdf', ?, 'application/pdf', 1, ?)")
-                ->execute([$id, $type, 'applications/sample/' . md5('sample-cor') . '.pdf', $status]);
+                ->execute([$id, $type, 'applications/seed/' . md5('seed-cor') . '.pdf', $status]);
         }
 
         return $id;

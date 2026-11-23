@@ -23,7 +23,7 @@ Every finding from the first audit (below) is fixed, and each fix was proven on 
 |---|---|---|---|
 | H1 | No Git commits | Fixed | Baseline commit made (see the end of this section). |
 | H2 | Upgrade fails on migration order | Fixed | `AFTER registered_at` removed from `2026_10_31_member_self_registration.sql`. A pre-R1/R3 database now upgrades with no error. |
-| H3 | Sample committees in seeds | Fixed | `seeds/committees_positions.php` holds the real structure; the migration renames Academic, Events, Communications and Deputy Head on existing databases, and turns The Source Code's old positions into publication positions (unused ones are removed). |
+| H3 | Seeded committees in seeds | Fixed | `seeds/committees_positions.php` holds the real structure; the migration renames Academic, Events, Communications and Deputy Head on existing databases, and turns The Source Code's old positions into publication positions (unused ones are removed). |
 | M1 | No record of migrations | Fixed | `schema_migrations` table; `setup.php` runs only new files, stops at the first failure and says which file failed. |
 | M2 | Rules only in PHP | Fixed | `uq_academic_terms_year_semester`, `uq_academic_terms_current_flag`, `chk_academic_terms_year`, `chk_vacancies_slots_filled`, `chk_vacancies_dates`, `chk_evaluations_score`, `chk_welfare_cases_owner`, `chk_welfare_cases_guest_hash`, `uq_applicants_student_no`, `uq_positions_committee_title`. The applicant form explains a taken student number instead of failing. |
 | M3 | Guest identity in plain text | Fixed | `guest_name`, `guest_email`, `guest_student_no` are AES-256-GCM; `guest_email_hash` (HMAC-SHA-256) finds a guest's cases. Existing rows were encrypted by the migration. |
@@ -101,7 +101,7 @@ Your live database in Laragon was not touched.
 | Indexing and performance | 7/10 | Every FK indexed; 2 redundant indexes, a few composite indexes missing, `created_at` indexed everywhere. |
 | Security and privacy | 7/10 | Welfare text encrypted (AES-256-GCM, 11 fields), hashed tokens/codes, insert-only audit log. Guest reporter identity is plain text; expired codes are never deleted. |
 | Migrations and maintainability | 5/10 | Upgrade path broken (H2), no record of which migrations ran, no Git history (H1). |
-| Alignment with requirements | 6/10 | Matches §9 closely, but seeds still use sample committees (H3) and R5 rules are not in the schema yet. |
+| Alignment with requirements | 6/10 | Matches §9 closely, but seeds still use seeded committees (H3) and R5 rules are not in the schema yet. |
 | Documentation | 8/10 | `database.md`, §9 and setup report are clear; a few mismatches (L5). |
 
 ## Strengths (say these at the defense)
@@ -130,7 +130,7 @@ Fix: `git add -A` → `git commit -m "AGILE system: baseline"` → push to a pri
 A fresh install works; any database created before R1/R3 (another laptop, a deployed server) breaks.
 Fix: rename the file so it sorts after (e.g. `2026_10_31_z_member_self_registration.sql`) or remove `AFTER registered_at` from it; add a `schema_migrations` table (M1).
 
-**H3. Seed data still uses sample committees, not AGILE's real structure.**
+**H3. Seed data still uses seeded committees, not AGILE's real structure.**
 Seeded committees: Membership and Student Welfare, The Source Code, *Academic, Events, Communications*. The Source Code has "Committee Head / Deputy Head / Committee Member" instead of its 10 positions. The President does not have `application.decide` for ExeCom applications.
 Fix: run update R6 (7 real committees, The Source Code's 10 positions, decider rules).
 
@@ -157,7 +157,7 @@ Fix: run update R6 (7 real committees, The Source Code's 10 positions, decider r
 - **L2. Missing composite indexes for frequent queries**: `notifications (user_id, channel, read_at)` for the bell count; `notifications (channel, status, scheduled_at)` for the email queue; `welfare_cases (status, priority)` for the queue; `vacancies (status, closes_at)` for open positions.
 - **L3. `created_at` is indexed on almost every table** (about 40 indexes). Keep it only where lists are sorted or filtered by date (audit log, notifications, applications, cases, posts).
 - **L4. Unused column** `eligibility_screenings.document_path` (replaced by `eligibility_documents`). Drop it.
-- **L5. Docs out of date**: §9 says `referrals.referred_to VARCHAR(150)` (it is encrypted `TEXT`), and §9's seed line still describes sample committees.
+- **L5. Docs out of date**: §9 says `referrals.referred_to VARCHAR(150)` (it is encrypted `TEXT`), and §9's seed line still describes seeded committees.
 - **L6. Two polymorphic references have no FK** (`ai_extractions.source_id`, `audit_logs.entity_id`). Acceptable by design; mention it in `database.md`.
 - **L7. `committees.head_user_id` repeats information** already in `members.position_id` (the committee head position). Either derive it or keep both in sync in one service method.
 - **L8. A `guest` role row exists** even though guests have no accounts. It holds retired placeholder users from migration 003. Rename it (e.g. `retired`) or document it, so the panel doesn't ask why "guest" is a role.
@@ -179,8 +179,8 @@ The PHP services do check most of these, but the database should be the last lin
 
 - Roles: 7 (guest, general_member, committee_head, execomm, msw_member, msw_head, president). Permissions: 34. Role-permission rows: 63.
 - Welfare categories: 7. Email templates: 39. Settings: 13. Application questions: 15.
-- Sample users: 10 (password `Password123!`). Sample applications: submitted 1, under review 2, for revision 1, approved 2.
-- Before the system goes live, remove sample users and data (`database/remove_samples.php` from step 24) and set new passwords.
+- Seeded users: 10 (password `Password123!`). Seeded applications: submitted 1, under review 2, for revision 1, approved 2.
+- Before the system goes live, remove seeded users and data (`database/remove_seed_data.php` from step 24) and set new passwords.
 
 ## Fix order
 

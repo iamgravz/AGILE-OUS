@@ -27,8 +27,8 @@ final class StyleguideController
                 ['label' => 'Style Guide', 'url' => '/styleguide'],
                 ['label' => 'Dashboard layout'],
             ],
-            'currentUser' => ['name' => 'Sample User', 'role' => 'Sample Role'],
-            'notifications' => $this->sampleNotifications(),
+            'currentUser' => ['name' => 'Example User', 'role' => 'Example Role'],
+            'notifications' => $this->exampleNotifications(),
             'sidebarMenu' => config('menu.dashboard', []),
         ];
 
@@ -64,7 +64,7 @@ final class StyleguideController
     }
 
     /** @return list<array{title: string, time: string, link: string, unread: bool}> */
-    private function sampleNotifications(): array
+    private function exampleNotifications(): array
     {
         return [
             ['title' => 'Your application needs revision', 'time' => '10 minutes ago', 'link' => '#', 'unread' => true],

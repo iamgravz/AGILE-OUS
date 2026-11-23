@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-// Seeds reference data and, outside production, sample users. Safe to run again: existing rows are left as they are.
+// Seeds reference data and, outside production, seeded users. Safe to run again: existing rows are left as they are.
 // Usage: php database/seed.php
 
 use App\Core\Database;
@@ -73,18 +73,18 @@ $seeders = [
     'interview question bank' => 'interview_questions',
 ];
 
-// Sample accounts share a published password, so they never go into production.
+// Seeded accounts share a published password, so they never go into production.
 if (config('app.env') !== 'production') {
-    $seeders['sample users'] = 'sample_users';
-    $seeders['sample applicants'] = 'sample_applicants';
-    $seeders['sample organization'] = 'sample_organization';
-    $seeders['sample content posts'] = 'content_posts';
-    $seeders['sample open positions'] = 'sample_open_positions';
-    $seeders['sample activity'] = 'sample_activity';
+    $seeders['seeded users'] = 'seed_users';
+    $seeders['seeded applicants'] = 'seed_applicants';
+    $seeders['seeded organization'] = 'seed_organization';
+    $seeders['seeded content posts'] = 'content_posts';
+    $seeders['seeded open positions'] = 'seed_open_positions';
+    $seeders['seeded activity'] = 'seed_activity';
 
-    // 100 more sample people (SAMPLE_BULK=true in .env). Tests keep it off, because they count the smaller set.
-    if (filter_var(config('app.sample_bulk'), FILTER_VALIDATE_BOOL)) {
-        $seeders['100 more sample people'] = 'sample_bulk';
+    // 100 more seeded people (SEED_BULK=true in .env). Tests keep it off, because they count the smaller set.
+    if (filter_var(config('app.seed_bulk'), FILTER_VALIDATE_BOOL)) {
+        $seeders['100 more seeded people'] = 'seed_bulk';
     }
 }
 

@@ -80,7 +80,7 @@ function csrf_field(): string
     return sprintf('<input type="hidden" name="%s" value="%s">', e(Csrf::FIELD), e(Csrf::token()));
 }
 
-/** Passwordless sample login: local mode and this computer only, so a server left on APP_ENV=local still refuses it. */
+/** Passwordless seeded login: local mode and this computer only, so a server left on APP_ENV=local still refuses it. */
 function dev_tools_allowed(): bool
 {
     return config('app.env') === 'local' && in_array($_SERVER['REMOTE_ADDR'] ?? '', ['127.0.0.1', '::1'], true);

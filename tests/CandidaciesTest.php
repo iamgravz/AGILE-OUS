@@ -7,7 +7,7 @@ use PHPUnit\Framework\TestCase;
 
 /**
  * Run for office (Article VI), through the running app: filing, the checks, the decision and marking elected. Uses a
- * candidate made here, so the shared sample accounts keep their roles for the other tests.
+ * candidate made here, so the shared seeded accounts keep their roles for the other tests.
  */
 final class CandidaciesTest extends TestCase
 {
@@ -88,7 +88,7 @@ final class CandidaciesTest extends TestCase
         $db = TestServer::db();
         $email = 'candidate.' . bin2hex(random_bytes(4)) . '@agile.test';
         $role = (int) $db->query("SELECT role_id FROM roles WHERE slug = 'general_member'")->fetchColumn();
-        $db->prepare("INSERT INTO users (role_id, email, password_hash, first_name, last_name, student_no, contact_no, status, email_verified_at) VALUES (?, ?, ?, 'Sample', 'Candidate', ?, '09170000000', 'active', NOW())")
+        $db->prepare("INSERT INTO users (role_id, email, password_hash, first_name, last_name, student_no, contact_no, status, email_verified_at) VALUES (?, ?, ?, 'Seeded', 'Candidate', ?, '09170000000', 'active', NOW())")
             ->execute([$role, $email, password_hash('Password123!', PASSWORD_DEFAULT), sprintf('2023-%05d-OU-0', random_int(10000, 99999))]);
         $userId = (int) $db->lastInsertId();
         $db->prepare("INSERT INTO members (user_id, member_no, membership_type, joined_at, registered_at) VALUES (?, ?, 'general', CURDATE(), NOW())")
@@ -114,7 +114,7 @@ final class CandidaciesTest extends TestCase
         return (int) $statement->fetchColumn();
     }
 
-    /** Frees a seat the sample seeder filled, as an ended term would. */
+    /** Frees a seat the seeded seeder filled, as an ended term would. */
     private function vacate(string $committee, string $title): int
     {
         $id = $this->position($committee, $title);

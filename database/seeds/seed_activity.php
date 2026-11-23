@@ -5,11 +5,11 @@ declare(strict_types=1);
 use App\Core\Config;
 use App\Services\EncryptionService;
 
-// Outside production only: sample activity in every module, so each page has something to show:
+// Outside production only: seeded activity in every module, so each page has something to show:
 // welfare cases with notes, follow-ups, referrals and resolutions; HR requests and vacancies; interviews and an
-// appointment; candidacies; officer terms; a second committee; ID requests; email drafts. Everyone is a sample
+// appointment; candidacies; officer terms; a second committee; ID requests; email drafts. Everyone is a seeded
 // account (@agile.test) and every text is made up. Each part checks for its own rows
-// first, so running it again adds nothing. People missing from a smaller sample set are skipped.
+// first, so running it again adds nothing. People missing from a smaller seeded set are skipped.
 return static function (PDO $db): void {
     $now = time();
     $at = static fn (string $offset): string => date('Y-m-d H:i:s', strtotime($offset, $now));
@@ -46,9 +46,9 @@ return static function (PDO $db): void {
 
         return (int) $statement->fetchColumn();
     };
-    // A copy of a sample photo in storage/uploads, as a stand-in document. The repo file stays where it is.
+    // A copy of a seeded photo in storage/uploads, as a stand-in document. The repo file stays where it is.
     $copy = static function (string $photo, string $folder): ?string {
-        $source = __DIR__ . '/sample-media/' . $photo;
+        $source = __DIR__ . '/seed-media/' . $photo;
         $stored = $folder . '/' . date('Y/m') . '/' . bin2hex(random_bytes(16)) . '.jpg';
         $target = Config::basePath('storage/uploads/' . $stored);
 

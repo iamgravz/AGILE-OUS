@@ -14,7 +14,7 @@ Severity: **High** = could expose confidential data or accounts as things stand 
 | M-01 | Medium | `app/Middleware/AuthMiddleware.php` | Idle timeout and account status were only checked on routes with a login check. Public routes such as `/apply/{id}/step/{step}` also act for the logged-in user, so an idle or disabled session could still read and edit that person's applications. | New `app/Services/SessionGuard.php` runs on every request from `public/index.php`. | Fixed |
 | M-02 | Medium | `app/Services/AuthService.php`, `ProfileService.php` | Changing, resetting or force-resetting a password left other logins running, so Force password reset did not remove someone who had taken over an account. | The session keeps a fingerprint of the password hash, and `SessionGuard` ends it when the hash changes. The login that changed the password continues. | Fixed |
 | M-03 | Medium | `app/Services/WelfareService.php`, `referrals.referred_to`, `welfare_attachments.original_name` | Two welfare fields were plain text, against §11. A file name is written by the person with the concern and can state it, and a referral can name a person. | Both are now encrypted. `database/migrations/2026_11_01_encrypt_welfare_names.php` encrypts existing rows and is safe to run again. | Fixed |
-| M-04 | Medium | `config/routes.php:252`, `AuthService::loginAsSampleUser`, `app/Core/ErrorHandler.php:217` | `.env.example` starts with `APP_ENV=local` and `APP_DEBUG=true`. A server left that way would offer passwordless sample login and full stack traces to anyone. | Sample login also requires a request from this computer (`dev_tools_allowed()`). The debug page never shows in production. `.env.example` points to the checklist below. | Fixed |
+| M-04 | Medium | `config/routes.php:252`, `AuthService::loginAsSeedUser`, `app/Core/ErrorHandler.php:217` | `.env.example` starts with `APP_ENV=local` and `APP_DEBUG=true`. A server left that way would offer passwordless seeded login and full stack traces to anyone. | Seeded login also requires a request from this computer (`dev_tools_allowed()`). The debug page never shows in production. `.env.example` points to the checklist below. | Fixed |
 | M-05 | Medium | `AuthService::attempt` | Login limits were per IP and email, so one address could try a common password on every account. | Added a limit of 50 failed logins per IP in 15 minutes, across all emails. | Fixed |
 | M-06 | Medium | `public/index.php` | The Secure cookie flag depended only on this server seeing HTTPS, so a host that ends HTTPS at a proxy would send the session cookie without it. No HSTS header. | An `https://` `APP_URL` also sets Secure. HSTS is sent over HTTPS. | Fixed |
 | M-07 | Medium | `app/Views/portal/privacy.php`, `eligibility/mine.php`, `app/Services/Ai/ClaudeExtractor.php` | With `AI_PROVIDER` on, officers' grade documents go to an outside company, but the notice said data leaves AGILE only by agreement or for a referral (RA 10173, transparency). | The notice says so, and the submit page warns when the feature is on. | Fixed |
@@ -48,7 +48,7 @@ Severity: **High** = could expose confidential data or accounts as things stand 
 | Rate limits | Login, forgot password, track, verify page, guest codes and submissions, registration, edit links, password change. Each code allows 5 tries. |
 | Errors | With the database down: `APP_ENV=production` shows the plain page and no details, with `APP_DEBUG` on or off. `zend.exception_ignore_args` keeps arguments out of logs. |
 | CSP | `default-src 'self'` with no inline code, confirmed in a real browser with no CSP errors on every page in the suite. Previews set their own stricter policy. |
-| Secrets | `.env`, `storage/*` and `vendor/` are ignored by git. The only password in the repo is the sample one, and sample users are not seeded in production. |
+| Secrets | `.env`, `storage/*` and `vendor/` are ignored by git. The only password in the repo is the seeded one, and seeded users are not seeded in production. |
 | Other OWASP items | Open redirect: `intended_url` is a local path only. SSRF: the AI endpoint comes from `.env`, and Dompdf has remote files off. CSV injection: `ReportService::safeCell`. Components: `composer audit` found no advisories. Timing: the dummy hash takes as long as a real one (45 ms each). Host header: links use `APP_URL`. |
 
 A lead that turned out fine: notifications do not poll the server, so they cannot keep a session alive past the idle timeout.
@@ -58,7 +58,7 @@ A lead that turned out fine: notifications do not poll the server, so they canno
 | What | How | Result |
 |---|---|---|
 | Existing and new tests | PHPUnit, HTTP and browser suites on a scratch database. See `docs/PROGRESS.md`. | Pass |
-| Route rules, session rules, login limit, sample login, encryption, migration | `tests/SecurityReviewTest.php` | Pass |
+| Route rules, session rules, login limit, seeded login, encryption, migration | `tests/SecurityReviewTest.php` | Pass |
 | Other logins ending, disabled accounts on public routes, headers, encrypted file names | HTTP suite | Pass |
 | Error page with the database down | Three `APP_ENV` and `APP_DEBUG` combinations | Pass |
 | H-01 `.htaccess` | **Not run.** This computer's Laragon has no Apache program. Check it on your XAMPP (below). | Open test |
@@ -70,7 +70,7 @@ A lead that turned out fine: notifications do not poll the server, so they canno
 3. Use a database user with only the rights it needs on `agile_ams`, not `root`, with a password.
 4. Keep a separate copy of `ENCRYPTION_KEY`. Without it, welfare text and files cannot be read. Never change it on a live system.
 5. Run behind HTTPS. If a proxy sits in front, the rate limits see the proxy's address, so limits per IP are shared until the host passes the real one to `REMOTE_ADDR`.
-6. Make sure no `@agile.test` sample users exist. Do not run setup with a non-production `APP_ENV` on the live database.
+6. Make sure no `@agile.test` seeded users exist. Do not run setup with a non-production `APP_ENV` on the live database.
 7. Copy backups off the computer to protected storage, along with `storage/uploads` and `storage/credentials`.
 
 ## Privacy (RA 10173, Data Privacy Act of 2012)
