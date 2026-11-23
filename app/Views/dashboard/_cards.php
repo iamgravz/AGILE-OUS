@@ -16,10 +16,7 @@ $semester = $dash['semester'] ?? null;
 ?>
 <p class="dashboard-intro"><?= e($greeting . ', ' . $user['first_name']) ?>. <?= e($today) ?><?= $semester === null ? '' : ' · AY ' . e($semester) ?></p>
 <?php if ($notice !== null) : ?>
-    <div class="alert alert--<?= e($notice['tone']) ?> welfare-notice" role="status">
-        <?= icon($notice['tone'] === 'success' ? 'check' : 'alert') ?>
-        <p class="alert__text"><?= e($notice['message']) ?> <a href="<?= e(route('my_eligibility')) ?>">My Eligibility</a></p>
-    </div>
+    <?= $this->partial('partials/rolling_notice', ['tone' => $notice['tone'], 'message' => $notice['message'], 'linkUrl' => route('my_eligibility'), 'linkText' => 'My Eligibility']) ?>
 <?php endif; ?>
 <?php if ($tasks !== [] || $isInternal) : ?>
     <section class="card dashboard-section" aria-labelledby="dashboard-tasks">

@@ -4080,3 +4080,70 @@ form .grid--2 {
 /* Home: mission and vision fill the row, and quick links join them when there is room. */
 
 /* partials/student_details: year level, then section under it, then contact number, one per row. */
+
+/* ---------- Rolling notice (partials/rolling_notice): a reminder that scrolls across its bar ---------- */
+
+.rolling-notice {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    overflow: hidden;
+    margin-bottom: var(--space-4);
+    padding: var(--space-3) var(--space-4);
+    border: 1px solid currentColor;
+    border-radius: 12px;
+}
+
+.rolling-notice--warning { background: var(--warning-bg); color: var(--warning-fg); }
+.rolling-notice--info { background: var(--info-bg); color: var(--info-fg); }
+.rolling-notice--success { background: var(--success-bg); color: var(--success-fg); }
+.rolling-notice--danger { background: var(--danger-bg); color: var(--danger-fg); }
+
+.rolling-notice__icon {
+    display: inline-flex;
+    flex: none;
+}
+
+.rolling-notice__track {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    mask-image: linear-gradient(90deg, transparent, #000 3%, #000 97%, transparent);
+}
+
+.rolling-notice__text {
+    display: inline-block;
+    max-width: none;
+    margin: 0;
+    padding-left: 100%;
+    white-space: nowrap;
+    animation: rolling-notice 22s linear infinite;
+}
+
+.rolling-notice__text a {
+    color: inherit;
+    font-weight: 600;
+}
+
+/* It stops while someone points at it or tabs into it, so the link can be read and clicked. */
+.rolling-notice:hover .rolling-notice__text,
+.rolling-notice:focus-within .rolling-notice__text {
+    animation-play-state: paused;
+}
+
+@keyframes rolling-notice {
+    from { transform: translateX(0); }
+    to { transform: translateX(-100%); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .rolling-notice__track {
+        mask-image: none;
+    }
+
+    .rolling-notice__text {
+        padding-left: 0;
+        white-space: normal;
+        animation: none;
+    }
+}
