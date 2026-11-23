@@ -183,6 +183,24 @@ a.px-card:focus-visible {
     display: grid;
     gap: var(--space-4);
     grid-template-columns: repeat(auto-fill, minmax(min(100%, 18rem), 1fr));
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+/* The other lists of cards: no bullets or indent either. */
+:is(.px-objectives, .px-people, .px-shelf) {
+    padding: 0;
+    list-style: none;
+}
+
+/* Cards in a row share one height. */
+.px-grid > li {
+    display: flex;
+}
+
+.px-grid > li > * {
+    flex: 1;
 }
 
 .px-chip {
@@ -366,8 +384,9 @@ a.px-chip[aria-current="page"] {
 
 .px-subhead {
     margin: var(--space-6) 0 var(--space-3);
-    font: 500 0.8rem/1 var(--font-mono);
-    letter-spacing: 0.04em;
+    font: 500 0.75rem/1 var(--font-mono);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
     color: var(--color-text-muted);
 }
 
@@ -544,7 +563,6 @@ a.px-chip[aria-current="page"] {
     align-items: center;
     gap: var(--space-3);
     padding: var(--space-3) var(--space-4);
-    border-left: 4px solid var(--gold);
     border-radius: var(--px-radius-sm);
     background: var(--gold-soft);
     color: var(--color-text);

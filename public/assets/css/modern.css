@@ -32,7 +32,6 @@
 
 .sidebar__link[aria-current="page"] {
     background: rgb(212 167 44 / 12%);
-    box-shadow: inset 3px 0 0 var(--gold);
     color: #fff;
 }
 
