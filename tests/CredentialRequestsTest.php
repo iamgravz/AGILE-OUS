@@ -104,10 +104,9 @@ final class CredentialRequestsTest extends TestCase
 
         // One QR code per member: the MSW Committee Head downloads it; scanning it shows the current ID and active status.
         $memberId = (int) $byType['digital_id']['member_id'];
-        $qr = $head->get("/credentials/qr/{$memberId}");
-        $this->assertSame(200, $qr['status']);
-        $this->assertStringStartsWith("\x89PNG", $qr['body']);
-        $this->assertSame(403, $member->get("/credentials/qr/{$memberId}")['status']);
+        // The QR is on AGILE's own ID template now (Nov 23, 2026), so the system offers no QR download.
+        $this->assertSame(404, $head->get("/credentials/qr/{$memberId}")['status']);
+        TestServer::db()->prepare('UPDATE members SET verify_token = ? WHERE member_id = ? AND verify_token IS NULL')->execute([bin2hex(random_bytes(32)), $memberId]);
         $token = (string) $db->query("SELECT verify_token FROM members WHERE member_id = {$memberId}")->fetchColumn();
         $this->assertMatchesRegularExpression('/^[a-f0-9]{64}$/', $token);
         $this->assertSame($token, (string) $db->query("SELECT verify_token FROM members WHERE member_id = {$memberId}")->fetchColumn(), 'The same code every time.');

@@ -85,9 +85,6 @@ if ($member['user_id'] === null && can('admin.users')) {
         </section>
     <?php endif; ?>
 
-    <?php if (\App\Services\CredentialService::manual() && can('credential.approve')) : ?>
-        <p><a class="btn btn--secondary btn--sm" href="<?= e(route('credentials.qr', ['memberId' => (int) $member['member_id']])) ?>">Download their QR code for the ID</a></p>
-    <?php endif; ?>
 
     <?php // Only the MSW Committee Head may open these files (FileAccessPolicy::credential). ?>
     <?php if ($approvedCredentials !== [] && can('credential.approve')) : ?>

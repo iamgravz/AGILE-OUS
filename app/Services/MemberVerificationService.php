@@ -6,13 +6,11 @@ namespace App\Services;
 
 use App\Core\Database;
 use App\Models\MemberRepository;
-use Endroid\QrCode\QrCode;
-use Endroid\QrCode\Writer\PngWriter;
 
 /**
- * One QR code per member (Nov 23, 2026). The MSW Committee Head downloads it and puts it on the ID made from AGILE's
- * template. Scanning it opens /verify/member/<token>, which shows the member's current digital ID and that they are an
- * active member, so a replaced ID never needs a new QR code. The token is random and says nothing about the member.
+ * The member verification page (/verify/member/<token>): the member's current digital ID and that they are an active
+ * member. Since Nov 23, 2026 the QR is part of AGILE's own ID template, so the system no longer hands out QR images;
+ * the page stays for a token set on a member. The token is random and says nothing about the member.
  */
 final class MemberVerificationService
 {
@@ -43,14 +41,6 @@ final class MemberVerificationService
     public function url(int $memberId): string
     {
         return url('/verify/member/' . $this->token($memberId));
-    }
-
-    /** The QR code as a PNG, for the MSW Committee Head to put on the template. */
-    public function qrPng(int $memberId): string
-    {
-        authorize('credential.approve');
-
-        return (new PngWriter())->write(new QrCode(data: $this->url($memberId), size: 600, margin: 16))->getString();
     }
 
     /**
