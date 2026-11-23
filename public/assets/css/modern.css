@@ -246,3 +246,14 @@
         transform: none;
     }
 }
+
+/* ---------- Iskobot pages: the template's navy behind them ---------- */
+
+/*
+ * Login, registration, apply, Track Status and Ask for Help keep their card and Iskobot as designed; only the ground
+ * behind them changes from near-black ink to the same navy as the bands. The grid and the maroon and gold glows stay.
+ */
+.glass-stage,
+.auth-page--glass {
+    background-color: #12223a;
+}
