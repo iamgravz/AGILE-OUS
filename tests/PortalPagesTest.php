@@ -26,6 +26,27 @@ final class PortalPagesTest extends TestCase
         }
     }
 
+    public function testAMemberRegistersFromTheEventPage(): void
+    {
+        $db = TestServer::db();
+        $event = $db->query("SELECT post_id, slug FROM content_posts WHERE type = 'event' AND status = 'published' AND event_start > NOW() ORDER BY event_start LIMIT 1")->fetch();
+
+        if ($event === false) {
+            $this->markTestSkipped('No upcoming event is seeded.');
+        }
+
+        $guest = (new TestServer())->get("/posts/{$event['slug']}");
+        $this->assertStringContainsString('Sign in to register', $guest['body']);
+
+        $member = TestServer::loggedIn('member@agile.test');
+        $this->assertStringContainsString('Register for this event', $member->get("/posts/{$event['slug']}")['body']);
+        $page = $member->follow($member->post("/events/{$event['post_id']}/register", []))['body'];
+        $this->assertStringContainsString('You are registered', $page);
+
+        $page = $member->follow($member->post("/events/{$event['post_id']}/cancel", []))['body'];
+        $this->assertStringContainsString('Register for this event', $page, 'Cancelling gives the slot back.');
+    }
+
     public function testCommitteesShowTheStandingSevenAndTheSourceCodeApart(): void
     {
         $body = (new TestServer())->get('/committees')['body'];

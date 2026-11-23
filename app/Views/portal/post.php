@@ -68,6 +68,9 @@ $venue = (string) $post['venue_or_link'];
         <?php if ($isEvent && $post['event_start'] !== null) : ?>
             <?= $this->partial('portal/_ics_link', ['post' => $post]) ?>
         <?php endif; ?>
+        <?php if ($isEvent) : ?>
+            <?= $this->partial('portal/_event_registration', ['post' => $post, 'registration' => (new \App\Services\EventRegistrationService())->summary($post)]) ?>
+        <?php endif; ?>
         <?php if ($related !== []) : ?>
             <h3 class="docs-card__heading">Related posts</h3>
             <ul class="docs-card__list">

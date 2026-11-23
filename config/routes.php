@@ -246,6 +246,9 @@ return static function (Router $router): void {
         // Own records only, like applications. A linked guest case stays visible whatever the role.
         $router->get('/my-welfare-cases', 'WelfareController@index', 'my_welfare_cases');
         $router->get('/my-welfare-cases/{id}', 'WelfareController@show', 'my_welfare_cases.show');
+        // Event registration (Nov 23, 2026). Members only; EventRegistrationService checks membership and the event.
+        $router->post('/events/{id}/register', 'EventRegistrationsController@register', 'events.register');
+        $router->post('/events/{id}/cancel', 'EventRegistrationsController@cancel', 'events.cancel');
         // Run for office (Article VI). Members only; CandidacyService checks membership, and the file route its owner.
         $router->get('/elections/candidacy', 'CandidaciesController@form', 'candidacy');
         $router->post('/elections/candidacy', 'CandidaciesController@file');
