@@ -11,3 +11,8 @@ node_modules/
 !/storage/*/
 /storage/*/*
 !/storage/*/.gitkeep
+
+# AGILE design and event files kept next to the code but not part of the system
+/attendance/
+/banner/
+/zoom-background/
