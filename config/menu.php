@@ -48,7 +48,6 @@ return [
                 ['label' => 'Vacancies', 'url' => '/recruitment/vacancies', 'icon' => 'briefcase', 'permission' => 'vacancy.manage'],
                 ['label' => 'Open for application', 'url' => '/admin/open-positions', 'icon' => 'clipboard', 'permission' => 'admin.settings'],
                 ['label' => 'Applications', 'url' => '/applications', 'icon' => 'inbox', 'permission' => 'evaluation.view'],
-                ['label' => 'Evaluations', 'url' => '/recruitment/evaluations', 'icon' => 'check', 'permission' => 'evaluation.view'],
                 ['label' => 'Applications to my committee', 'url' => '/applications/my-committee', 'icon' => 'inbox', 'permission' => 'application.decide'],
                 ['label' => 'My Committee', 'url' => '/recruitment/committee', 'icon' => 'users', 'permission' => 'hr_request.submit'],
                 ['label' => 'Interviews', 'url' => '/recruitment/interviews', 'icon' => 'calendar', 'permission' => 'interview.manage'],

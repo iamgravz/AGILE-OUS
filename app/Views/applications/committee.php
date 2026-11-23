@@ -45,8 +45,6 @@
                     <th scope="col">Position</th>
                     <th scope="col">Tracking code</th>
                     <th scope="col">Status</th>
-                    <th scope="col" class="num">Evaluations</th>
-                    <th scope="col" class="num">Average</th>
                     <th scope="col">Submitted</th>
                 </tr>
             </thead>
@@ -57,8 +55,6 @@
                         <td data-label="Position"><span class="truncate" title="<?= e($application['vacancy_title']) ?>"><?= e($application['vacancy_title']) ?></span></td>
                         <td data-label="Tracking code"><code><?= e($application['tracking_code']) ?></code></td>
                         <td data-label="Status"><?= status_badge($application['status']) ?></td>
-                        <td class="num" data-label="Evaluations"><?= e($application['evaluation_count']) ?></td>
-                        <td class="num" data-label="Average"><?= e($application['average_score'] === null ? 'None' : number_format((float) $application['average_score'], 2)) ?></td>
                         <td data-label="Submitted"><?= e(date_ph($application['submitted_at'])) ?></td>
                     </tr>
                 <?php endforeach; ?>

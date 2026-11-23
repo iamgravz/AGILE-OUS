@@ -10,7 +10,6 @@ use App\Core\Validator;
 use App\Core\View;
 use App\Services\ApplicationStatus;
 use App\Services\AppointmentService;
-use App\Services\EvaluationService;
 use App\Services\InterviewService;
 use App\Services\MembershipService;
 use DomainException;
@@ -78,7 +77,7 @@ final class ApplicationsController
                 ['label' => 'Applications', 'url' => route('applications')],
                 ['label' => $application['tracking_code']],
             ],
-        ] + $this->membership->staffDetails($application) + (new EvaluationService())->panel($application) + $interviewPanel, 'layouts/dashboard'));
+        ] + $this->membership->staffDetails($application) + $interviewPanel, 'layouts/dashboard'));
     }
 
     /** A fragment for the list's side panel on desktop. Opening it counts as a view. */

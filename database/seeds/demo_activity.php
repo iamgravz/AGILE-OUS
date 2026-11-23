@@ -4,11 +4,10 @@ declare(strict_types=1);
 
 use App\Core\Config;
 use App\Services\EncryptionService;
-use App\Services\EvaluationService;
 
 // Outside production only (Nov 23, 2026): sample activity in every module, so each page has something to show:
-// welfare cases with notes, follow-ups, referrals and resolutions; HR requests and vacancies; interviews, evaluations
-// and an appointment; candidacies; officer terms; a second committee; ID requests; email drafts. Everyone is a demo
+// welfare cases with notes, follow-ups, referrals and resolutions; HR requests and vacancies; interviews and an
+// appointment; candidacies; officer terms; a second committee; ID requests; email drafts. Everyone is a demo
 // account (@agile.test) and every text is marked [Demo] or is plainly sample text. Each part checks for its own rows
 // first, so running it again adds nothing. People missing from a smaller demo set are skipped.
 return static function (PDO $db): void {
@@ -188,26 +187,6 @@ return static function (PDO $db): void {
                 ->execute([(int) $applicationId, $mswMember, $at(($past ? '-' : '+') . (2 + $index) . ' days 14:00'), $index % 2 === 0 ? 'online' : 'onsite',
                     $index % 2 === 0 ? 'https://example.com/agile-interview' : 'NALLRC, Room 204', $past ? 'passed' : 'pending', $past ? '[Demo] Clear answers; ready to help with events.' : null,
                     $past ? 1 : 0, $past ? 1 : 0, $past ? 1 : 0, $past ? 0 : null, $past ? $mswMember : null, $past ? $at('-' . (2 + $index) . ' days 14:00') : null]);
-        }
-    }
-
-    $head = $user('head@agile.test');
-    $rubric = json_decode((string) $db->query("SELECT setting_value FROM settings WHERE setting_key = 'evaluation.rubric'")->fetchColumn(), true);
-
-    if ($head !== 0 && is_array($rubric) && isset($rubric['criteria'], $rubric['scale']) && $count('SELECT COUNT(*) FROM evaluations') < 5) {
-        $toScore = $db->query("SELECT application_id FROM membership_applications WHERE status IN ('under_review', 'approved', 'waitlisted') AND application_id NOT IN (SELECT application_id FROM evaluations) ORDER BY application_id LIMIT 5")->fetchAll(PDO::FETCH_COLUMN);
-
-        foreach ($toScore as $index => $applicationId) {
-            $scores = [];
-
-            foreach ($rubric['criteria'] as $criterion) {
-                $scores[$criterion['key']] = (string) max((int) $rubric['scale']['min'], (int) $rubric['scale']['max'] - ($index + strlen($criterion['key'])) % 3);
-            }
-
-            $result = EvaluationService::calculate($rubric, $scores);
-            $db->prepare('INSERT INTO evaluations (application_id, evaluator_id, score, rubric_json, recommendation, remarks) VALUES (?, ?, ?, ?, ?, ?)')
-                ->execute([(int) $applicationId, $head, $result['score'], json_encode($result['rubric'], JSON_THROW_ON_ERROR | JSON_UNESCAPED_UNICODE),
-                    ['recommend', 'recommend', 'hold', 'recommend', 'not_recommend'][$index], '[Demo] Sample evaluation remarks.']);
         }
     }
 

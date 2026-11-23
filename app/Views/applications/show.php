@@ -30,7 +30,7 @@ if (can('document.verify') || $isOwnCommitteeHead) {
     $tabs['documents'] = 'Documents';
 }
 
-$tabs['evaluations'] = 'Evaluations';
+// Rubric scoring (Evaluations) was removed on Nov 23, 2026: the Committee Head decides from the documents and interview.
 
 if (can('interview.manage') || $isOwnCommitteeHead) {
     $tabs['interviews'] = 'Interviews';
@@ -257,17 +257,6 @@ $actionLabels = [
         </div>
     <?php endif; ?>
 
-    <div class="tabs__panel" role="tabpanel" id="panel-evaluations" aria-labelledby="tab-evaluations"<?= $activeTab === 'evaluations' ? '' : ' hidden' ?>>
-        <?= $this->partial('applications/_evaluations', [
-            'application' => $application,
-            'evaluations' => $evaluations,
-            'averageScore' => $averageScore,
-            'recommendationCounts' => $recommendationCounts,
-            'myEvaluation' => $myEvaluation,
-            'canEvaluate' => $canEvaluate,
-            'rubric' => $rubric,
-        ]) ?>
-    </div>
     <?php if (isset($tabs['interviews'])) : ?>
         <div class="tabs__panel" role="tabpanel" id="panel-interviews" aria-labelledby="tab-interviews"<?= $activeTab === 'interviews' ? '' : ' hidden' ?>>
             <?= $this->partial('applications/_interviews', [

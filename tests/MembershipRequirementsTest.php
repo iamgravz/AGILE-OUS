@@ -83,6 +83,15 @@ final class MembershipRequirementsTest extends TestCase
         });
     }
 
+    public function testTheQuestionsStepIsSkipped(): void
+    {
+        // Step 4 (written questions) is not on AGILE's form: Membership type leads to Documents, and Back returns.
+        $this->assertSame(5, MembershipService::nextStep(3));
+        $this->assertSame(3, MembershipService::previousStep(5));
+        $this->assertSame(2, MembershipService::nextStep(1));
+        $this->assertSame(6, MembershipService::nextStep(5));
+    }
+
     public function testTheRequirementsDropdownIsAgilesTable(): void
     {
         $groups = MembershipService::REQUIREMENT_GROUPS;

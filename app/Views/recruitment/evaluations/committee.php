@@ -32,15 +32,13 @@
                         <table class="table table--stack">
                             <caption class="sr-only">Applications for <?= e($vacancy['title']) ?></caption>
                             <thead>
-                                <tr><th scope="col">Applicant</th><th scope="col">Status</th><th scope="col" class="num">Evaluations</th><th scope="col" class="num">Average</th></tr>
+                                <tr><th scope="col">Applicant</th><th scope="col">Status</th></tr>
                             </thead>
                             <tbody>
                                 <?php foreach ($vacancy['applications'] as $application) : ?>
                                     <tr>
-                                        <td data-label="Applicant"><a href="<?= e(route('applications.show', ['id' => (int) $application['application_id']])) ?>?tab=evaluations"><?= e($application['first_name'] . ' ' . $application['last_name']) ?></a></td>
+                                        <td data-label="Applicant"><a href="<?= e(route('applications.show', ['id' => (int) $application['application_id']])) ?>"><?= e($application['first_name'] . ' ' . $application['last_name']) ?></a></td>
                                         <td data-label="Status"><?= status_badge($application['status']) ?></td>
-                                        <td class="num" data-label="Evaluations"><?= e($application['evaluation_count']) ?></td>
-                                        <td class="num" data-label="Average"><?= e($application['average_score'] === null ? 'None' : number_format((float) $application['average_score'], 2)) ?></td>
                                     </tr>
                                 <?php endforeach; ?>
                             </tbody>

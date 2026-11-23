@@ -138,7 +138,6 @@ final class DashboardService
     {
         $requests = $this->data->hrRequestsByStatusFor($userId);
         $vacancies = $this->data->openVacanciesHeadedBy($userId);
-        $toEvaluate = $this->data->applicationsAwaitingEvaluationBy($userId);
         $toDecide = $this->data->applicationsToDecide($userId, config('role_mapping.msw_committee'));
 
         return [
@@ -146,16 +145,10 @@ final class DashboardService
                 ['label' => 'HR requests waiting', 'value' => $requests['submitted'] ?? 0, 'url' => route('hr_requests') . '?status=submitted'],
                 ['label' => 'HR requests returned to me', 'value' => $requests['returned'] ?? 0, 'url' => route('hr_requests') . '?status=returned'],
                 ['label' => 'My open vacancies', 'value' => count($vacancies), 'url' => route('committee_recruitment')],
-                ['label' => 'Waiting for my evaluation', 'value' => count($toEvaluate), 'url' => route('evaluations')],
             ],
             'tasks' => [
                 ...$this->oldestFirst([
                     $this->countTask($toDecide, 'application to decide', 'applications to decide', $this->data->oldestApplicationToDecide($userId, config('role_mapping.msw_committee')), route('applications.committee') . '?status=under_review'),
-                    ...array_map(fn (array $row): array => $this->rowTask(
-                        'Evaluate ' . $row['applicant_name'] . ' for ' . $row['vacancy_title'],
-                        $row['submitted_at'],
-                        route('applications.show', ['id' => (int) $row['application_id']]) . '?tab=evaluations',
-                    ), array_slice($toEvaluate, 0, 5)),
                 ]),
             ],
             'vacancies' => $vacancies,
