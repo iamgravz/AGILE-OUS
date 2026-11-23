@@ -246,12 +246,30 @@ $actionLabels = [
                         <div class="document-card__header">
                             <div>
                                 <h3 class="document-card__title"><?= e(\App\Services\MembershipService::documentLabel($document['doc_type'])) ?></h3>
-                                <p class="text-muted document-card__name"><?= e($document['original_name']) ?></p>
+                                <p class="text-muted document-card__name"><?= e($document['original_name']) ?><?= (int) ($document['version_no'] ?? 1) > 1 ? ' · version ' . (int) $document['version_no'] : '' ?></p>
                             </div>
                             <?= status_badge($document['verification_status']) ?>
                         </div>
                         <?php if ($document['verification_remarks'] !== null) : ?>
                             <p><strong>Remarks:</strong> <?= e($document['verification_remarks']) ?></p>
+                        <?php endif; ?>
+                        <?php $earlier = $documentVersions[$documentId] ?? []; ?>
+                        <?php if ($earlier !== []) : ?>
+                            <details class="document-card__versions">
+                                <summary>Earlier versions (<?= count($earlier) ?>)</summary>
+                                <ol class="document-versions">
+                                    <?php foreach ($earlier as $version) : ?>
+                                        <li>
+                                            <a href="<?= e(route('files.show', ['type' => 'document_version', 'id' => (int) $version['version_id']])) ?>">Version <?= (int) $version['version_no'] ?>: <?= e($version['original_name']) ?></a>
+                                            <?= status_badge($version['verification_status']) ?>
+                                            <span class="timeline__meta">Uploaded <?= e(datetime_ph($version['uploaded_at'])) ?>, replaced <?= e(datetime_ph($version['replaced_at'])) ?></span>
+                                            <?php if ($version['verification_remarks'] !== null) : ?>
+                                                <span class="timeline__note">Remarks: <?= e($version['verification_remarks']) ?></span>
+                                            <?php endif; ?>
+                                        </li>
+                                    <?php endforeach; ?>
+                                </ol>
+                            </details>
                         <?php endif; ?>
                         <details class="document-card__preview">
                             <summary>Preview</summary>

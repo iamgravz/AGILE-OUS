@@ -349,6 +349,11 @@ final class MembershipService
             throw new DomainException('This document was already reviewed, so it cannot be removed.');
         }
 
+        foreach ($this->documents->versions($documentId) as $version) {
+            $this->files->delete($version['stored_path']);
+        }
+
+        \App\Core\Database::connection()->prepare('DELETE FROM document_versions WHERE document_id = ?')->execute([$documentId]);
         $this->documents->delete($documentId);
         $this->files->delete($document['stored_path']);
         AuditService::log('application.document_removed', 'application_document', $documentId, ['doc_type' => $document['doc_type']]);
@@ -459,6 +464,7 @@ final class MembershipService
             'questions' => $this->stepFourQuestions($application),
             'answers' => $this->answers->forApplication($id),
             'documents' => $this->documents->forApplication($id),
+            'documentVersions' => $this->documents->versionsForApplication($id),
             'requiredDocuments' => $this->requiredDocuments($application),
             'documentsToAsk' => $this->documentsToAsk($application),
             'firstYearFirstSemester' => $this->isFirstYearFirstSemester($application),
@@ -1411,11 +1417,13 @@ final class MembershipService
             DocumentStatus::assertTransition($status, 'pending');
         }
 
+        // Version history (Nov 23, 2026): the earlier file and its review are kept, not deleted.
         $stored = $this->files->store($file, 'applications');
-        $values = $stored + ['verification_status' => 'pending', 'verification_remarks' => null, 'verified_by' => null, 'verified_at' => null];
+        $version = (int) ($existing['version_no'] ?? 1) + 1;
+        $values = $stored + ['version_no' => $version, 'verification_status' => 'pending', 'verification_remarks' => null, 'verified_by' => null, 'verified_at' => null];
+        $this->documents->keepVersion($existing);
         $this->documents->update((int) $existing['document_id'], $values);
-        $this->files->delete($existing['stored_path']);
-        AuditService::log('application.document_replaced', 'application_document', (int) $existing['document_id'], ['doc_type' => $docType, 'from' => $status, 'to' => 'pending']);
+        AuditService::log('application.document_replaced', 'application_document', (int) $existing['document_id'], ['doc_type' => $docType, 'from' => $status, 'to' => 'pending', 'version' => $version]);
 
         return $values + ['document_id' => $existing['document_id'], 'doc_type' => $docType];
     }

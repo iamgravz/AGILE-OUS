@@ -19,7 +19,7 @@ use App\Models\UserRepository;
  */
 final class FileAccessPolicy
 {
-    public const TYPES = ['avatar', 'application_document', 'welfare_attachment', 'eligibility_document', 'credential'];
+    public const TYPES = ['avatar', 'application_document', 'document_version', 'welfare_attachment', 'eligibility_document', 'credential'];
 
     public function __construct(private readonly UserRepository $users = new UserRepository())
     {
@@ -87,6 +87,29 @@ final class FileAccessPolicy
         }
 
         return ['stored_path' => $document['stored_path'], 'download_name' => $document['original_name'], 'inline' => false, 'log' => true, 'previewable' => $isCommitteeHead];
+    }
+
+    /**
+     * An earlier version of an application document: the same people as the document itself.
+     *
+     * @return FileRecord|null
+     */
+    public function document_version(int $id): ?array
+    {
+        $version = (new ApplicationDocumentRepository())->findVersion($id);
+        $isOwner = $version !== null && (int) $version['owner_id'] === current_user_id();
+        $application = $version === null ? null : (new MembershipApplicationRepository())->findDetailed((int) $version['application_id']);
+        $isCommitteeHead = $application !== null && (new MembershipService())->isOwnCommitteeHead($application);
+
+        if (!$isOwner && !can('document.verify') && !$isCommitteeHead) {
+            throw new ForbiddenException('file.document_version');
+        }
+
+        if ($version === null) {
+            return null;
+        }
+
+        return ['stored_path' => $version['stored_path'], 'download_name' => 'v' . $version['version_no'] . '-' . $version['original_name'], 'inline' => false, 'log' => true];
     }
 
     /**

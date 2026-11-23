@@ -37,7 +37,7 @@ final class SampleDataRemover
         'appointments.application_id', 'appointments.member_id', 'welfare_cases.user_id', 'case_notes.case_id',
         'referrals.case_id', 'case_followups.case_id', 'case_resolutions.case_id', 'welfare_case_history.case_id',
         'welfare_attachments.case_id', 'notifications.user_id', 'eligibility_screenings.member_id',
-        'eligibility_documents.screening_id', 'eligibility_reviews.screening_id', 'vacancies.request_id', 'officer_terms.member_id', 'election_candidacies.user_id', 'member_committees.member_id', 'credential_requests.member_id', 'applicant_assessments.application_id', 'event_registrations.member_id', 'notification_preferences.user_id'];
+        'eligibility_documents.screening_id', 'eligibility_reviews.screening_id', 'vacancies.request_id', 'officer_terms.member_id', 'election_candidacies.user_id', 'member_committees.member_id', 'credential_requests.member_id', 'applicant_assessments.application_id', 'event_registrations.member_id', 'notification_preferences.user_id', 'document_versions.document_id'];
 
     /** Columns that record who did something. Any other link not listed here must not point to a removed row. */
     private const ACTOR_COLUMNS = ['approved_by', 'decided_by', 'changed_by', 'verified_by', 'evaluator_id',
@@ -56,6 +56,7 @@ final class SampleDataRemover
         'users.photo_path' => 'uploads',
         'digital_credentials.file_path' => 'credentials',
         'application_documents.stored_path' => 'uploads',
+        'document_versions.stored_path' => 'uploads',
         'welfare_attachments.stored_path' => 'uploads',
         'eligibility_documents.stored_path' => 'uploads',
         'election_candidacies.cor_path' => 'uploads',

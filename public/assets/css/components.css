@@ -4332,3 +4332,22 @@ form .grid--2 {
     margin: 0 var(--space-2);
     opacity: 0.6;
 }
+
+/* Earlier versions of an application document (Applications › Documents). */
+.document-versions {
+    display: grid;
+    gap: var(--space-3);
+    margin: var(--space-3) 0 0;
+    padding-left: var(--space-5);
+}
+
+.document-versions li {
+    display: grid;
+    gap: var(--space-1);
+    justify-items: start;
+}
+
+.document-card__versions > summary {
+    cursor: pointer;
+    font-weight: 600;
+}

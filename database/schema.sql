@@ -427,6 +427,7 @@ CREATE TABLE IF NOT EXISTS application_documents (
     stored_path VARCHAR(255) NOT NULL,
     mime_type VARCHAR(100) NOT NULL,
     size_bytes INT UNSIGNED NOT NULL,
+    version_no SMALLINT UNSIGNED NOT NULL DEFAULT 1,
     verification_status ENUM('pending','verified','needs_correction','rejected') NOT NULL DEFAULT 'pending',
     verification_remarks TEXT NULL,
     verified_by INT UNSIGNED NULL,
@@ -1033,6 +1034,24 @@ CREATE TABLE IF NOT EXISTS notification_preferences (
     updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     PRIMARY KEY (user_id, category),
     CONSTRAINT fk_notification_preferences_user FOREIGN KEY (user_id) REFERENCES users (user_id) ON DELETE RESTRICT ON UPDATE RESTRICT
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Document version history (Nov 23, 2026): earlier files of a re-uploaded application document.
+CREATE TABLE IF NOT EXISTS document_versions (
+    version_id INT UNSIGNED NOT NULL AUTO_INCREMENT,
+    document_id INT UNSIGNED NOT NULL,
+    version_no SMALLINT UNSIGNED NOT NULL,
+    original_name VARCHAR(255) NOT NULL,
+    stored_path VARCHAR(255) NOT NULL,
+    mime_type VARCHAR(100) NOT NULL,
+    size_bytes INT UNSIGNED NOT NULL,
+    verification_status ENUM('pending','verified','needs_correction','rejected') NOT NULL,
+    verification_remarks TEXT NULL,
+    uploaded_at DATETIME NOT NULL,
+    replaced_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (version_id),
+    UNIQUE KEY uq_document_versions_document_version (document_id, version_no),
+    CONSTRAINT fk_document_versions_document FOREIGN KEY (document_id) REFERENCES application_documents (document_id) ON DELETE RESTRICT ON UPDATE RESTRICT
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS job_runs (

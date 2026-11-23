@@ -46,6 +46,22 @@ final class DocumentArchiveService
             $files[] = $this->entry('application_documents', 'document_id', (int) $row['id'], 'stored_path', $row, (int) $row['size_bytes']);
         }
 
+        // Earlier versions of those documents (version history, Nov 23, 2026) go with them.
+        $versions = $db->prepare(
+            "SELECT v.version_id AS id, v.stored_path, v.size_bytes, COALESCE(a.decided_at, a.updated_at) AS decided_at
+             FROM document_versions v
+             JOIN application_documents d ON d.document_id = v.document_id
+             JOIN membership_applications a ON a.application_id = d.application_id
+             WHERE a.status IN ('approved', 'rejected', 'withdrawn') AND d.doc_type IN ({$marks})
+               AND COALESCE(a.decided_at, a.updated_at) < NOW() - INTERVAL ? DAY AND v.stored_path NOT LIKE 'archive/%'
+             ORDER BY decided_at"
+        );
+        $versions->execute([...$types, $days]);
+
+        foreach ($versions->fetchAll() as $row) {
+            $files[] = $this->entry('document_versions', 'version_id', (int) $row['id'], 'stored_path', $row, (int) $row['size_bytes']);
+        }
+
         $candidacies = $db->prepare(
             "SELECT candidacy_id AS id, cor_path, grades_path, COALESCE(decided_at, updated_at) AS decided_at
              FROM election_candidacies

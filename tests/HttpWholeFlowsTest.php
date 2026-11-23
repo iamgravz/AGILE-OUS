@@ -61,6 +61,12 @@ final class HttpWholeFlowsTest extends TestCase
         }
 
         $this->assertSame(1, $this->rowCount('application_documents', 'application_id = ?', [$id]));
+        // Version history: the COR from the first page is kept as version 1; the new one is version 2.
+        $this->assertSame(1, $this->rowCount('application_documents', 'application_id = ? AND version_no = 2', [$id]));
+        $this->assertSame(1, $this->rowCount('document_versions v JOIN application_documents d ON d.document_id = v.document_id', 'd.application_id = ? AND v.version_no = 1', [$id]));
+        $versionId = (int) TestServer::db()->query("SELECT v.version_id FROM document_versions v JOIN application_documents d ON d.document_id = v.document_id WHERE d.application_id = {$id}")->fetchColumn();
+        $this->assertSame(200, TestServer::loggedIn('mswmember@agile.test')->get("/files/document_version/{$versionId}")['status'], 'MSW staff open earlier versions.');
+        $this->assertSame(403, TestServer::loggedIn('member@agile.test')->get("/files/document_version/{$versionId}")['status'], 'Someone else cannot.');
         $browser->get("/apply/{$id}/step/5");
         $browser->follow($browser->post("/apply/{$id}/step/5", ['intent' => 'next']));
 
