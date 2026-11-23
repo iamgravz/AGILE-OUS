@@ -4,24 +4,24 @@ declare(strict_types=1);
 
 // 100 more made-up people across every level, from former Executive Committee officers down to applicants, so lists,
 // filters, reports and pagination can be tried with a realistic amount of data. Every name, email, student number and
-// phone number is invented. Runs only outside production and only when DEMO_BULK=true (tests keep it off, because they
-// count the smaller demo set). Runs after demo_users, demo_applicants and demo_organization, and reuses their demo PDFs.
+// phone number is invented. Runs only outside production and only when SAMPLE_BULK=true (tests keep it off, because they
+// count the smaller sample set). Runs after sample_users, sample_applicants and sample_organization, and reuses their sample PDFs.
 //
 //   7  former Executive Committee officers (role expired, now general members)
 //   3  deputy committee heads (the committees with no deputy yet)
-//   7  The Source Code staff (the positions demo_organization leaves open)
+//   7  The Source Code staff (the positions sample_organization leaves open)
 //  21  committee members (3 per committee)
 //  22  general members with an approved application (6 have registered an account)
 //  40  applicants: 10 submitted, 9 under review, 5 for revision, 6 waitlisted, 5 rejected, 3 withdrawn, 2 drafts
 //
-// None of the new officers gets an account, as in demo_organization; the registered general members use Password123!.
+// None of the new officers gets an account, as in sample_organization; the registered general members use Password123!.
 return static function (PDO $db): void {
     $now = date('Y-m-d H:i:s');
     $today = date('Y-m-d');
 
     $firstNames = ['Aaron', 'Bella', 'Cedric', 'Daniela', 'Emman', 'Faith', 'Gabriel', 'Hannah', 'Ivan', 'Jasmine',
         'Kevin', 'Louise', 'Mark', 'Nicole', 'Oscar', 'Pia', 'Renz', 'Sofia', 'Trisha', 'Vince'];
-    // None of these is used by the other demo seeders, so no email collides with theirs.
+    // None of these is used by the other sample seeders, so no email collides with theirs.
     $lastNames = ['Abad', 'Bernardo', 'Cabrera', 'Dizon', 'Enriquez', 'Flores', 'Galang', 'Hernandez', 'Ignacio', 'Javier',
         'Lacson', 'Magbanua', 'Natividad', 'Olivares', 'Panganiban', 'Quiambao', 'Rosales', 'Samonte', 'Tan', 'Umali',
         'Vergara', 'Yap', 'Zamora', 'Belmonte', 'Cordero'];
@@ -112,7 +112,7 @@ return static function (PDO $db): void {
 
         if ($president > 0) {
             $history = $db->prepare('INSERT INTO membership_status_history (member_id, old_role, new_role, reason, changed_by, changed_at) VALUES (?, ?, ?, ?, ?, ?)');
-            $history->execute([$memberId, $title, 'General Member', 'Demo: term of office ended.', $president, $expiredAt]);
+            $history->execute([$memberId, $title, 'General Member', 'Sample: term of office ended.', $president, $expiredAt]);
         }
     }
 
@@ -163,10 +163,10 @@ return static function (PDO $db): void {
     }
 
     // Applications: general members (approved) and applicants at every other stage.
-    $pdfPath = static fn (string $type): string => 'applications/demo/' . md5("demo-{$type}") . '.pdf';
+    $pdfPath = static fn (string $type): string => 'applications/sample/' . md5("sample-{$type}") . '.pdf';
     $pdfSize = (int) @filesize(App\Core\Config::basePath('storage/uploads/' . $pdfPath('cor')));
     // Every third applicant who is not yet approved applies for a committee's Committee Member position, so committee
-    // heads have their own applicants to decide. They give their grades too; the demo reuses the COR file for it.
+    // heads have their own applicants to decide. They give their grades too; the sample reuses the COR file for it.
     $memberPositionIds = array_map('intval', $db->query(
         "SELECT p.position_id FROM positions p WHERE p.role_type = 'committee_member' ORDER BY p.committee_id"
     )->fetchAll(PDO::FETCH_COLUMN));

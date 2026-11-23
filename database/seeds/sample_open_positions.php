@@ -7,7 +7,7 @@ declare(strict_types=1);
 // Administration, Open for application. Safe to run again.
 return static function (PDO $db): void {
     $open = [
-        // The demo organization fills most Committee Member slots, so the rest come from The Source Code's staff.
+        // The sample organization fills most Committee Member slots, so the rest come from The Source Code's staff.
         ['Events and External Relations', 'Committee Member'],
         ['The Source Code', 'Writer'],
         ['The Source Code', 'Cartoonist'],

@@ -364,7 +364,7 @@ $sample = static function (string $theme, string $name): void { ?>
     <h2 id="sg-modal">Confirm modal</h2>
     <p class="sg-note">Add <code>data-confirm</code> to a form or submit button. Cancel keeps you here. Confirm submits the form, and the double-submit guard then shows the loading state until the page reloads.</p>
     <form class="cluster" method="get" action="<?= e(parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH)) ?>" data-confirm="This sample rejects the application and cannot be undone." data-confirm-title="Reject this application?" data-confirm-action="Reject">
-        <input type="hidden" name="demo" value="confirmed">
+        <input type="hidden" name="sample" value="confirmed">
         <button type="submit" class="btn btn--danger"><?= icon('trash') ?> Reject application</button>
     </form>
 </section>

@@ -7,7 +7,7 @@ use PHPUnit\Framework\TestCase;
 
 /**
  * Run for office (Article VI), through the running app: filing, the checks, the decision and marking elected. Uses a
- * candidate made here, so the shared demo accounts keep their roles for the other tests.
+ * candidate made here, so the shared sample accounts keep their roles for the other tests.
  */
 final class CandidaciesTest extends TestCase
 {
@@ -114,7 +114,7 @@ final class CandidaciesTest extends TestCase
         return (int) $statement->fetchColumn();
     }
 
-    /** Frees a seat the demo seeder filled, as an ended term would. */
+    /** Frees a seat the sample seeder filled, as an ended term would. */
     private function vacate(string $committee, string $title): int
     {
         $id = $this->position($committee, $title);

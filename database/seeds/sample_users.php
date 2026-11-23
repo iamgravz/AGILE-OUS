@@ -17,7 +17,7 @@ return static function (PDO $db): void {
 
     // [email, role, first name, last name, student no, committee, position title]
     $users = [
-        ['guest@agile.test', 'guest', 'Demo', 'Guest', null, null, null],
+        ['guest@agile.test', 'guest', 'Sample', 'Guest', null, null, null],
         // Registered and approved, but not a member yet: what /register gives before an application is approved.
         ['nomember@agile.test', 'general_member', 'Andrea', 'Santos', '2024-00101-OU-0', null, null],
         ['member@agile.test', 'general_member', 'Miguel', 'Reyes', '2023-00102-OU-0', null, null],

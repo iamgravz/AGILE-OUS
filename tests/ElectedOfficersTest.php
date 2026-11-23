@@ -149,7 +149,7 @@ final class ElectedOfficersTest extends TestCase
             'reason' => 'Elected in the test election', 'year_level' => $yearLevel, 'section' => 'BSITOUMN 3-1', 'academic_year' => '2026-2027', 'confirmations' => ['full_load', 'clean_grades']];
     }
 
-    /** Frees a seat the demo seeder filled, as an ended term would. */
+    /** Frees a seat the sample seeder filled, as an ended term would. */
     private function vacate(string $committee, string $title): int
     {
         $statement = Database::connection()->prepare(
@@ -160,7 +160,7 @@ final class ElectedOfficersTest extends TestCase
         $id = (int) $statement->fetchColumn();
         $this->assertGreaterThan(0, $id, "{$title} exists");
         Database::connection()->prepare("UPDATE members SET position_id = NULL, membership_type = 'general', role_status = 'expired' WHERE position_id = ?")->execute([$id]);
-        // The demo seeder records the holders' terms; a vacated seat starts the test with none.
+        // The sample seeder records the holders' terms; a vacated seat starts the test with none.
         Database::connection()->prepare('DELETE FROM officer_terms WHERE position_id = ?')->execute([$id]);
 
         return $id;

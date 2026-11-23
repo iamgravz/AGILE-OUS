@@ -2,8 +2,8 @@
 
 declare(strict_types=1);
 
-// Queues APP_SUBMITTED for the demo member: an in-app notification on the account, and the email to the
-// address given here, because demo accounts use addresses that cannot receive mail.
+// Queues APP_SUBMITTED for the sample member: an in-app notification on the account, and the email to the
+// address given here, because sample accounts use addresses that cannot receive mail.
 
 use App\Models\UserRepository;
 use App\Services\NotificationService;
@@ -23,7 +23,7 @@ if (filter_var($email, FILTER_VALIDATE_EMAIL) === false) {
 $user = (new UserRepository())->findBy(['email' => 'member@agile.test'])[0] ?? null;
 
 if ($user === null) {
-    exit("The demo member is missing. Run: php database/setup.php\n");
+    exit("The sample member is missing. Run: php database/setup.php\n");
 }
 
 $payload = [

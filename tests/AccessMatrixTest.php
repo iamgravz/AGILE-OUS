@@ -17,7 +17,7 @@ use Tests\Support\RouteList;
  */
 final class AccessMatrixTest extends TestCase
 {
-    private const DEMO_USERS = [
+    private const SAMPLE_USERS = [
         'nomember@agile.test' => 'general_member',
         'member@agile.test' => 'general_member',
         'head@agile.test' => 'committee_head',
@@ -40,18 +40,18 @@ final class AccessMatrixTest extends TestCase
     }
 
     /** @return array<string, array{string, string}> */
-    public static function demoUsers(): array
+    public static function sampleUsers(): array
     {
         $cases = [];
 
-        foreach (self::DEMO_USERS as $email => $role) {
+        foreach (self::SAMPLE_USERS as $email => $role) {
             $cases[$email] = [$email, $role];
         }
 
         return $cases;
     }
 
-    #[DataProvider('demoUsers')]
+    #[DataProvider('sampleUsers')]
     public function testCanMatchesSectionSixForEveryCode(string $email, string $role): void
     {
         $this->logInAs($email);

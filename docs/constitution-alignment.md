@@ -102,7 +102,7 @@ Migration `2026_11_22_constitution_alignment.php` (applied to `agile_ams` after 
 
 - **G3** Migration `2026_11_23_year_level_council.php`: the Year-Level Council with one 1st, 2nd, 3rd and 4th Year Representative (`role_type 'general'`, never open for application; the holder keeps the General Member role).
 - **Administration, Elected officers** (`/admin/elected-officers`, `admin.users`): the MSW Committee Head records each election winner for the Executive Board or the Year-Level Council. A new email gets an account and the password link; an existing account keeps its login and gains the position (one office per person). The role follows `config/role_mapping.php`: President, Executive Committee, or General Member.
-- Demo data: the whole Executive Board has demo accounts (`Password123!`), and four demo Year-Level Representatives. No real names.
+- Sample data: the whole Executive Board has sample accounts (`Password123!`), and four sample Year-Level Representatives. No real names.
 
 ### Decided and added on November 23, 2026 (second round)
 

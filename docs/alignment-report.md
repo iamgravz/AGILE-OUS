@@ -51,7 +51,7 @@ The real database was only read. `setup --fresh`, PHPUnit and the jobs ran on a 
 | `composer install` | Nothing to install |
 | `php -l` on app, config, database, jobs, public | 307 files, 0 errors |
 | `php database/setup.php --fresh` | 44 tables, 76 foreign keys |
-| `php database/report.php` | 34 permissions, 63 role-permission rows, 10 demo users |
+| `php database/report.php` | 34 permissions, 63 role-permission rows, 10 sample users |
 | `vendor/bin/phpunit` | OK: 201 tests, 2164 assertions |
 | `php jobs/run.php all`, first run | 1 digest queued and 1 email sent, exit 0 |
 | `php jobs/run.php all`, second run | 0 sent, exit 0 |
@@ -150,7 +150,7 @@ The check that reported "uploads 5, before 5" only compared counts, so it did no
 | 73 | Flows | Credentials pending, MSW Head approves, download | Works end to end | Rework HTTP, `tests/CredentialApprovalTest.php`. | OK |  |  |
 | 74 | Flows | Guest welfare, track | Works end to end | Rework HTTP, `tests/WelfareRulesTest.php`. | OK |  |  |
 | 75 | Flows | Eligibility screening, role expiry | Works end to end | `tests/EligibilityTest.php`. | OK |  |  |
-| 76 | Flows | Dashboards per role | Works end to end | Rework browser, each demo role at 360 and 1366. | OK |  |  |
+| 76 | Flows | Dashboards per role | Works end to end | Rework browser, each sample role at 360 and 1366. | OK |  |  |
 | 77 | §13 | TC-01 | Can pass now | Yes. Rework browser. | OK |  |  |
 | 78 | §13 | TC-02 | Can pass now | Yes. Rework HTTP, older suites. | OK |  |  |
 | 79 | §13 | TC-03 | Can pass now | Yes. Rework HTTP, `app/Services/TrackingService.php:39`. | OK |  |  |
@@ -208,7 +208,7 @@ Audit date: October 31, 2026. Phase 1 only: no code, docs (other than this file)
 | PHPUnit | OK: 179 tests, 1615 assertions |
 | Rework suite | HTTP 157 and browser 688, all pass |
 | Steps 8, 14, 15, rerun after the fixes | All pass: Step 8 HTTP 115 and browser 103, Step 14 HTTP 220 and browser 282, Step 15 HTTP and browser 218 each |
-| Step 10, rerun after the fixes | HTTP 142 and browser 145, all pass. The 2 unexplained failures came from demo rows. |
+| Step 10, rerun after the fixes | HTTP 142 and browser 145, all pass. The 2 unexplained failures came from sample rows. |
 | Steps 7, 9, 11, 12, rerun after the fixes | Run to the end. Remaining failures check old wording, the removed applicant role, modules that were stubs at the time, or the MSW Head approving a committee position (now refused by BR-20). Step 9 also needs `APP_NAME=AGILE`. |
 | Steps 13, 16, 17, 18, 19, last run before the fixes | Step 13 and 18 passed. Steps 16, 17 and 19 had only the expected failures listed further down. Not rerun after the fixes, which did not change their modules except through shared services covered by the rework suite and PHPUnit. |
 | Steps 5, 6 | Failures check the old `/register` and the old dashboards. The Step 5 HTTP and browser suites stop at the old register flow, so TC-32 is covered by the rework suite instead. |
@@ -240,7 +240,7 @@ Rows 1-27 carry a severity. Six of the Low rows are notes on behavior that works
 | `composer validate` | Valid |
 | `composer install` | Nothing to install. `composer.lock` unchanged. Autoload files regenerated. |
 | `php -l` on app, config, database, jobs, public | 0 files with errors |
-| `setup.php --fresh`, then `report.php` | 44 tables, 72 foreign keys, 7 roles, 34 permissions, 62 grants, 9 demo users, no applicant role |
+| `setup.php --fresh`, then `report.php` | 44 tables, 72 foreign keys, 7 roles, 34 permissions, 62 grants, 9 sample users, no applicant role |
 | `vendor/bin/phpunit` | OK: 173 tests, 1592 assertions |
 | `php jobs/run.php all`, twice | **Could not run: `jobs/run.php` does not exist (row 13).** Each of the 6 existing jobs ran twice instead. The first queue run sent 4 emails and the second sent 0. Notification rows did not grow. The other 5 jobs had nothing due in this data, so this run alone says little about them. |
 | Rework suite | HTTP 144 passed, 0 failed. Browser 687 passed, 1 failed: one connection refused on `/privacy` at 1366px, which passed on the run before, so it looks like a test server hiccup. |
@@ -255,12 +255,12 @@ They use `nomember@agile.test` in place of the removed applicant user.
 | Step 18 | HTTP 71 and browser 31, all pass |
 | Step 17 | HTTP 187 passed, 1 failed. Browser 236 pass. The failure expects a user with no My Eligibility menu item, and that user now has the general_member role. Expected. |
 | Step 16 | HTTP 233 passed, 1 failed. Browser 288 pass. The failure expects the word "Applicant" on a case. Expected. |
-| Step 19 | HTTP 282 passed, 13 failed. Browser 376 pass. Failures are old titles, the removed applicant dashboard, and counts that now include the demo applicants. Expected. |
+| Step 19 | HTTP 282 passed, 13 failed. Browser 376 pass. Failures are old titles, the removed applicant dashboard, and counts that now include the sample applicants. Expected. |
 | Step 15 | HTTP **stopped at its line 475**, where it expects the old `/register`. No failures before that, but later checks did not run (row 16). Browser 218 pass. |
 | Step 14 | 4 failed, then no total printed. The first is an MSW Head approving a committee position, which BR-20 now refuses (403). The next ones depend on it. Later checks did not run (row 16). |
 | Step 13 | HTTP 212, browser 267, all pass |
 | Step 12, 11 | Browser 122 and 138, all pass. **Their HTTP suites printed no total in this run,** so they count as not verified (row 16). |
-| Step 10 | HTTP 130 passed, 12 failed. Browser 145 pass. 10 failures come from demo rows or the now-public `/apply`. **2 are not root-caused:** "missing document returns to step 5" and "submit redirects to success" landed on step 3. Submitting works in this suite's browser run and in the rework suite (row 16). |
+| Step 10 | HTTP 130 passed, 12 failed. Browser 145 pass. 10 failures come from sample rows or the now-public `/apply`. **2 are not root-caused:** "missing document returns to step 5" and "submit redirects to success" landed on step 3. Submitting works in this suite's browser run and in the rework suite (row 16). |
 | Step 9 | HTTP 141 passed, 24 failed. 10 are only `APP_NAME=AGILE-OUS`, the rest are old wording or the old apply and tracking setup. |
 | Step 8 | HTTP 115, browser 103, all pass |
 | Step 6 | HTTP 446 passed, 37 failed. Browser 98 pass. Failures are old dashboard titles and the welcome card. Expected. |
@@ -269,7 +269,7 @@ They use `nomember@agile.test` in place of the removed applicant user.
 
 ### Side effects of the audit
 
-- `storage/uploads/applications/demo/` has 2 small demo PDFs from scratch seeding. The real setup uses the same files, so they were left.
+- `storage/uploads/applications/sample/` has 2 small sample PDFs from scratch seeding. The real setup uses the same files, so they were left.
 - `storage/logs/jobs.log` gained lines from older test runners.
 - `storage/logs/app.log` was removed by an older test's cleanup. It held only 3 errors from 11:20-11:21, while the login view was being patched.
 

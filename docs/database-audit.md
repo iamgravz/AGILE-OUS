@@ -179,8 +179,8 @@ The PHP services do check most of these, but the database should be the last lin
 
 - Roles: 7 (guest, general_member, committee_head, execomm, msw_member, msw_head, president). Permissions: 34. Role-permission rows: 63.
 - Welfare categories: 7. Email templates: 39. Settings: 13. Application questions: 15.
-- Demo users: 10 (password `Password123!`). Demo applications: submitted 1, under review 2, for revision 1, approved 2.
-- Before the system goes live, remove demo users and data (`database/remove_demo.php` from step 24) and set new passwords.
+- Sample users: 10 (password `Password123!`). Sample applications: submitted 1, under review 2, for revision 1, approved 2.
+- Before the system goes live, remove sample users and data (`database/remove_samples.php` from step 24) and set new passwords.
 
 ## Fix order
 

@@ -24,7 +24,7 @@ UPDATE email_templates
 SET body_html = REPLACE(body_html, '<p>If you have questions, please contact the MSW Committee.</p>', '<p>After the issue is fixed, you may register again with your PUP student number. If you have questions, please contact the MSW Committee.</p>')
 WHERE code = 'ACCOUNT_REJECTED' AND body_html NOT LIKE '%may register again%';
 
--- Demo documents had names the file service refuses to open. Only those two exact paths change.
+-- Sample documents had names the file service refuses to open. Only those two exact paths change.
 UPDATE application_documents
-SET stored_path = CONCAT('applications/demo/', MD5(CONCAT('demo-', doc_type)), '.pdf')
-WHERE stored_path IN ('applications/demo/school_id.pdf', 'applications/demo/cor.pdf');
+SET stored_path = CONCAT('applications/sample/', MD5(CONCAT('sample-', doc_type)), '.pdf')
+WHERE stored_path IN ('applications/sample/school_id.pdf', 'applications/sample/cor.pdf');

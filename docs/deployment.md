@@ -13,7 +13,7 @@ The steps to put AGILE on a server for real use, in order. Each step says how to
 Copy the project, then run `composer install --no-dev --optimize-autoloader`. Do not copy:
 
 - `.env` from a laptop (make a new one, step 3)
-- `storage/uploads`, `storage/credentials`, `storage/mail`, `storage/backups`, `storage/logs` from a laptop: they hold demo or test files. Keep the empty folders.
+- `storage/uploads`, `storage/credentials`, `storage/mail`, `storage/backups`, `storage/logs` from a laptop: they hold sample or test files. Keep the empty folders.
 - `tests/`, `phpunit.xml` and `.phpunit.result.cache` are not needed on the server.
 
 Point the web server's document root at `public/` only (see the virtual host in the README). **Check:** `https://your-site/.env` and `https://your-site/storage/` give 403 or 404.
@@ -24,7 +24,7 @@ Start from `.env.example` and change these:
 
 | Setting | Live value |
 |---|---|
-| `APP_ENV` | `production`. Turns off demo users, demo login, the style guide and `--fresh`. |
+| `APP_ENV` | `production`. Turns off sample users, sample login, the style guide and `--fresh`. |
 | `APP_DEBUG` | `false` |
 | `APP_URL` | The `https://` address, with no trailing slash. Email links and QR codes use it. |
 | `ORG_CONTACT_EMAIL` | AGILE's real address. Also set the same one in Administration › Settings. |
@@ -32,7 +32,7 @@ Start from `.env.example` and change these:
 | `ENCRYPTION_KEY` | A new key from `php jobs/generate_key.php`. Keep a copy somewhere safe and never change it once data exists: welfare records cannot be read without it. |
 | `MAIL_DRIVER` | `smtp`, with the `SMTP_*` and `MAIL_FROM_*` values. |
 | `MAIL_LOGO_URL` | Optional: a public `https://` PNG if the email banner should come from the site. |
-| `DEMO_BULK` | `false` (ignored in production anyway). |
+| `SAMPLE_BULK` | `false` (ignored in production anyway). |
 | `AI_PROVIDER` | `none`, unless AGILE has agreed to send eligibility documents to the provider. |
 
 ## 4. Database
@@ -44,16 +44,16 @@ php database/setup.php
 php database/report.php
 ```
 
-With `APP_ENV=production`, setup creates the tables and reference data only, with no demo people. The report should end with three 0s.
+With `APP_ENV=production`, setup creates the tables and reference data only, with no sample people. The report should end with three 0s.
 
-**A database that was used for testing:** back it up, then remove the demo data.
+**A database that was used for testing:** back it up, then remove the sample data.
 
 ```
-php database/remove_demo.php          # lists what would be removed; changes nothing
-php database/remove_demo.php --yes    # backs up, then removes it
+php database/remove_samples.php          # lists what would be removed; changes nothing
+php database/remove_samples.php --yes    # backs up, then removes it
 ```
 
-It removes every `@agile.test` account and applicant and what belongs to them. Real records stay: where a real record only names a demo account as the one who approved or decided it, that name is cleared. If a demo account wrote something on a real record that cannot be left without a name, such as an evaluation of a real applicant, it stops and lists it, and nothing is removed until that is sorted out in the app. Files are moved to `storage/removed-demo/`, never deleted.
+It removes every `@agile.test` account and applicant and what belongs to them. Real records stay: where a real record only names a sample account as the one who approved or decided it, that name is cleared. If a sample account wrote something on a real record that cannot be left without a name, such as an evaluation of a real applicant, it stops and lists it, and nothing is removed until that is sorted out in the app. Files are moved to `storage/removed-samples/`, never deleted.
 
 ## 5. The first MSW Committee Head
 
@@ -76,9 +76,9 @@ Set up every job in [scheduling.md](scheduling.md), with crontab on Linux or Tas
 
 ## 8. Last checks
 
-- [ ] Run `php jobs/preflight.php` on the server. It checks the settings in step 3, demo data, a real MSW Committee Head, migrations, folders and PHP. It must end with "Ready to go live." (exit code 0).
+- [ ] Run `php jobs/preflight.php` on the server. It checks the settings in step 3, sample data, a real MSW Committee Head, migrations, folders and PHP. It must end with "Ready to go live." (exit code 0).
 - [ ] Log in as the MSW Committee Head and open Administration › System health: no warnings.
-- [ ] No `@agile.test` users: `php database/remove_demo.php` says "There is no demo data".
+- [ ] No `@agile.test` users: `php database/remove_samples.php` says "There is no sample data".
 - [ ] Check that a real email arrives (the set-password email from step 5 is one) and looks right in Gmail.
 - [ ] Apply once as a guest and track it with the code, then reject that test application.
 - [ ] Ask AGILE's adviser to review the Privacy Notice, and replace the sample mission and vision in Settings.

@@ -52,11 +52,11 @@ Open http://localhost:8000 and http://localhost:8000/does-not-exist.
 ## Step 2 of 24: Database schema and seed data (Oct 30, 2026)
 
 ### What was built
-The full §9 schema (41 tables, 68 foreign keys), a shared PDO layer with transactions, a base repository with whitelisted sorting, seed data, a setup script with `--fresh`, a report that prints the role x permission table and demo users, and the database reference for the defense.
+The full §9 schema (41 tables, 68 foreign keys), a shared PDO layer with transactions, a base repository with whitelisted sorting, seed data, a setup script with `--fresh`, a report that prints the role x permission table and sample users, and the database reference for the defense.
 
 ### Files created
 - `database/`: `schema.sql`, `bootstrap.php`, `setup.php`, `seed.php`, `report.php`
-- `database/seeds/`: `roles_permissions.php`, `welfare_categories.php`, `committees_positions.php`, `email_templates.php`, `settings.php`, `application_questions.php`, `demo_users.php`
+- `database/seeds/`: `roles_permissions.php`, `welfare_categories.php`, `committees_positions.php`, `email_templates.php`, `settings.php`, `application_questions.php`, `sample_users.php`
 - `app/Core/Database.php`, `app/Models/BaseRepository.php`
 - `config/permissions.php`, `docs/database.md`
 
@@ -78,11 +78,11 @@ These ran on a temporary MySQL 8.0.45 server, not the real one, because the root
 - `Database::transaction` and `BaseRepository` were exercised by a throwaway script, including rejected `orderBy` values. No PHPUnit tests exist yet.
 
 ### Decisions made
-- **Demo guest account:** "one per role" plus a deputy only reaches 9 users if the guest role is counted, so `guest@agile.test` exists but is `disabled`, because §5 says guests don't log in.
+- **Sample guest account:** "one per role" plus a deputy only reaches 9 users if the guest role is counted, so `guest@agile.test` exists but is `disabled`, because §5 says guests don't log in.
 - **`welfare_case_history.actor_id` is nullable:** otherwise guest events can't be recorded. No `actor_type` column was added; a NULL actor means a guest or the system.
 - **Four extra email templates:** see `docs/database.md`.
-- **Demo users are skipped in production.**
-- **Seeds are split:** `database/seed.php` loads `database/seeds/*.php`, so demo data stays in that folder as §2 rule 8 requires.
+- **Sample users are skipped in production.**
+- **Seeds are split:** `database/seed.php` loads `database/seeds/*.php`, so sample data stays in that folder as §2 rule 8 requires.
 
 ### Known issues
 - Resolved in step 4: the real MySQL server now has the schema. `database/report.php` shows 41 tables and 68 foreign keys there.
@@ -186,7 +186,7 @@ These ran on a throwaway database on the real MySQL server, which was then dropp
 - The rendered email was checked in Chrome.
 
 ### Decisions made
-- **Test script:** the email goes to the address you type, with the in-app notification on `applicant@agile.test`, because demo addresses cannot receive mail.
+- **Test script:** the email goes to the address you type, with the in-app notification on `applicant@agile.test`, because sample addresses cannot receive mail.
 - **Missing template values throw:** `notify()` fails at once instead of sending an email with a gap.
 - **Secret tokens:** `ACCOUNT_VERIFY`, `PASSWORD_RESET` and `GUEST_EMAIL_CODE` payloads are erased from the row after sending or final failure.
 - **Email logo:** a text monogram by default, because Gmail does not show SVG. `MAIL_LOGO_URL` switches to a hosted PNG.
@@ -287,7 +287,7 @@ Open http://localhost:8000/login and use the "Log in as..." buttons.
 ### Test results
 HTTP and browser checks ran on a throwaway database, which was then dropped. PHPUnit also ran on the real database, whose row counts stayed the same.
 - `AccessMatrixTest`: 15 tests and 295 assertions pass. It reads the §6 table directly from `PROJECT_CONTEXT.md`.
-- 467 HTTP checks pass, covering every demo user's sidebar and every sidebar URL, 403 pages and audit rows, TC-20, notifications, and the switcher in local and production.
+- 467 HTTP checks pass, covering every sample user's sidebar and every sidebar URL, 403 pages and audit rows, TC-20, notifications, and the switcher in local and production.
 - 98 browser checks pass at 360, 768 and 1366px, including the live bell.
 - The Step 5 suite still passes: 134 HTTP and 91 browser checks.
 - The last change was one CSS margin on the welcome card, made after these runs and checked only by reading the code.
@@ -384,7 +384,7 @@ Before-and-after mockups were made, but the theme was not applied. The app keeps
 ## Step 8 of 24: CMS with publishing approval (Oct 30, 2026)
 
 ### What was built
-News, events, publications and announcements with a Quill rich text editor, server-side HTML purifying, cover and body images, the §8 approval flow with notifications and audit rows, a review page, public post pages, and 6 demo posts.
+News, events, publications and announcements with a Quill rich text editor, server-side HTML purifying, cover and body images, the §8 approval flow with notifications and audit rows, a review page, public post pages, and 6 sample posts.
 
 ### Files created
 - `app/Services/`: `CmsService`, `HtmlSanitizer`
@@ -405,10 +405,10 @@ News, events, publications and announcements with a Quill rich text editor, serv
 php database/setup.php
 php -S localhost:8000 -t public
 ```
-`setup.php` without `--fresh` keeps existing data and adds the demo posts. Log in as Committee Head and open http://localhost:8000/cms. Published posts are at `/posts/{slug}`.
+`setup.php` without `--fresh` keeps existing data and adds the sample posts. Log in as Committee Head and open http://localhost:8000/cms. Published posts are at `/posts/{slug}`.
 
 ### Test results
-These ran on throwaway databases, which were then dropped. `agile_ams` still needs `php database/setup.php` to get the demo posts.
+These ran on throwaway databases, which were then dropped. `agile_ams` still needs `php database/setup.php` to get the sample posts.
 - PHPUnit: 41 tests and 364 assertions pass across all three test classes, including every §8 transition and 16 kinds of hostile HTML.
 - 115 HTTP checks pass, including every DONE WHEN item, record-level access, filters, slugs, covers and media.
 - 103 browser checks pass, covering real typing, a real paste, the real file chooser, and all screens at 360, 768 and 1366px.
@@ -673,7 +673,7 @@ These ran on throwaway databases, which were then dropped.
 
 ### Known issues
 - QR codes hold `APP_URL` when issued. With `http://localhost:8000` they open only on the computer running the site, so a phone cannot scan them through to the page. Credentials issued before going live must be reissued after `APP_URL` changes.
-- Seeded demo members have no credentials until the MSW Head uses Issue new credentials on their record.
+- Seeded sample members have no credentials until the MSW Head uses Issue new credentials on their record.
 - A later change of name or photo does not update existing PDFs until a reissue. There is no name-change screen yet.
 - Certificates have blank signature lines, as the step describes. Nothing signs them digitally.
 - `changeRole()` sends no email. Step 17 needs to send `ROLE_EXPIRED`, and step 14 `APPOINTMENT_NOTICE`.
@@ -1068,7 +1068,7 @@ Real dashboards for all seven roles, with number cards, pending tasks, latest no
 cd C:\laragon\www\agile
 php -S localhost:8000 -t public
 ```
-This step adds no tables or permissions. Log in as each demo role and open the dashboard. As MSW Committee Head, open Reports.
+This step adds no tables or permissions. Log in as each sample role and open the dashboard. As MSW Committee Head, open Reports.
 
 ### Test results
 These ran on throwaway databases, which were then dropped.
@@ -1093,7 +1093,7 @@ These ran on throwaway databases, which were then dropped.
 - **Every list was checked for prepared statements and fixed sort columns.** The only sort taken from a URL is on Applications, which uses a fixed list. No code change was needed.
 
 ### Known issues
-- Seeded data has no applications or welfare cases, so many demo cards and charts show 0 until records exist.
+- Seeded data has no applications or welfare cases, so many sample cards and charts show 0 until records exist.
 - A dashboard's numbers come from separate queries on each load. This is fine at this size.
 - The dashboard "View only" badge stays on the President's page, as in step 6, although the President handles welfare cases from the queue.
 - Long chart labels are shortened on phones. The table beside each chart has them in full.
@@ -1118,7 +1118,7 @@ The owner uploaded a new PROJECT_CONTEXT and then added rules for who decides an
 - **/register confirms the email with a code before saving anything,** so nobody can hold someone else's address and later receive their account.
 - **Someone pending who applies through /apply keeps that account:** approval uses it instead of creating a second one.
 - **A person's earlier guest welfare cases join their account when the account is approved,** since both sides proved the email with a code.
-- **An extra demo user, `nomember@agile.test`,** shows a registered account with no membership. The tests use it too.
+- **An extra sample user, `nomember@agile.test`,** shows a registered account with no membership. The tests use it too.
 
 ### Known issues
 - A committee head who decides cannot open the documents themselves, since that needs `document.verify`. They see which ones are still missing.
@@ -1186,7 +1186,7 @@ Most of this was already built in the rework before Step 20: no applicant role, 
 - **Rejecting an account leaves that person unable to register again,** because the member record still points at the disabled account.
 
 ### Known issues
-- `nomember@agile.test` stays in the demo users because the tests need a user with no member record. A logged-in user with no member record can still apply for general membership, which should no longer occur for real people.
+- `nomember@agile.test` stays in the sample users because the tests need a user with no member record. A logged-in user with no member record can still apply for general membership, which should no longer occur for real people.
 - Rows 12 and 14 in `docs/alignment-report.md` still need text from the owner. R2, R3, R4 and P1 have not been received as prompts, though the rework may already cover parts of them.
 
 ## UPDATE R3: Approved applicants register their own account (Oct 31, 2026)
@@ -1260,7 +1260,7 @@ R1 already built approval with no account and the three-step `/register`. R3 add
 
 ### Known issues
 - Older step suites still check earlier wording and flows, as the alignment report notes.
-- Fixed along the way: the seeded demo documents could not be opened, because the file service refuses their old names. The migration corrects those rows.
+- Fixed along the way: the seeded sample documents could not be opened, because the file service refuses their old names. The migration corrects those rows.
 - Dashboard counts of applications to decide use the committee's head even if that account is disabled, while `decider()` falls back to the MSW Head. This should be rare until the Administration step.
 
 ## POLISH P1: Make the design system look hand-made (Oct 31, 2026)
@@ -1327,7 +1327,7 @@ R1 already built approval with no account and the three-step `/register`. R3 add
 - **Banner:** `App\Services\Mail\EmailBanner`. `SmtpMailer` embeds it with `addEmbeddedImage()`, and `LogMailer` previews use a relative path. If the file is missing it falls back to `MAIL_LOGO_URL`, then a text header.
 - **Settings:** `org.full_name`, `org.facebook_url`, `email.signatory_name`, `email.signatory_position`, `email.signatory_committee`. `org.contact_email` already existed.
 - **Templates:** every body rewritten in the house style in `database/seeds/email_template_text.php`. Codes, subjects, placeholders, recipients and timing are unchanged. Migration `2026_10_31_email_house_style.php` updates older databases and skips anything already in the new style.
-- **`jobs/test_notify.php`:** now uses `member@agile.test`, because the demo applicant it looked for was retired in UPDATE R1.
+- **`jobs/test_notify.php`:** now uses `member@agile.test`, because the sample applicant it looked for was retired in UPDATE R1.
 - **Tests:** `tests/EmailWrapperTest.php`.
 
 ### Decisions made
@@ -1477,7 +1477,7 @@ Views, CSS, JS and visible text only. No routes, permissions or database changes
   - **M-01:** `SessionGuard` checks idle time and account status on every request, public routes included.
   - **M-02:** a changed, reset or force-reset password ends other logins.
   - **M-03:** welfare file names and `referrals.referred_to` are encrypted, with a migration for existing rows.
-  - **M-04:** demo login works only from this computer, and the debug page never shows in production.
+  - **M-04:** sample login works only from this computer, and the debug page never shows in production.
   - **M-05:** at most 50 failed logins per IP in 15 minutes, across all emails.
   - **M-06:** an https `APP_URL` also sets the Secure cookie flag, and HSTS is sent over HTTPS.
   - **M-07:** the Privacy Notice and the eligibility page disclose the outside AI provider.
@@ -1508,17 +1508,17 @@ PHPUnit 241 tests, 2498 assertions; HTTP 303 passed; browser 1516 passed; all on
 - **`composer test`:** runs everything, with no time limit.
 - **`tests/TransitionMapsTest.php`:** every pair of statuses for all ten §8 maps, allowed and forbidden.
 - **`tests/BusinessRulesTest.php`:** the rules no test covered directly, plus TC-18 and TC-24.
-- **`tests/HttpAccessTest.php`:** every protected route for every demo role over real HTTP, compared with the §6 table in `docs/PROJECT_CONTEXT.md`. Also: not logged in goes to login, and every POST route answers 419 without a valid token.
+- **`tests/HttpAccessTest.php`:** every protected route for every sample role over real HTTP, compared with the §6 table in `docs/PROJECT_CONTEXT.md`. Also: not logged in goes to login, and every POST route answers 419 without a valid token.
 - **`tests/HttpFlowsTest.php`, `HttpWholeFlowsTest.php`:** test cases that need real requests, including applying without an account and the guest welfare flow, start to finish. They use a second database, `agile_ams_test_http_test`.
 - **`docs/test-cases.md`:** TC-01 to TC-35 with steps, expected and actual results, and a table of which tests cover each business rule. `tests/TestCasesDocumentTest.php` fails if a case is missing or a named test does not exist.
 
 ### Bugs the new tests found, now fixed
 - **Five admin pages crashed with a 500 for a record that does not exist:** `/admin/users/{id}`, `/admin/committees/{id}`, `/admin/positions/{id}`, `/email-templates/{id}` and `/emails/{id}`. They now give 404.
-- **`database/seeds/demo_applicants.php` wrote to a hardcoded path in the real `storage/uploads`,** which would have touched real files on every test rebuild. It now goes through `Config::basePath`.
+- **`database/seeds/sample_applicants.php` wrote to a hardcoded path in the real `storage/uploads`,** which would have touched real files on every test rebuild. It now goes through `Config::basePath`.
 
 ### Files
 - **New:** `tests/Support/TestEnvironment.php`, `RouteList.php`, `TestServer.php`, `tests/TransitionMapsTest.php`, `BusinessRulesTest.php`, `HttpAccessTest.php`, `HttpFlowsTest.php`, `HttpWholeFlowsTest.php`, `TestCasesDocumentTest.php`, `docs/test-cases.md`.
-- **Changed:** `phpunit.xml`, `composer.json`, `README.md`, `tests/bootstrap.php`, `tests/AccessMatrixTest.php`, `tests/SecurityReviewTest.php`, `app/Core/Config.php`, `app/Services/CredentialService.php` (a public `canTransition`), `app/Controllers/AdminUsersController.php`, `AdminCommitteesController.php`, `EmailAdminController.php`, `database/seeds/demo_applicants.php`.
+- **Changed:** `phpunit.xml`, `composer.json`, `README.md`, `tests/bootstrap.php`, `tests/AccessMatrixTest.php`, `tests/SecurityReviewTest.php`, `app/Core/Config.php`, `app/Services/CredentialService.php` (a public `canTransition`), `app/Controllers/AdminUsersController.php`, `AdminCommitteesController.php`, `EmailAdminController.php`, `database/seeds/sample_applicants.php`.
 
 ### How to test
 Run `composer test`, then follow `docs/test-cases.md` for the parts marked Manual.
@@ -1659,23 +1659,23 @@ Re-audit 10/10 (was 7/10). Details and evidence in [database-audit.md](database-
 
 ### Change: sample people instead of real data (Nov 20, 2026)
 - No real person's details are kept in the project. `jobs/import_committee_heads.php` and `jobs/import_members.php` (which read a local CSV copied from AGILE's sheets) were removed, and the local CSVs were deleted.
-- New seeder `database/seeds/demo_organization.php` (not in production): made-up people for every real position, with accounts for the committee heads so BR-20 decisions can be tried. `demo_applicants.php` adds a waitlisted applicant.
+- New seeder `database/seeds/sample_organization.php` (not in production): made-up people for every real position, with accounts for the committee heads so BR-20 decisions can be tried. `sample_applicants.php` adds a waitlisted applicant.
 - Kept: a member who registers gets their position's role (`AuthService::registerMember()`).
 - Real members and officers are added through the app: officers by the MSW Committee Head (Administration › Users) and members through approved applications and /register.
 - `composer test`: OK, 336 tests.
 
 ### Data: 100 more sample people (Nov 20–21, 2026)
-- `database/seeds/demo_bulk.php`, on with `DEMO_BULK=true` in `.env` (off by default, never in production, forced off in tests): 7 former Executive Committee officers, 3 deputies, 7 Source Code staff, 21 committee members, 22 approved general members (6 registered) and 40 applicants at every stage. Details in `docs/database.md`.
+- `database/seeds/sample_bulk.php`, on with `SAMPLE_BULK=true` in `.env` (off by default, never in production, forced off in tests): 7 former Executive Committee officers, 3 deputies, 7 Source Code staff, 21 committee members, 22 approved general members (6 registered) and 40 applicants at every stage. Details in `docs/database.md`.
 - Checked on a throwaway database, run twice: the stage counts match and nothing is added twice. No single-holder position gets two people.
 
 ## Step 24 of 24: Going live (Nov 21, 2026)
 
 ### What was built
-- **`database/remove_demo.php`** with `App\Services\DemoDataRemover`: removes every `@agile.test` account and applicant and what belongs to them, for a database that was used for testing. Without `--yes` it only lists what it would do. With `--yes` it needs `APP_ENV=production` (or `--any-env`), makes a backup first (unless `--no-backup`), and works in one transaction that is rolled back if any link would break.
+- **`database/remove_samples.php`** with `App\Services\SampleDataRemover`: removes every `@agile.test` account and applicant and what belongs to them, for a database that was used for testing. Without `--yes` it only lists what it would do. With `--yes` it needs `APP_ENV=production` (or `--any-env`), makes a backup first (unless `--no-backup`), and works in one transaction that is rolled back if any link would break.
   - The foreign keys are read from `information_schema`, so tables from later migrations are covered.
-  - Real records are never deleted. A demo account's name in a who-did-it column that may be empty (approved by, decided by, the audit log's user) is cleared. If it may not be empty and the row belongs to a real record, such as a demo evaluation of a real applicant, nothing is removed and the row is listed.
+  - Real records are never deleted. A sample account's name in a who-did-it column that may be empty (approved by, decided by, the audit log's user) is cleared. If it may not be empty and the row belongs to a real record, such as a sample evaluation of a real applicant, nothing is removed and the row is listed.
   - It refuses if no real MSW Committee Head account would be left (`--allow-no-admin` overrides).
-  - Files only those rows used are moved to `storage/removed-demo/<time>/`, never deleted.
+  - Files only those rows used are moved to `storage/removed-samples/<time>/`, never deleted.
 - **`docs/deployment.md`:** the go-live steps in order: server, files, production `.env`, database, the first MSW Committee Head (`jobs/create_user.php ... msw_head`), scheduled jobs, backups and last checks. Linked from the README, whose second, outdated Tests section was replaced.
 - **Compression and caching** in `public/.htaccess` (`mod_deflate`, a week's `Cache-Control` on assets). `asset()` adds `?v=<file time>`, so a changed CSS or JS file is fetched at once.
 
@@ -1683,15 +1683,15 @@ Re-audit 10/10 (was 7/10). Details and evidence in [database-audit.md](database-
 - **Public header without JavaScript (1200px and up):** the `@media (scripting: none)` rule set `.site-nav` to `display: block`, which beat the desktop row and put Member log in and Apply on a second line (98px tall instead of 73px). It now applies only below 1200px, where the menu sits behind the toggle. Measured at 1366: one row, 73px, the same as with JavaScript.
 - **Committee page (`/admin/committees/{id}`):** the Delete form was a bare third column with no heading. It is now a section like the other two. The 40px measured at 2560 was the 80ch reading limit on its one-line help text, which is intended, not a layout fault.
 - **`cms-editor.js`:** Quill's link box and the heading select it hides now have labels, as in `email-editor.js`.
-- **`phpunit.xml`:** `APP_DEBUG` and `DEMO_BULK` are forced with `"0"`, not `"false"`. PHPUnit turns `"false"` into an empty value, Windows removes an empty variable, and the database rebuild and test server then read `.env` instead. With `DEMO_BULK=true` in `.env`, the 100 sample people reached the test database and two tests failed.
+- **`phpunit.xml`:** `APP_DEBUG` and `SAMPLE_BULK` are forced with `"0"`, not `"false"`. PHPUnit turns `"false"` into an empty value, Windows removes an empty variable, and the database rebuild and test server then read `.env` instead. With `SAMPLE_BULK=true` in `.env`, the 100 sample people reached the test database and two tests failed.
 - **4 PHP warnings in the test run:** `use DomainException;` in `tests/AccountsAndDecisionsTest.php` does nothing in the global namespace and printed a warning first, so the session tests found headers already sent. Removed.
 
 ### Test results
-- `composer test`: OK, 341 tests, 3216 assertions, no warnings. Includes `tests/DemoDataRemoverTest.php` (5 tests: the plan covers every demo person and no reference data, it refuses with no real MSW Head, removal leaves no broken links, a real application decided by a demo account is kept with the name cleared, a demo evaluation of a real application stops everything).
+- `composer test`: OK, 341 tests, 3216 assertions, no warnings. Includes `tests/SampleDataRemoverTest.php` (5 tests: the plan covers every sample person and no reference data, it refuses with no real MSW Head, removal leaves no broken links, a real application decided by a sample account is kept with the name cleared, a sample evaluation of a real application stops everything).
 - The real `storage/` was listed before and after the run: the same 73 files.
 
 ### Checked on the real database (read-only)
-`php database/remove_demo.php` on `agile_ams` lists only demo data and stops because no real MSW Committee Head exists yet, as intended. Nothing was changed.
+`php database/remove_samples.php` on `agile_ams` lists only sample data and stops because no real MSW Committee Head exists yet, as intended. Nothing was changed.
 
 ### Known issues
 - `public/.htaccess` compression and caching only work under Apache with `mod_deflate` and `mod_headers`; `php -S` ignores them. Not tested under Apache.
@@ -1700,7 +1700,7 @@ Re-audit 10/10 (was 7/10). Details and evidence in [database-audit.md](database-
 
 ### After Step 24 (Nov 22, 2026)
 - **Footer:** one thin line from 1200px, with AGILE's real contacts from `.env` (`ORG_CONTACT_EMAIL`, `ORG_MSW_EMAIL`, `ORG_FACEBOOK_URL`).
-- **Login:** in the site's own layout like Track Status, with Iskobot standing on the card and holding its corners; the demo switcher folds away.
+- **Login:** in the site's own layout like Track Status, with Iskobot standing on the card and holding its corners; the sample switcher folds away.
 
 ### Feature: membership requirements and choosing a committee (Nov 22, 2026)
 - **Requirements (from AGILE):** General Membership needs the current COR only. Joining a committee, or any position, needs the current COR and the previous semester copy of grades. 1st years in a 1st semester give the COR only; 1st years joining in the 2nd semester give their 1st semester grades. School ID is no longer asked for (old uploads still show).
@@ -1709,9 +1709,9 @@ Re-audit 10/10 (was 7/10). Details and evidence in [database-audit.md](database-
 - **Who decides:** that committee's head (BR-20), or the MSW Committee Head for the MSW committee. The application shows as "Committee Member, <committee>" in every list, and in the committee head's list. Staff can filter by Committee Member.
 - **On approval:** the member becomes that committee's Committee Member (`membership_type` officer). With an account, they get the position's role at once; without one, `/register` gives it later. Someone who meanwhile got a position keeps it.
 - **Database:** `membership_applications.committee_id` with a CHECK that a vacancy and a committee are never both set (migration `2026_11_22_committee_applications.php`, `schema.sql`). Applied to `agile_ams` after a backup.
-- **Demo data:** demo applicants give a COR only; with `DEMO_BULK=true`, every third applicant not yet approved applies to a committee (on fresh seeds).
+- **Sample data:** sample applicants give a COR only; with `SAMPLE_BULK=true`, every third applicant not yet approved applies to a committee (on fresh seeds).
 - **Tests:** `tests/MembershipRequirementsTest.php` (8). Test data for position applications now has COR and grades. `composer test`: OK, 349 tests, 3236 assertions.
-- **Checked in the browser** as `nomember@agile.test`: the apply page's table, step 3 (no committee chosen gives "Please choose the committee you want to join."), and step 5 asking for COR and grades for Logistics. This left one draft application for that demo account.
+- **Checked in the browser** as `nomember@agile.test`: the apply page's table, step 3 (no committee chosen gives "Please choose the committee you want to join."), and step 5 asking for COR and grades for Logistics. This left one draft application for that sample account.
 - **Not built:** Year-Level Representative is in AGILE's table but is not a position in the system yet.
 
 ### Feature: Open for application, and the apply page asks everything at once (Nov 22, 2026)
@@ -1721,5 +1721,5 @@ Re-audit 10/10 (was 7/10). Details and evidence in [database-audit.md](database-
 - **Files from the apply page** are checked and saved in `storage/uploads/applications` once the code is sent, kept in the session, and attached to the draft after the email is confirmed (`MembershipService::attachFirstPageDocuments`). If something on the page needs fixing, files are not kept and the page says to choose them again. Files of someone who never confirms their email stay in that folder; nothing deletes them.
 - **Replaces the committee choice:** `membership_applications.position_id` instead of `committee_id` (the earlier migration was removed before being pushed; `2026_11_22_open_positions.php` converts `agile_ams`). Approval gives the position, makes a Committee Head the committee's head when they have an account, and is refused when the position is full. A Committee Head position is decided by the MSW Committee Head (R6); The Source Code by the MSW Committee Head (BR-20); the rest by the committee's head.
 - **Tests:** `MembershipRequirementsTest` (14), `HttpWholeFlowsTest` (the apply page needs the row and the COR, and the COR joins the application). `composer test`: OK, 355 tests, 3258 assertions.
-- **Checked in the browser:** each Requirements row shows its documents and shows or hides the grades field (COR only for General members and 1st year 1st semester; "1st semester copy of grades" for 1st years in the 2nd semester); the admin page at 1366. With the demo data most positions are full, so only one shows on the apply page.
+- **Checked in the browser:** each Requirements row shows its documents and shows or hides the grades field (COR only for General members and 1st year 1st semester; "1st semester copy of grades" for 1st years in the 2nd semester); the admin page at 1366. With the sample data most positions are full, so only one shows on the apply page.
 - **Applied to `agile_ams`** after a backup (the morning's backup was copied to `%TEMP%\agile_2026-11-22_before-open-positions.sql.gz` first).

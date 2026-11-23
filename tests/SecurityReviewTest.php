@@ -80,10 +80,10 @@ final class SecurityReviewTest extends TestCase
         });
     }
 
-    public function testThereIsNoPasswordlessDemoLogin(): void
+    public function testThereIsNoPasswordlessSampleLogin(): void
     {
         // Removed for go-live (Nov 23, 2026): every account signs in with its password, even on this computer.
-        $this->assertFalse(method_exists(AuthService::class, 'loginAsDemoUser'));
+        $this->assertFalse(method_exists(AuthService::class, 'loginAsSampleUser'));
 
         foreach (\Tests\Support\RouteList::routes() as $route) {
             $this->assertStringNotContainsString('/dev/', $route['path']);

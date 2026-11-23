@@ -275,7 +275,7 @@ return static function (Router $router): void {
         $router->get('/my-submissions', 'MySubmissionsController@index', 'my_submissions');
     });
 
-    // Must not exist outside local development: the styleguide pages. (The passwordless demo login was removed, Nov 23, 2026.)
+    // Must not exist outside local development: the styleguide pages. (The passwordless sample login was removed, Nov 23, 2026.)
     if (config('app.env') === 'local') {
         $router->get('/styleguide', 'StyleguideController@public', 'styleguide');
         $router->get('/styleguide/dashboard', 'StyleguideController@dashboard', 'styleguide.dashboard');

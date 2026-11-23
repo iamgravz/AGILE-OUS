@@ -28,7 +28,7 @@ This creates the database if it is missing, applies `database/schema.sql`, seeds
 
 To upgrade an existing database, run the same command without `--fresh`: it keeps your data and applies `database/migrations/`.
 
-Outside production, this also creates demo users with the password `Password123!`. Set `DEMO_BULK=true` in `.env` first to add 100 more sample people at every stage, for trying lists, filters and reports. See [docs/database.md](docs/database.md) for the table reference.
+Outside production, this also creates sample users with the password `Password123!`. Set `SAMPLE_BULK=true` in `.env` first to add 100 more sample people at every stage, for trying lists, filters and reports. See [docs/database.md](docs/database.md) for the table reference.
 
 ## Run
 
@@ -84,7 +84,7 @@ Run `php jobs/generate_key.php` once and put the output in `ENCRYPTION_KEY` in `
 
 ## Going live
 
-Follow [docs/deployment.md](docs/deployment.md): production `.env`, a database with no demo data (`php database/remove_demo.php` cleans one that was used for testing), the first MSW Committee Head account, scheduled jobs and backups.
+Follow [docs/deployment.md](docs/deployment.md): production `.env`, a database with no sample data (`php database/remove_samples.php` cleans one that was used for testing), the first MSW Committee Head account, scheduled jobs and backups.
 
 ## Style guide
 

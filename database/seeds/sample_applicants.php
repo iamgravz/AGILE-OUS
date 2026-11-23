@@ -6,7 +6,7 @@ declare(strict_types=1);
 // has its documents verified, so an approval can be tried without uploading anything. The fourth is already approved
 // and has a member number but has not registered, so /register can be tried at once.
 return static function (PDO $db): void {
-    $folder = App\Core\Config::basePath('storage/uploads/applications/demo');
+    $folder = App\Core\Config::basePath('storage/uploads/applications/sample');
 
     if (!is_dir($folder)) {
         mkdir($folder, 0775, true);
@@ -15,14 +15,14 @@ return static function (PDO $db): void {
     $pdf = "%PDF-1.4\n1 0 obj<</Type/Catalog/Pages 2 0 R>>endobj\n2 0 obj<</Type/Pages/Kids[3 0 R]/Count 1>>endobj\n3 0 obj<</Type/Page/Parent 2 0 R/MediaBox[0 0 200 200]>>endobj\ntrailer<</Root 1 0 R>>\n%%EOF\n";
 
     // Stored file names must be 32 hex characters, or FileStorageService refuses to open them.
-    $storedName = static fn (string $type): string => md5("demo-{$type}") . '.pdf';
+    $storedName = static fn (string $type): string => md5("sample-{$type}") . '.pdf';
 
     foreach (['school_id', 'cor'] as $type) {
         if (!is_file("{$folder}/{$storedName($type)}")) {
             file_put_contents("{$folder}/{$storedName($type)}", $pdf);
         }
 
-        // The earlier name, from before the rows were corrected. Only these two demo files are ever removed here.
+        // The earlier name, from before the rows were corrected. Only these two sample files are ever removed here.
         if (is_file("{$folder}/{$type}.pdf")) {
             unlink("{$folder}/{$type}.pdf");
         }
@@ -83,7 +83,7 @@ return static function (PDO $db): void {
         // General Membership needs the current COR only (AGILE's membership requirements).
         seed_row($db, 'application_documents', 'document_id', ['application_id' => $applicationId, 'doc_type' => 'cor'], [
             'original_name' => 'cor.pdf',
-            'stored_path' => 'applications/demo/' . $storedName('cor'),
+            'stored_path' => 'applications/sample/' . $storedName('cor'),
             'mime_type' => 'application/pdf',
             'size_bytes' => strlen($pdf),
             'verification_status' => $documentStatus,
@@ -129,15 +129,15 @@ return static function (PDO $db): void {
     $exists = $db->query("SELECT COUNT(*) FROM membership_applications WHERE tracking_code = 'DEMVACANCY01'")->fetchColumn();
 
     if ($position !== false && $position['head_user_id'] !== null && $memberUser !== false && (int) $exists === 0) {
-        $requestId = seed_row($db, 'hr_requests', 'request_id', ['committee_id' => $position['committee_id'], 'position_id' => $position['position_id'], 'justification' => 'Demo: tutors for the coming term.'], [
+        $requestId = seed_row($db, 'hr_requests', 'request_id', ['committee_id' => $position['committee_id'], 'position_id' => $position['position_id'], 'justification' => 'Sample: tutors for the coming term.'], [
             'requested_by' => $position['head_user_id'],
             'slots' => 1,
-            'qualifications' => 'Demo: good standing in programming subjects.',
+            'qualifications' => 'Sample: good standing in programming subjects.',
             'status' => 'approved',
         ]);
         $vacancyId = seed_row($db, 'vacancies', 'vacancy_id', ['request_id' => $requestId], [
             'position_id' => $position['position_id'],
-            'title' => '[Demo] Academics and Training Committee Member',
+            'title' => '[Sample] Academics and Training Committee Member',
             'description' => 'A sample position for testing.',
             'qualifications' => 'Good standing in programming subjects.',
             'slots' => 1,
@@ -157,7 +157,7 @@ return static function (PDO $db): void {
 
         seed_row($db, 'application_documents', 'document_id', ['application_id' => $applicationId, 'doc_type' => 'cor'], [
             'original_name' => 'cor.pdf',
-            'stored_path' => 'applications/demo/' . $storedName('cor'),
+            'stored_path' => 'applications/sample/' . $storedName('cor'),
             'mime_type' => 'application/pdf',
             'size_bytes' => strlen($pdf),
             'verification_status' => 'verified',

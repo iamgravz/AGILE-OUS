@@ -9,19 +9,19 @@ use PDO;
 use RuntimeException;
 
 /**
- * Removes the demo data before the system goes live: every account and applicant with an @agile.test email, and every
+ * Removes the sample data before the system goes live: every account and applicant with an @agile.test email, and every
  * record that belongs to them. The foreign keys are read from the database, so tables added by later migrations are
  * covered too.
  *
- * Real records are never deleted. Where a real record only names a demo account as the person who acted on it (who
- * approved, decided or verified it), that column is cleared if it may be empty. If it may not be empty, such as a demo
+ * Real records are never deleted. Where a real record only names a sample account as the person who acted on it (who
+ * approved, decided or verified it), that column is cleared if it may be empty. If it may not be empty, such as a sample
  * reviewer's note on a real welfare case, nothing is removed and the record is listed as a problem to sort out first.
  *
- * Files are never deleted. A file that only removed rows pointed to is moved to storage/removed-demo/<time>/.
+ * Files are never deleted. A file that only removed rows pointed to is moved to storage/removed-samples/<time>/.
  */
-final class DemoDataRemover
+final class SampleDataRemover
 {
-    public const DEMO_DOMAIN = '@agile.test';
+    public const SAMPLE_DOMAIN = '@agile.test';
 
     /** Never removed. Links to these tables are ignored; who-did-it columns on them are cleared. */
     private const REFERENCE_TABLES = ['roles', 'permissions', 'role_permissions', 'committees', 'positions',
@@ -83,7 +83,7 @@ final class DemoDataRemover
      *     delete: array<string, list<int>>,
      *     deleteWhere: list<array{table: string, column: string, ids: list<int>, count: int}>,
      *     clear: list<array{table: string, column: string, ids: list<int>}>,
-     *     madeByDemo: array<string, int>,
+     *     madeBySample: array<string, int>,
      *     files: list<array{root: string, path: string, table: string, column: string}>,
      *     problems: list<string>
      * }
@@ -94,7 +94,7 @@ final class DemoDataRemover
 
         /** @var array<string, array<int, true>> $delete */
         $delete = [];
-        $madeByDemo = [];
+        $madeBySample = [];
         /** @var array<string, array{table: string, column: string, ids: array<int, true>}> $clear */
         $clear = [];
         /** @var array<string, array{table: string, column: string, ids: list<int>}> $deleteWhere */
@@ -104,13 +104,13 @@ final class DemoDataRemover
         $problems = [];
 
         foreach (['users' => 'user_id', 'applicants' => 'applicant_id'] as $table => $id) {
-            foreach ($this->column("SELECT {$id} FROM {$table} WHERE email LIKE ?", ['%' . self::DEMO_DOMAIN]) as $value) {
+            foreach ($this->column("SELECT {$id} FROM {$table} WHERE email LIKE ?", ['%' . self::SAMPLE_DOMAIN]) as $value) {
                 $delete[$table][(int) $value] = true;
             }
         }
 
-        // Demo welfare cases from guests have no account to follow, so the seeder's case codes mark them (demo_activity).
-        foreach ($this->column("SELECT case_id FROM welfare_cases WHERE case_code LIKE 'DEMOCASE%'", []) as $value) {
+        // Sample welfare cases from guests have no account to follow, so the seeder's case codes mark them (sample_activity).
+        foreach ($this->column("SELECT case_id FROM welfare_cases WHERE case_code LIKE 'SMPLCASE%'", []) as $value) {
             $delete['welfare_cases'][(int) $value] = true;
         }
 
@@ -147,7 +147,7 @@ final class DemoDataRemover
 
                     if ($kind === 'owner' || ($kind === 'actor' && !$fk['nullable'])) {
                         if (in_array($fk['table'], self::REFERENCE_TABLES, true)) {
-                            $problems[] = "{$fk['table']} #{$childId} needs a demo account in {$fk['column']}, and that table is kept.";
+                            $problems[] = "{$fk['table']} #{$childId} needs a sample account in {$fk['column']}, and that table is kept.";
                             continue;
                         }
 
@@ -155,7 +155,7 @@ final class DemoDataRemover
                         $added = true;
 
                         if ($kind === 'actor') {
-                            $madeByDemo[$fk['table']] = ($madeByDemo[$fk['table']] ?? 0) + 1;
+                            $madeBySample[$fk['table']] = ($madeBySample[$fk['table']] ?? 0) + 1;
                         }
                     } elseif ($kind === 'actor' || $kind === 'clearable') {
                         $clear[$key] ??= ['table' => $fk['table'], 'column' => $fk['column'], 'ids' => []];
@@ -201,7 +201,7 @@ final class DemoDataRemover
 
             foreach ($this->parentsOf($fk, $pk, array_keys($delete[$fk['table']])) as $childId => $parentId) {
                 if (!isset($delete[$fk['parent']][$parentId])) {
-                    $problems[] = sprintf('%s #%d was made by a demo account but belongs to a real %s record (#%d). Remove or reassign it in the app first.',
+                    $problems[] = sprintf('%s #%d was made by a sample account but belongs to a real %s record (#%d). Remove or reassign it in the app first.',
                         $fk['table'], $childId, $fk['parent'], $parentId);
                 }
             }
@@ -218,25 +218,25 @@ final class DemoDataRemover
             }
         }
 
-        // Only demo people are removed.
+        // Only sample people are removed.
         foreach (['users' => 'user_id', 'applicants' => 'applicant_id'] as $table => $id) {
             foreach (array_chunk(array_keys($delete[$table] ?? []), self::CHUNK) as $chunk) {
                 $marks = implode(',', array_fill(0, count($chunk), '?'));
 
-                foreach ($this->column("SELECT {$id} FROM {$table} WHERE {$id} IN ({$marks}) AND email NOT LIKE ?", [...$chunk, '%' . self::DEMO_DOMAIN]) as $value) {
-                    $problems[] = "{$table} #{$value} has a real email address but is linked to demo data.";
+                foreach ($this->column("SELECT {$id} FROM {$table} WHERE {$id} IN ({$marks}) AND email NOT LIKE ?", [...$chunk, '%' . self::SAMPLE_DOMAIN]) as $value) {
+                    $problems[] = "{$table} #{$value} has a real email address but is linked to sample data.";
                 }
             }
         }
 
         // Someone must still be able to run the system.
-        $demoUsers = array_keys($delete['users'] ?? []);
+        $sampleUsers = array_keys($delete['users'] ?? []);
         $admins = $this->column(
             "SELECT u.user_id FROM users u JOIN roles r ON r.role_id = u.role_id WHERE r.slug = 'msw_head' AND u.status = 'active' AND u.email NOT LIKE ?",
-            ['%' . self::DEMO_DOMAIN]
+            ['%' . self::SAMPLE_DOMAIN]
         );
 
-        if (!$allowNoAdmin && array_diff(array_map('intval', $admins), $demoUsers) === []) {
+        if (!$allowNoAdmin && array_diff(array_map('intval', $admins), $sampleUsers) === []) {
             $problems[] = 'No real MSW Committee Head account would be left. Create one first: php jobs/create_user.php email first last msw_head';
         }
 
@@ -273,7 +273,7 @@ final class DemoDataRemover
             'delete' => $deleteIds,
             'deleteWhere' => $whereList,
             'clear' => $clearList,
-            'madeByDemo' => $madeByDemo,
+            'madeBySample' => $madeBySample,
             'files' => $this->filesOf($deleteIds),
             'problems' => array_values(array_unique($problems)),
         ];
@@ -342,7 +342,7 @@ final class DemoDataRemover
 
             if ($keep) {
                 $this->db->prepare('INSERT INTO audit_logs (user_id, action, entity_type, entity_id, details_json, ip_address, user_agent) VALUES (NULL, ?, NULL, NULL, ?, ?, ?)')
-                    ->execute(['demo.removed', json_encode(['removed' => $removed, 'cleared' => $cleared], JSON_THROW_ON_ERROR), 'cli', 'database/remove_demo.php']);
+                    ->execute(['sample.removed', json_encode(['removed' => $removed, 'cleared' => $cleared], JSON_THROW_ON_ERROR), 'cli', 'database/remove_samples.php']);
                 $this->db->commit();
             } else {
                 $this->db->rollBack();
@@ -480,7 +480,7 @@ final class DemoDataRemover
     private function moveFiles(array $files): array
     {
         $moved = [];
-        $holding = Config::basePath('storage/removed-demo/' . date('Ymd_His'));
+        $holding = Config::basePath('storage/removed-samples/' . date('Ymd_His'));
 
         foreach ($files as $file) {
             if ($this->stillReferenced($file['path']) || !preg_match('#^[A-Za-z0-9_\-/]+\.[A-Za-z0-9]+$#', $file['path']) || str_contains($file['path'], '..')) {

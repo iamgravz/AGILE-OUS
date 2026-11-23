@@ -30,7 +30,7 @@ final class TestServer
         self::start();
     }
 
-    /** A browser logged in as this person, with the demo password. */
+    /** A browser logged in as this person, with the sample password. */
     public static function loggedIn(string $email, string $password = 'Password123!'): self
     {
         $browser = new self();

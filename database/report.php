@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-// Prints what is in the database: table and foreign key counts, the role x permission table, and demo users.
+// Prints what is in the database: table and foreign key counts, the role x permission table, and sample users.
 // Usage: php database/report.php
 
 use App\Core\Database;
@@ -63,7 +63,7 @@ $users = $db->query(
      ORDER BY u.user_id"
 )->fetchAll();
 
-echo "\nDemo users: " . count($users) . " (password for all: Password123!)\n\n";
+echo "\nSample users: " . count($users) . " (password for all: Password123!)\n\n";
 printf("%-26s %-16s %-10s %-17s %s\n", 'email', 'role', 'status', 'member_no', 'position');
 echo str_repeat('-', 100) . "\n";
 

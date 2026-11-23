@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 // Sample people for every real AGILE position, so the whole structure can be shown and tested without anyone's real
 // details. Every name, email and student number here is made up; real members register or are added in the app.
-// Runs only outside production, after demo_users (which already has the President, a VP, the Academics and Training
+// Runs only outside production, after sample_users (which already has the President, a VP, the Academics and Training
 // head and the MSW Committee Head, Deputy and Member).
 //
 // Committee heads (to decide their committee's applications, BR-20) and the Executive Board get an account, password

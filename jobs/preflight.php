@@ -33,11 +33,11 @@ $check((string) env('DB_PASS', '') === '' ? 'FAIL' : 'PASS', 'Database password 
 
 try {
     $db = Database::connection();
-    $demo = (int) $db->query("SELECT COUNT(*) FROM users WHERE email LIKE '%@agile.test'")->fetchColumn()
+    $sample = (int) $db->query("SELECT COUNT(*) FROM users WHERE email LIKE '%@agile.test'")->fetchColumn()
         + (int) $db->query("SELECT COUNT(*) FROM applicants WHERE email LIKE '%@agile.test'")->fetchColumn();
-    $check($demo === 0 ? 'PASS' : 'FAIL', "Demo people in the database: {$demo}", 'Start from a new database, or run php database/remove_demo.php --yes.');
-    $demoPosts = (int) $db->query("SELECT COUNT(*) FROM content_posts WHERE title LIKE '[Demo]%'")->fetchColumn();
-    $check($demoPosts === 0 ? 'PASS' : 'FAIL', "Demo posts: {$demoPosts}", 'Remove them with remove_demo, or delete them in Content.');
+    $check($sample === 0 ? 'PASS' : 'FAIL', "Sample people in the database: {$sample}", 'Start from a new database, or run php database/remove_samples.php --yes.');
+    $samplePosts = (int) $db->query("SELECT COUNT(*) FROM content_posts WHERE title LIKE '[Sample]%'")->fetchColumn();
+    $check($samplePosts === 0 ? 'PASS' : 'FAIL', "Sample posts: {$samplePosts}", 'Remove them with remove_samples, or delete them in Content.');
     $heads = (int) $db->query("SELECT COUNT(*) FROM users u JOIN roles r ON r.role_id = u.role_id WHERE r.slug = 'msw_head' AND u.status = 'active' AND u.email NOT LIKE '%@agile.test'")->fetchColumn();
     $check($heads > 0 ? 'PASS' : 'FAIL', "Real MSW Committee Head accounts: {$heads}", 'Create one with php jobs/create_user.php.');
     $pending = (int) $db->query("SELECT COUNT(*) FROM schema_migrations")->fetchColumn();
