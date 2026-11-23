@@ -101,25 +101,6 @@
     object-fit: cover;
 }
 
-.hero__pause {
-    position: absolute;
-    right: var(--gutter);
-    bottom: var(--space-2);
-    min-height: 24px;
-    padding: 0;
-    border: 0;
-    background: none;
-    color: var(--ink-text);
-    font: inherit;
-    font-size: 0.875rem;
-    text-decoration: underline;
-    cursor: pointer;
-}
-
-.hero__pause:hover {
-    color: var(--ink-strong);
-}
-
 @media (max-width: 575.98px) {
     .hero--landing .cluster {
         flex-direction: column;
@@ -538,8 +519,9 @@ html:not(.js) .hero--landing .glass-glows {
         animation: landing-rise 600ms ease-out both;
     }
 
+    /* WCAG 2.2.2: everything that moves by itself stops within 5 seconds, so no Pause button is needed. */
     .js .hero--landing::before {
-        animation: landing-grid 48s linear infinite;
+        animation: landing-grid 5s ease-out both;
     }
 
     .reveal-pending {
@@ -567,11 +549,6 @@ html:not(.js) .hero--landing .glass-glows {
     }
 }
 
-/* Off screen, the grid rests. */
-.hero--landing.is-offscreen::before {
-    animation-play-state: paused !important;
-}
-
 @keyframes landing-rise {
     from {
         opacity: 0;
@@ -591,7 +568,6 @@ html:not(.js) .hero--landing .glass-glows {
         transform: none;
     }
 
-    .hero__pause,
     .landing-progress {
         display: none;
     }
@@ -624,28 +600,15 @@ html:not(.js) .hero--landing .glass-glows {
     inset: 0;
     background-position: center;
     background-size: cover;
-    opacity: 0;
-    animation: hero-campus 28s linear infinite;
-    will-change: opacity, transform;
+    background-image: url("../img/campus/campus-1.webp");
+    animation: hero-campus 5s ease-out both;
 }
 
-.hero__campus-slide--1 { background-image: url("../img/campus/campus-1.webp"); animation-delay: 0s; }
-.hero__campus-slide--2 { background-image: url("../img/campus/campus-2.webp"); animation-delay: 7s; }
-.hero__campus-slide--3 { background-image: url("../img/campus/campus-3.webp"); animation-delay: 14s; }
-.hero__campus-slide--4 { background-image: url("../img/campus/campus-4.webp"); animation-delay: 21s; }
-
-@media (max-width: 767px) {
-    .hero__campus-slide--2 { background-image: url("../img/campus/campus-2-sm.webp"); }
-    .hero__campus-slide--4 { background-image: url("../img/campus/campus-4-sm.webp"); }
-}
-
-/* Each photo: fade in (2s), hold while zooming, fade out (2s) as the next one fades in. */
+/* The photo fades in and settles from a slight zoom, then holds still (WCAG 2.2.2: under 5 seconds). */
 @keyframes hero-campus {
-    0% { opacity: 0; transform: scale(1.04); }
-    7% { opacity: 1; }
-    25% { opacity: 1; }
-    32% { opacity: 0; transform: scale(1.14); }
-    100% { opacity: 0; transform: scale(1.14); }
+    0% { opacity: 0; transform: scale(1.08); }
+    30% { opacity: 1; }
+    100% { opacity: 1; transform: scale(1); }
 }
 
 /* The grid, glow and content sit above the photos. */
@@ -655,8 +618,7 @@ html:not(.js) .hero--landing .glass-glows {
 }
 
 .hero--landing .glass-glows,
-.hero--landing .hero__inner,
-.hero--landing .hero__pause {
+.hero--landing .hero__inner {
     z-index: 2;
 }
 
@@ -664,18 +626,10 @@ html:not(.js) .hero--landing .glass-glows {
     position: relative;
 }
 
-/* Off screen, the slideshow rests where it is. */
-.hero--landing.is-offscreen .hero__campus-slide {
-    animation-play-state: paused;
-}
-
-/* No motion: the first photo stays, still. */
+/* No motion: the photo is simply there. */
 @media (prefers-reduced-motion: reduce) {
     .hero__campus-slide {
         animation: none;
-    }
-
-    .hero__campus-slide--1 {
         opacity: 1;
     }
 }

@@ -2,18 +2,7 @@
 (function () {
     'use strict';
 
-    const root = document.documentElement;
     const calm = window.matchMedia('(prefers-reduced-motion: reduce)');
-
-    /* ---------- The hero's moving grid and photos rest while the hero is off screen ---------- */
-
-    const hero = document.querySelector('[data-hero]');
-
-    if (hero !== null && 'IntersectionObserver' in window) {
-        new IntersectionObserver((entries) => {
-            hero.classList.toggle('is-offscreen', !entries[0].isIntersecting);
-        }).observe(hero);
-    }
 
     /* ---------- Committee spotlight ---------- */
 
