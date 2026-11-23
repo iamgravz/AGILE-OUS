@@ -125,3 +125,42 @@ body {
     backdrop-filter: var(--glass-filter);
     -webkit-backdrop-filter: var(--glass-filter);
 }
+
+/*
+ * Counts carry their state instead of a decorative stripe: waiting (maroon number, a "Waiting" pill) when there is
+ * something to act on, clear (muted, "Nothing waiting") at zero, plain otherwise.
+ */
+.app-main .stat-card {
+    position: relative;
+}
+
+.stat-card__state {
+    position: absolute;
+    top: var(--space-4);
+    right: var(--space-4);
+    padding: 0.1rem 0.6rem;
+    border-radius: var(--radius-full);
+    background: var(--primary);
+    color: var(--on-primary);
+    font: 600 0.7rem/1.6 var(--font-body);
+    letter-spacing: 0.02em;
+}
+
+.stat-card--waiting .stat-card__value {
+    color: var(--primary);
+}
+
+.stat-card--clear .stat-card__value {
+    color: var(--color-text-muted);
+}
+
+.stat-card__sub--clear {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-1);
+    color: var(--success-fg);
+}
+
+.stat-card--waiting .stat-card__label {
+    padding-right: 4.75rem;
+}

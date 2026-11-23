@@ -127,14 +127,7 @@
     overflow: hidden;
 }
 
-/* A thin gold line on every count: the same accent as the bands. */
-.app-main .stat-card::before {
-    content: "";
-    position: absolute;
-    inset: 0 auto 0 0;
-    width: 4px;
-    background: var(--gold);
-}
+
 
 .app-main .card__title,
 .docs__main h2 {
