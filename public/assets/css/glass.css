@@ -1,0 +1,127 @@
+/*
+ * Glassmorphism for the whole system (Nov 23, 2026). The page ground carries soft navy, maroon and gold light, and the
+ * surfaces on it are frosted glass: translucent white, blurred behind, a thin bright edge and a soft shadow. Text stays
+ * on a mostly opaque surface so it reads as before. Loaded after modern.css on every page.
+ *
+ * Left alone: the Iskobot pages (login, apply, Track Status, Ask for Help, registration), whose cards were already
+ * glass on their own stage, and the other submit forms, whose cards stay as designed.
+ *
+ * Without blur support, or for people who ask for less transparency, tokens.css turns --glass-filter off and the
+ * surfaces here become nearly solid.
+ */
+
+:root {
+    --frost: rgb(255 255 255 / 64%);
+    --frost-strong: rgb(255 255 255 / 80%);
+    --frost-edge: rgb(255 255 255 / 75%);
+    --frost-line: rgb(18 34 58 / 10%);
+    --frost-shadow: 0 10px 30px rgb(18 34 58 / 10%), inset 0 1px 0 rgb(255 255 255 / 70%);
+    --frost-dark: rgb(13 19 34 / 78%);
+}
+
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+    :root {
+        --frost: rgb(255 255 255 / 96%);
+        --frost-strong: rgb(255 255 255 / 98%);
+        --frost-dark: rgb(13 19 34 / 97%);
+    }
+}
+
+@media (prefers-reduced-transparency: reduce) {
+    :root {
+        --frost: rgb(255 255 255 / 98%);
+        --frost-strong: #fff;
+        --frost-dark: #0d1322;
+    }
+}
+
+/* ---------- The ground: soft light behind the glass ---------- */
+
+body {
+    background:
+        radial-gradient(42rem 32rem at 8% 0%, rgb(18 34 58 / 14%), transparent 70%),
+        radial-gradient(36rem 28rem at 100% 18%, rgb(139 30 36 / 10%), transparent 70%),
+        radial-gradient(40rem 30rem at 55% 100%, rgb(212 167 44 / 13%), transparent 70%),
+        var(--color-page);
+    background-attachment: fixed;
+}
+
+/* ---------- Chrome: dark glass for the sidebar and the public header, light glass for the top bar ---------- */
+
+.sidebar {
+    background: var(--frost-dark);
+    backdrop-filter: var(--glass-filter);
+    -webkit-backdrop-filter: var(--glass-filter);
+}
+
+.site-body .site-header {
+    background: var(--frost-dark);
+    backdrop-filter: var(--glass-filter);
+    -webkit-backdrop-filter: var(--glass-filter);
+}
+
+.topbar {
+    border-bottom-color: var(--frost-line);
+    background: var(--frost-strong);
+    backdrop-filter: var(--glass-filter);
+    -webkit-backdrop-filter: var(--glass-filter);
+}
+
+/* ---------- Surfaces: frosted cards, numbers, tables, notices ---------- */
+
+:where(.app-main, .docs__main) :is(.card, .stat-card, .document-card, .post-card, .empty-state):not(:where(.glass-stage, .robot-stage, .auth-page, .wizard-form, .welfare-page, .centered-page) *),
+:where(.app-main) :not(.card__body, .card) > .table-wrap:not(:where(.wizard-form, .welfare-page, .centered-page) *),
+.px-card:not(.px-tile--vision),
+.px-person,
+.px-empty,
+.px-callout,
+.px-notice {
+    border-color: var(--frost-edge);
+    background: var(--frost);
+    box-shadow: var(--frost-shadow);
+    backdrop-filter: var(--glass-filter);
+    -webkit-backdrop-filter: var(--glass-filter);
+}
+
+.px-tile--gold,
+.px-notice {
+    background: color-mix(in srgb, var(--gold-soft) 72%, transparent);
+}
+
+.px-callout {
+    background: color-mix(in srgb, var(--primary-soft) 70%, transparent);
+}
+
+.px-person--lead {
+    background: linear-gradient(180deg, color-mix(in srgb, var(--gold-soft) 80%, transparent), var(--frost) 60%);
+}
+
+/* Tables on glass: the header row is a lighter frost, rows stay clear so the card shows through. */
+.app-main .table thead th {
+    background: rgb(255 255 255 / 55%);
+}
+
+.app-main .table tbody tr {
+    background: transparent;
+}
+
+/* The bands at the top of each page get a glass sheen on their edge. */
+.app-main > .page-header,
+.docs__head,
+.px-hero {
+    box-shadow: inset 0 -4px 0 var(--gold), inset 0 1px 0 rgb(255 255 255 / 18%), 0 12px 32px rgb(18 34 58 / 18%);
+}
+
+/* Dropdowns and dialogs float on glass too. */
+:is(.dropdown__menu, .modal__box) {
+    border-color: var(--frost-edge);
+    background: var(--frost-strong);
+    backdrop-filter: var(--glass-filter);
+    -webkit-backdrop-filter: var(--glass-filter);
+}
+
+.site-footer {
+    background: var(--frost-dark);
+    backdrop-filter: var(--glass-filter);
+    -webkit-backdrop-filter: var(--glass-filter);
+}
