@@ -41,6 +41,13 @@ final class NotificationService
         $user = $this->users->find($userId) ?? throw new InvalidArgumentException("Unknown user: {$userId}");
         $payload += ['name' => $user['first_name']];
 
+        // The person's notification preferences; notices that always go out are not affected.
+        $channels = (new NotificationPreferenceService())->allowed($userId, $templateCode, $channels);
+
+        if ($channels === []) {
+            return [];
+        }
+
         if ($link !== null) {
             $payload += ['link' => $link];
         }

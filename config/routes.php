@@ -275,6 +275,7 @@ return static function (Router $router): void {
         $router->post('/notifications/{id}/read', 'NotificationController@markRead', 'notifications.read');
         $router->get('/account', 'AccountController@show', 'account');
         $router->post('/account/contact', 'AccountController@updateContact', 'account.contact');
+        $router->post('/account/notifications', 'AccountController@updateNotifications', 'account.notifications');
         $router->post('/account/credential-requests', 'CredentialRequestsController@request', 'account.credential_request');
         $router->post('/account/credential-requests/{id}/cancel', 'CredentialRequestsController@cancel', 'account.credential_request.cancel');
         $router->post('/account/photo', 'AccountController@updatePhoto', 'account.photo');

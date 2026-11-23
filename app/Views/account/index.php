@@ -3,6 +3,7 @@
  * @var \App\Core\View $this
  * @var array<string, mixed> $account
  * @var array<string, mixed>|null $membership
+ * @var array<string, array<string, bool>> $notificationChoices category => channel => on
  */
 $tabs = $membership === null ? ['details' => 'Details'] : ['details' => 'Details', 'history' => 'Membership history', 'applications' => 'Applications'];
 $memberPart = static fn (array $parts): array => $membership + ['withDownloads' => true, 'headingLevel' => 2, 'parts' => $parts];
@@ -80,6 +81,39 @@ $member = $membership['member'] ?? null;
                 <?= csrf_field() ?>
                 <?= $this->partial('partials/student_details', ['values' => ['year_level' => $account['year_level'] ?? '', 'section' => $account['section'] ?? '', 'contact_no' => $account['contact_no']]]) ?>
                 <button type="submit" class="btn btn--primary">Save</button>
+            </form>
+        </div>
+    </section>
+
+    <section class="plain-section" aria-labelledby="account-notifications" id="notifications">
+        <div class="card__header"><h2 class="card__title" id="account-notifications">Notifications</h2></div>
+        <div class="card__body">
+            <p class="field__help">Choose which optional notices you get. Sign-in codes, passwords, decisions on your application, your welfare concerns and your ID or certificate always reach you.</p>
+            <form method="post" action="<?= e(route('account.notifications')) ?>">
+                <?= csrf_field() ?>
+                <div class="table-wrap">
+                    <table class="table table--stack notification-prefs">
+                        <caption class="sr-only">Notification preferences</caption>
+                        <thead><tr><th scope="col">Notice</th><?php foreach (\App\Services\NotificationPreferenceService::CHANNEL_LABELS as $label) : ?><th scope="col"><?= e($label) ?></th><?php endforeach; ?></tr></thead>
+                        <tbody>
+                            <?php foreach (\App\Services\NotificationPreferenceService::CATEGORIES as $key => [$label, $help, , $optional]) : ?>
+                                <tr>
+                                    <td data-label="Notice"><strong><?= e($label) ?></strong><span class="timeline__meta"><?= e($help) ?></span></td>
+                                    <?php foreach (\App\Services\NotificationPreferenceService::CHANNEL_LABELS as $channel => $channelLabel) : ?>
+                                        <td data-label="<?= e($channelLabel) ?>">
+                                            <?php if (in_array($channel, $optional, true)) : ?>
+                                                <label class="check"><input type="checkbox" name="notify[<?= e($key) ?>][<?= e($channel) ?>]" value="1"<?= $notificationChoices[$key][$channel] ? ' checked' : '' ?>> <span>On</span></label>
+                                            <?php else : ?>
+                                                <span class="text-muted">Always on</span>
+                                            <?php endif; ?>
+                                        </td>
+                                    <?php endforeach; ?>
+                                </tr>
+                            <?php endforeach; ?>
+                        </tbody>
+                    </table>
+                </div>
+                <button type="submit" class="btn btn--primary">Save notification preferences</button>
             </form>
         </div>
     </section>

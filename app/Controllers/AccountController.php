@@ -24,6 +24,7 @@ final class AccountController
             'account' => current_user(),
             'membership' => (new MemberRecordsService())->ownProfile(),
             'credentialRequests' => (new \App\Services\CredentialRequestService())->mine(),
+            'notificationChoices' => (new \App\Services\NotificationPreferenceService())->forUser((int) current_user_id()),
             'breadcrumbs' => [['label' => 'Dashboard', 'url' => route('dashboard')], ['label' => 'My Account']],
         ], 'layouts/dashboard'));
     }
@@ -41,6 +42,16 @@ final class AccountController
         flash('success', 'Your year level, section and contact number have been updated.');
 
         return redirect(route('account'));
+    }
+
+    /** Notification preferences: the optional notices, by channel. */
+    public function updateNotifications(Request $request): Response
+    {
+        $submitted = $request->input('notify', []);
+        (new \App\Services\NotificationPreferenceService())->save((int) current_user_id(), is_array($submitted) ? $submitted : []);
+        flash('success', 'Your notification preferences were saved.');
+
+        return redirect(route('account') . '#account-notifications');
     }
 
     public function updatePhoto(Request $request): Response

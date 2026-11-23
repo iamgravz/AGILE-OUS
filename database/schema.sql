@@ -1024,6 +1024,17 @@ CREATE TABLE IF NOT EXISTS event_registrations (
     CONSTRAINT fk_event_registrations_checked_in_by FOREIGN KEY (checked_in_by) REFERENCES users (user_id) ON DELETE RESTRICT ON UPDATE RESTRICT
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+-- Notification preferences (Nov 23, 2026). No row means every channel is on.
+CREATE TABLE IF NOT EXISTS notification_preferences (
+    user_id INT UNSIGNED NOT NULL,
+    category VARCHAR(30) NOT NULL,
+    email TINYINT(1) NOT NULL DEFAULT 1,
+    in_app TINYINT(1) NOT NULL DEFAULT 1,
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    PRIMARY KEY (user_id, category),
+    CONSTRAINT fk_notification_preferences_user FOREIGN KEY (user_id) REFERENCES users (user_id) ON DELETE RESTRICT ON UPDATE RESTRICT
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 CREATE TABLE IF NOT EXISTS job_runs (
     run_id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
     job VARCHAR(60) NOT NULL,
