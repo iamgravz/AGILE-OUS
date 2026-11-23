@@ -59,6 +59,18 @@ return [
         'Your AGILE digital ID and certificate are ready',
         $body('The MSW Committee Head approved your AGILE digital ID and certificate.', [], ['{link_text}']),
     ],
+    'CREDENTIAL_REQUESTED' => [
+        'A member asked for their AGILE {type}',
+        $body('A member asked for their {type}. Make it from the AGILE template and upload it on ID and certificate requests.', [], ['Open the requests']),
+    ],
+    'CREDENTIAL_UPLOADED' => [
+        'Your AGILE {type} is ready',
+        $body('The MSW Committee uploaded your {type}.', [], ['{link_text}']),
+    ],
+    'CREDENTIAL_DECLINED' => [
+        'An update on your AGILE {type} request',
+        $body('The MSW Committee could not prepare your {type} yet.', ['Reason' => '{remarks}'], ['Open My Account']),
+    ],
     'MEMBER_REGISTRATION_CODE' => [
         'Your AGILE registration code',
         $body('Please use the code below to register your AGILE member account. Enter it on the registration page within 15 minutes.', ['Registration code' => '{code}'], null, 'If you did not ask for this code, you can ignore this message.', 'AGILE Member'),

@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 use App\Core\Database;
 use App\Core\ForbiddenException;
-use DomainException;
 use App\Models\ApplicantRepository;
 use App\Models\MemberRepository;
 use App\Models\MembershipApplicationRepository;
@@ -577,7 +576,8 @@ final class AccountsAndDecisionsTest extends TestCase
             'wizard_step' => 6,
         ]);
 
-        foreach (['school_id', 'cor'] as $type) {
+        // The current COR, and the grades a position also needs (AGILE's membership requirements).
+        foreach (['cor', 'grades'] as $type) {
             $this->insert('application_documents', [
                 'application_id' => $id,
                 'doc_type' => $type,

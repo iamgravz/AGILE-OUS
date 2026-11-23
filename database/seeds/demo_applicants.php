@@ -31,7 +31,7 @@ return static function (PDO $db): void {
     // [email, first name, last name, student no, contact no, tracking code, status, document status, remarks]
     $people = [
         ['andrea.santos@agile.test', 'Andrea', 'Santos', '2024-00111-OU-0', '09170001111', 'DEMAPPSUBMT2', 'submitted', 'pending', null],
-        ['jose.delacruz@agile.test', 'Jose', 'Dela Cruz', '2024-00112-OU-0', '09170001112', 'DEMAPPREV2SE', 'for_revision', 'needs_correction', 'The school ID photo is too dark to read. Please upload a clearer copy.'],
+        ['jose.delacruz@agile.test', 'Jose', 'Dela Cruz', '2024-00112-OU-0', '09170001112', 'DEMAPPREV2SE', 'for_revision', 'needs_correction', 'The COR photo is too dark to read. Please upload a clearer copy.'],
         ['maria.lim@agile.test', 'Maria', 'Lim', '2024-00113-OU-0', '09170001113', 'DEMAPPREVWD3', 'under_review', 'verified', null],
         ['lito.ramos@agile.test', 'Lito', 'Ramos', '2024-00114-OU-0', '09170001114', 'DEMAPPAPPRV4', 'approved', 'verified', 'Welcome to AGILE.'],
         ['rosa.garcia@agile.test', 'Rosa', 'Garcia', '2024-00115-OU-0', '09170001115', 'DEMAPPAPPRV5', 'approved', 'verified', 'Welcome to AGILE.'],
@@ -78,16 +78,15 @@ return static function (PDO $db): void {
             seed_row($db, 'application_answers', 'answer_id', ['application_id' => $applicationId, 'question_id' => $findQuestion->fetchColumn()], ['answer_text' => $answer]);
         }
 
-        foreach (['school_id', 'cor'] as $type) {
-            seed_row($db, 'application_documents', 'document_id', ['application_id' => $applicationId, 'doc_type' => $type], [
-                'original_name' => "{$type}.pdf",
-                'stored_path' => 'applications/demo/' . $storedName($type),
-                'mime_type' => 'application/pdf',
-                'size_bytes' => strlen($pdf),
-                'verification_status' => $type === 'school_id' ? $documentStatus : ($documentStatus === 'verified' ? 'verified' : 'pending'),
-                'verification_remarks' => $type === 'school_id' ? $remarks : null,
-            ]);
-        }
+        // General Membership needs the current COR only (AGILE's membership requirements).
+        seed_row($db, 'application_documents', 'document_id', ['application_id' => $applicationId, 'doc_type' => 'cor'], [
+            'original_name' => 'cor.pdf',
+            'stored_path' => 'applications/demo/' . $storedName('cor'),
+            'mime_type' => 'application/pdf',
+            'size_bytes' => strlen($pdf),
+            'verification_status' => $documentStatus,
+            'verification_remarks' => $documentStatus === 'needs_correction' ? $remarks : null,
+        ]);
 
         $history = $db->prepare('INSERT INTO application_status_history (application_id, old_status, new_status, remarks, changed_by, changed_at) VALUES (?, ?, ?, ?, NULL, ?)');
         $history->execute([$applicationId, 'draft', 'submitted', null, $now]);
@@ -154,15 +153,13 @@ return static function (PDO $db): void {
             'submitted_at' => $now,
         ]);
 
-        foreach (['school_id', 'cor'] as $type) {
-            seed_row($db, 'application_documents', 'document_id', ['application_id' => $applicationId, 'doc_type' => $type], [
-                'original_name' => "{$type}.pdf",
-                'stored_path' => 'applications/demo/' . $storedName($type),
-                'mime_type' => 'application/pdf',
-                'size_bytes' => strlen($pdf),
-                'verification_status' => 'verified',
-            ]);
-        }
+        seed_row($db, 'application_documents', 'document_id', ['application_id' => $applicationId, 'doc_type' => 'cor'], [
+            'original_name' => 'cor.pdf',
+            'stored_path' => 'applications/demo/' . $storedName('cor'),
+            'mime_type' => 'application/pdf',
+            'size_bytes' => strlen($pdf),
+            'verification_status' => 'verified',
+        ]);
 
         $history = $db->prepare('INSERT INTO application_status_history (application_id, old_status, new_status, remarks, changed_by, changed_at) VALUES (?, ?, ?, ?, NULL, ?)');
         $history->execute([$applicationId, 'draft', 'submitted', null, $now]);

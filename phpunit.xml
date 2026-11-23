@@ -13,7 +13,12 @@
         <env name="DB_NAME_TEST" value="agile_ams_test" force="true"/>
         <!-- Whatever .env says, tests send no email, call no AI provider and use their own encryption key. -->
         <env name="APP_ENV" value="local" force="true"/>
-        <env name="APP_DEBUG" value="false" force="true"/>
+        <!-- "0", not "false": PHPUnit turns "false" into an empty value, and on Windows an empty variable is removed,
+             so the child processes (database rebuild, test server) would read .env instead. -->
+        <env name="APP_DEBUG" value="0" force="true"/>
+        <env name="DEMO_BULK" value="0" force="true"/>
+        <!-- The older credential tests cover the generated PDFs; CredentialRequestsTest switches to manual. -->
+        <env name="CREDENTIAL_MODE" value="generated" force="true"/>
         <env name="APP_URL" value="http://localhost" force="true"/>
         <env name="MAIL_DRIVER" value="log" force="true"/>
         <env name="SMTP_HOST" value="invalid.invalid" force="true"/>

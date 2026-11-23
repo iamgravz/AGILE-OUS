@@ -137,7 +137,7 @@ final class JobsAndBackupTest extends TestCase
             $db = Database::connection();
             $id = (int) $db->query("SELECT application_id FROM membership_applications WHERE tracking_code = 'DEMAPPREV2SE'")->fetchColumn();
             $db->prepare('DELETE FROM application_access_links WHERE application_id = ?')->execute([$id]);
-            $service = new MembershipService();
+            $service = new \App\Services\ApplicationReminderService();
             $log = static function (): void {
             };
             $emails = static function () use ($db): int {

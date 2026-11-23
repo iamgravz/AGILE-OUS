@@ -23,28 +23,44 @@ final class HttpWholeFlowsTest extends TestCase
         $browser = new TestServer();
 
         $browser->get('/apply');
-        $browser->post('/apply/code', ['first_name' => 'Flow', 'last_name' => 'Applicant', 'email' => $email, 'student_no' => $number, 'privacy_consent' => '1']);
+        // The first page asks what they apply for and the documents that choice needs (the COR for General Membership).
+        $person = ['first_name' => 'Flow', 'last_name' => 'Applicant', 'email' => $email, 'student_no' => $number, 'year_level' => '2nd Year', 'section' => 'bsitoumn 3-2', 'contact_no' => '09171234500', 'privacy_consent' => '1'];
+        $browser->post('/apply/code', $person);
+        $this->assertSame(0, $this->rowCount('notifications', 'recipient_email = ?', [$email]), 'No code without choosing what they apply for.');
+
+        $browser->get('/apply');
+        $browser->post('/apply/code', $person + ['applying_for' => 'general']);
+        $this->assertSame(0, $this->rowCount('notifications', 'recipient_email = ?', [$email]), 'No code without the COR.');
+
+        $browser->get('/apply');
+        $browser->upload('/apply/code', $person + ['applying_for' => 'general'], 'cor', 'cor.pdf', self::PDF, 'application/pdf');
         $this->assertSame(0, $this->rowCount('applicants', 'email = ?', [$email]), 'Nothing is saved before the code.');
 
         $browser->get('/apply');
         $page = $browser->follow($browser->post('/apply/verify', ['code' => $this->lastPayload($email, 'GUEST_EMAIL_CODE')['code']]));
         $this->assertStringContainsString('Personal info', $page['body']);
 
-        $response = $browser->post('/apply/new', ['first_name' => 'Flow', 'last_name' => 'Applicant', 'student_no' => $number, 'contact_no' => '09171234500', 'intent' => 'next']);
+        $response = $browser->post('/apply/new', ['first_name' => 'Flow', 'last_name' => 'Applicant', 'student_no' => $number, 'year_level' => '2nd Year', 'section' => 'BSITOUMN 3-2', 'contact_no' => '09171234500', 'intent' => 'next']);
         $this->assertSame(1, preg_match('#apply/(\d+)#', $response['location'], $match), $response['location']);
         $id = (int) $match[1];
         $browser->follow($response);
+        $this->assertSame(1, $this->rowCount('application_documents', "application_id = ? AND doc_type = 'cor'", [$id]), 'The COR from the first page joined the application.');
+        $this->assertSame(1, $this->rowCount('applicants', "email = ? AND section = 'BSITOUMN 3-2' AND year_level = '2nd Year' AND contact_no = '09171234500'", [$email]), 'Year level, section and contact number are saved.');
+        $this->assertStringContainsString('value="2nd Year" selected', $browser->get("/apply/{$id}/step/2")['body'], 'The year level answers step 2.');
 
         $browser->follow($browser->post("/apply/{$id}/step/2", $this->answers('academic', '2nd Year') + ['enrolled' => '1', 'intent' => 'next']));
+        $this->assertStringContainsString('value="general" checked', $browser->get("/apply/{$id}/step/3")['body'], 'The first page\'s choice is already selected.');
         $browser->follow($browser->post("/apply/{$id}/step/3", ['membership_type' => 'general', 'intent' => 'next']));
         $browser->follow($browser->post("/apply/{$id}/step/4", $this->answers('common', '5 hours a week') + ['intent' => 'next']));
 
+        // General Membership: the current COR only. A School ID is no longer asked for, so its upload is refused; a new
+        // COR replaces the one from the first page, which is still pending.
         foreach (['school_id', 'cor'] as $type) {
             $browser->get("/apply/{$id}/step/5");
             $browser->upload("/apply/{$id}/documents/{$type}", [], 'document', "{$type}.pdf", self::PDF, 'application/pdf');
         }
 
-        $this->assertSame(2, $this->rowCount('application_documents', 'application_id = ?', [$id]));
+        $this->assertSame(1, $this->rowCount('application_documents', 'application_id = ?', [$id]));
         $browser->get("/apply/{$id}/step/5");
         $browser->follow($browser->post("/apply/{$id}/step/5", ['intent' => 'next']));
 
@@ -86,13 +102,35 @@ final class HttpWholeFlowsTest extends TestCase
         $browser = new TestServer();
 
         $browser->get('/welfare/guest');
-        $browser->follow($browser->post('/welfare/guest/code', ['name' => 'Flow Guest', 'email' => $email, 'student_no' => '', 'privacy_consent' => '1']));
+        $guest = ['name' => 'Flow Guest', 'email' => $email, 'student_no' => '', 'privacy_consent' => '1', 'year_level' => '3rd Year', 'section' => 'bsitoumn 3-1', 'contact_no' => '09171234599'];
+
+        // Year level, section and contact number are required (Nov 23, 2026).
+        $page = $browser->post('/welfare/guest/code', ['contact_no' => '', 'section' => ''] + $guest + ['category_id' => '1', 'description' => 'Words']);
+        $this->assertSame(422, $page['status']);
+        $this->assertStringContainsString('Section is required', $page['body']);
+        $this->assertStringContainsString('Contact number is required', $page['body']);
+
+        // The first page asks for the category and the concern too, and a page with a mistake keeps them.
+        $page = $browser->post('/welfare/guest/code', $guest + ['category_id' => '1']);
+        $this->assertSame(422, $page['status']);
+        $this->assertStringContainsString('Description', $page['body']);
+        $this->assertSame(0, $this->countMail($email, 'GUEST_EMAIL_CODE'), 'No code without the concern.');
+
+        $browser->follow($browser->post('/welfare/guest/code', $guest + ['category_id' => '1', 'description' => 'FLOWSECRET first page']));
 
         $page = $browser->follow($browser->post('/welfare/guest/verify', ['code' => '000000']));
         $this->assertStringContainsString('name="code"', $page['body'], 'A wrong code stays on the code page.');
+        $this->assertStringNotContainsString('FLOWSECRET', $page['body'], 'The concern is not shown before the email is confirmed.');
 
-        $browser->follow($browser->post('/welfare/guest/verify', ['code' => $this->lastPayload($email, 'GUEST_EMAIL_CODE')['code']]));
+        $page = $browser->follow($browser->post('/welfare/guest/verify', ['code' => $this->lastPayload($email, 'GUEST_EMAIL_CODE')['code']]));
+        $this->assertStringContainsString('FLOWSECRET first page', $page['body'], 'Once confirmed, the form holds what they wrote on the first page.');
         $page = $browser->follow($browser->post('/welfare/guest/submit', ['category_id' => '1', 'subject' => 'FLOWSECRET subject', 'description' => 'FLOWSECRET words']));
+
+        $details = TestServer::db()->prepare('SELECT submitter_contact_no, submitter_year_level, submitter_section FROM welfare_cases WHERE guest_email_hash = ?');
+        $details->execute([(new \App\Services\EncryptionService())->blindIndex($email)]);
+        $stored = $details->fetch();
+        $this->assertNotSame('09171234599', $stored['submitter_contact_no'], 'The contact number is encrypted.');
+        $this->assertSame(['contact_no' => '09171234599', 'year_level' => '3rd Year', 'section' => 'BSITOUMN 3-1'], (new \App\Services\WelfareService())->submitterDetails($stored));
 
         $case = TestServer::db()->prepare('SELECT case_code, subject, guest_name FROM welfare_cases WHERE guest_email_hash = ?');
         $case->execute([(new \App\Services\EncryptionService())->blindIndex($email)]);

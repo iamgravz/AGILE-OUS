@@ -35,6 +35,5 @@ $eyebrow = 'PUP Open University System';
             </div>
         </div>
     </div>
-    <a class="hero__scroll" href="#explore" aria-label="Scroll to the rest of the page"><?= icon('chevron-down') ?></a>
-    <button type="button" class="hero__pause" data-motion-toggle hidden>Pause animation</button>
+<?php /* The scroll arrow and the Pause animation button were removed on request (Nov 23, 2026). The photos still stay still for anyone whose device asks for reduced motion. */ ?>
 </section>

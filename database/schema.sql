@@ -56,6 +56,8 @@ CREATE TABLE IF NOT EXISTS users (
     last_name VARCHAR(80) NOT NULL,
     student_no VARCHAR(20) NULL,
     contact_no VARCHAR(20) NOT NULL,
+    year_level VARCHAR(20) NULL,
+    section VARCHAR(30) NULL,
     photo_path VARCHAR(255) NULL,
     status ENUM('pending','active','locked','disabled') NOT NULL DEFAULT 'pending',
     email_verified_at DATETIME NULL,
@@ -130,6 +132,9 @@ CREATE TABLE IF NOT EXISTS positions (
     committee_key INT UNSIGNED AS (IFNULL(committee_id, 0)) STORED,
     title VARCHAR(100) NOT NULL,
     role_type ENUM('officer','committee_head','deputy','committee_member','source_code','general') NOT NULL,
+    -- Open for application on the first apply page, and how many people the position should have (addition, Nov 22, 2026).
+    is_open TINYINT(1) NOT NULL DEFAULT 0,
+    target_slots SMALLINT UNSIGNED NULL,
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     PRIMARY KEY (position_id),
@@ -177,6 +182,8 @@ CREATE TABLE IF NOT EXISTS applicants (
     student_no VARCHAR(20) NULL,
     contact_no VARCHAR(20) NULL,
     year_level VARCHAR(30) NULL,
+    -- Asked on the first apply page with the year level (addition, Nov 22, 2026).
+    section VARCHAR(30) NULL,
     email_verified_at DATETIME NULL,
     user_id INT UNSIGNED NULL,
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -194,6 +201,7 @@ CREATE TABLE IF NOT EXISTS members (
     applicant_id INT UNSIGNED NULL,
     position_id INT UNSIGNED NULL,
     member_no VARCHAR(20) NOT NULL,
+    verify_token CHAR(64) NULL,
     membership_type ENUM('general','officer') NOT NULL,
     status ENUM('active') NOT NULL DEFAULT 'active',
     role_status ENUM('active','expired') NULL,
@@ -207,6 +215,7 @@ CREATE TABLE IF NOT EXISTS members (
     UNIQUE KEY uq_members_user_id (user_id),
     UNIQUE KEY uq_members_applicant_id (applicant_id),
     UNIQUE KEY uq_members_member_no (member_no),
+    UNIQUE KEY uq_members_verify_token (verify_token),
     KEY idx_members_position_id (position_id),
     KEY idx_members_status (status),
     KEY idx_members_role_status (role_status),
@@ -317,6 +326,8 @@ CREATE TABLE IF NOT EXISTS membership_applications (
     applicant_id INT UNSIGNED NULL,
     user_id INT UNSIGNED NULL,
     vacancy_id INT UNSIGNED NULL,
+    -- The open position chosen on the first apply page, without a vacancy (addition, Nov 22, 2026).
+    position_id INT UNSIGNED NULL,
     tracking_code CHAR(12) NOT NULL,
     status ENUM('draft','submitted','under_review','for_revision','waitlisted','approved','rejected','withdrawn') NOT NULL DEFAULT 'draft',
     wizard_step TINYINT UNSIGNED NOT NULL DEFAULT 1,
@@ -333,10 +344,13 @@ CREATE TABLE IF NOT EXISTS membership_applications (
     KEY idx_membership_applications_applicant_id (applicant_id),
     KEY idx_membership_applications_user_id (user_id),
     KEY idx_membership_applications_vacancy_id (vacancy_id),
+    KEY idx_membership_applications_position_id (position_id),
     KEY idx_membership_applications_decided_by (decided_by),
     KEY idx_membership_applications_status (status),
     KEY idx_membership_applications_created_at (created_at),
     CONSTRAINT chk_membership_applications_owner CHECK ((applicant_id IS NULL) <> (user_id IS NULL)),
+    CONSTRAINT chk_membership_applications_one_choice CHECK (vacancy_id IS NULL OR position_id IS NULL),
+    CONSTRAINT fk_membership_applications_position FOREIGN KEY (position_id) REFERENCES positions (position_id) ON DELETE RESTRICT ON UPDATE RESTRICT,
     CONSTRAINT fk_membership_applications_applicant FOREIGN KEY (applicant_id) REFERENCES applicants (applicant_id) ON DELETE RESTRICT ON UPDATE RESTRICT,
     CONSTRAINT fk_membership_applications_user FOREIGN KEY (user_id) REFERENCES users (user_id) ON DELETE RESTRICT ON UPDATE RESTRICT,
     CONSTRAINT fk_membership_applications_vacancy FOREIGN KEY (vacancy_id) REFERENCES vacancies (vacancy_id) ON DELETE RESTRICT ON UPDATE RESTRICT,
@@ -553,6 +567,9 @@ CREATE TABLE IF NOT EXISTS welfare_cases (
     guest_email TEXT NULL,
     guest_email_hash CHAR(64) NULL,
     guest_student_no TEXT NULL,
+    submitter_contact_no TEXT NULL,
+    submitter_year_level TEXT NULL,
+    submitter_section TEXT NULL,
     category_id TINYINT UNSIGNED NOT NULL,
     priority ENUM('low','medium','high','urgent') NOT NULL DEFAULT 'medium',
     student_marked_urgent TINYINT(1) NOT NULL DEFAULT 0,
@@ -849,6 +866,100 @@ CREATE TABLE IF NOT EXISTS eligibility_reviews (
     CONSTRAINT fk_eligibility_reviews_screening FOREIGN KEY (screening_id) REFERENCES eligibility_screenings (screening_id) ON DELETE RESTRICT ON UPDATE RESTRICT,
     CONSTRAINT fk_eligibility_reviews_decided_by FOREIGN KEY (decided_by) REFERENCES users (user_id) ON DELETE RESTRICT ON UPDATE RESTRICT
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Elected officers' terms (Constitution and By-Laws, Article VI Section 4: at most two consecutive terms in one post).
+CREATE TABLE IF NOT EXISTS officer_terms (
+    term_id INT UNSIGNED NOT NULL AUTO_INCREMENT,
+    member_id INT UNSIGNED NOT NULL,
+    position_id INT UNSIGNED NOT NULL,
+    academic_year CHAR(9) NOT NULL,
+    year_level VARCHAR(20) NOT NULL,
+    recorded_by INT UNSIGNED NULL,
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    PRIMARY KEY (term_id),
+    UNIQUE KEY uq_officer_terms_member_position_year (member_id, position_id, academic_year),
+    KEY idx_officer_terms_position_id (position_id),
+    KEY idx_officer_terms_recorded_by (recorded_by),
+    CONSTRAINT fk_officer_terms_member FOREIGN KEY (member_id) REFERENCES members (member_id) ON DELETE RESTRICT ON UPDATE RESTRICT,
+    CONSTRAINT fk_officer_terms_position FOREIGN KEY (position_id) REFERENCES positions (position_id) ON DELETE RESTRICT ON UPDATE RESTRICT,
+    CONSTRAINT fk_officer_terms_recorded_by FOREIGN KEY (recorded_by) REFERENCES users (user_id) ON DELETE RESTRICT ON UPDATE RESTRICT,
+    CONSTRAINT chk_officer_terms_year CHECK (academic_year REGEXP '^[0-9]{4}-[0-9]{4}$' AND CAST(RIGHT(academic_year, 4) AS UNSIGNED) = CAST(LEFT(academic_year, 4) AS UNSIGNED) + 1)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Candidacies for the Executive Board and the Year-Level Council (Article VI), filed by members.
+CREATE TABLE IF NOT EXISTS election_candidacies (
+    candidacy_id INT UNSIGNED NOT NULL AUTO_INCREMENT,
+    user_id INT UNSIGNED NOT NULL,
+    position_id INT UNSIGNED NOT NULL,
+    academic_year CHAR(9) NOT NULL,
+    year_level VARCHAR(20) NOT NULL,
+    section VARCHAR(30) NOT NULL,
+    contact_no VARCHAR(20) NOT NULL,
+    statement TEXT NULL,
+    cor_path VARCHAR(255) NOT NULL,
+    grades_path VARCHAR(255) NOT NULL,
+    status ENUM('filed','qualified','disqualified','withdrawn','elected') NOT NULL DEFAULT 'filed',
+    remarks VARCHAR(255) NULL,
+    decided_by INT UNSIGNED NULL,
+    decided_at DATETIME NULL,
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    PRIMARY KEY (candidacy_id),
+    KEY idx_election_candidacies_user_year (user_id, academic_year),
+    KEY idx_election_candidacies_position_id (position_id),
+    KEY idx_election_candidacies_status (status),
+    KEY idx_election_candidacies_decided_by (decided_by),
+    CONSTRAINT fk_election_candidacies_user FOREIGN KEY (user_id) REFERENCES users (user_id) ON DELETE RESTRICT ON UPDATE RESTRICT,
+    CONSTRAINT fk_election_candidacies_position FOREIGN KEY (position_id) REFERENCES positions (position_id) ON DELETE RESTRICT ON UPDATE RESTRICT,
+    CONSTRAINT fk_election_candidacies_decided_by FOREIGN KEY (decided_by) REFERENCES users (user_id) ON DELETE RESTRICT ON UPDATE RESTRICT,
+    CONSTRAINT chk_election_candidacies_year CHECK (academic_year REGEXP '^[0-9]{4}-[0-9]{4}$' AND CAST(RIGHT(academic_year, 4) AS UNSIGNED) = CAST(LEFT(academic_year, 4) AS UNSIGNED) + 1)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+;
+
+-- A second standing committee for a committee member or Year-Level Representative (Article VI Section 4-A allows two).
+CREATE TABLE IF NOT EXISTS member_committees (
+    member_committee_id INT UNSIGNED NOT NULL AUTO_INCREMENT,
+    member_id INT UNSIGNED NOT NULL,
+    committee_id INT UNSIGNED NOT NULL,
+    joined_at DATE NOT NULL,
+    added_by INT UNSIGNED NULL,
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    PRIMARY KEY (member_committee_id),
+    UNIQUE KEY uq_member_committees_member_committee (member_id, committee_id),
+    KEY idx_member_committees_committee_id (committee_id),
+    KEY idx_member_committees_added_by (added_by),
+    CONSTRAINT fk_member_committees_member FOREIGN KEY (member_id) REFERENCES members (member_id) ON DELETE RESTRICT ON UPDATE RESTRICT,
+    CONSTRAINT fk_member_committees_committee FOREIGN KEY (committee_id) REFERENCES committees (committee_id) ON DELETE RESTRICT ON UPDATE RESTRICT,
+    CONSTRAINT fk_member_committees_added_by FOREIGN KEY (added_by) REFERENCES users (user_id) ON DELETE RESTRICT ON UPDATE RESTRICT
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+;
+
+-- A member asks for their digital ID or certificate; the MSW Committee Head uploads it, made from AGILE's own template.
+CREATE TABLE IF NOT EXISTS credential_requests (
+    request_id INT UNSIGNED NOT NULL AUTO_INCREMENT,
+    member_id INT UNSIGNED NOT NULL,
+    type ENUM('digital_id','certificate') NOT NULL,
+    note VARCHAR(255) NULL,
+    photo_path VARCHAR(255) NULL,
+    status ENUM('requested','issued','declined','cancelled') NOT NULL DEFAULT 'requested',
+    credential_id INT UNSIGNED NULL,
+    remarks VARCHAR(255) NULL,
+    handled_by INT UNSIGNED NULL,
+    handled_at DATETIME NULL,
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    PRIMARY KEY (request_id),
+    KEY idx_credential_requests_member_id (member_id),
+    KEY idx_credential_requests_status (status),
+    KEY idx_credential_requests_credential_id (credential_id),
+    KEY idx_credential_requests_handled_by (handled_by),
+    CONSTRAINT fk_credential_requests_member FOREIGN KEY (member_id) REFERENCES members (member_id) ON DELETE RESTRICT ON UPDATE RESTRICT,
+    CONSTRAINT fk_credential_requests_credential FOREIGN KEY (credential_id) REFERENCES digital_credentials (credential_id) ON DELETE RESTRICT ON UPDATE RESTRICT,
+    CONSTRAINT fk_credential_requests_handled_by FOREIGN KEY (handled_by) REFERENCES users (user_id) ON DELETE RESTRICT ON UPDATE RESTRICT
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+;
 
 CREATE TABLE IF NOT EXISTS job_runs (
     run_id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,

@@ -34,7 +34,7 @@ $parts ??= ['summary', 'credentials', 'history', 'applications'];
     <?php if ($inReview) : ?>
         <p>Your digital ID and certificate are being reviewed by the MSW Committee Head. We'll email you when they're ready.</p>
     <?php elseif ($activeCredentials === []) : ?>
-        <p class="text-muted">Your credentials have not been issued yet. Please contact the MSW Committee.</p>
+        <p class="text-muted"><?= \App\Services\CredentialService::manual() ? 'You have no digital ID or certificate yet. Request one below.' : 'Your credentials have not been issued yet. Please contact the MSW Committee.' ?></p>
     <?php endif; ?>
     <?php if ($approved !== []) : ?>
         <?= $this->partial('members/_credential_cards', ['credentials' => array_values($approved), 'forOwner' => true, 'headingLevel' => $headingLevel + 1]) ?>
@@ -44,10 +44,7 @@ $parts ??= ['summary', 'credentials', 'history', 'applications'];
 <?php if (in_array('history', $parts, true)) : ?>
 <<?= $heading ?> class="member-section">Notices</<?= $heading ?>>
 <?php if ($notice !== null) : ?>
-    <div class="alert alert--<?= e($notice['tone']) ?>" role="status">
-        <?= icon($notice['tone'] === 'success' ? 'check' : 'alert') ?>
-        <p class="alert__text"><?= e($notice['message']) ?><?php if ($isOwn) : ?> <a href="<?= e(route('my_eligibility')) ?>">My Eligibility</a><?php endif; ?></p>
-    </div>
+    <?= $this->partial('partials/rolling_notice', ['tone' => $notice['tone'], 'message' => $notice['message'], 'linkUrl' => $isOwn ? route('my_eligibility') : null, 'linkText' => $isOwn ? 'My Eligibility' : null]) ?>
 <?php elseif ($member['role_status'] === 'expired') : ?>
     <p>The officer role ended on <?= e(date_ph($member['role_expired_at'])) ?>. Membership stays Active.</p>
 <?php else : ?>

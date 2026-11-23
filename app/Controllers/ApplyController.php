@@ -14,6 +14,7 @@ use App\Services\ApplicationIncompleteException;
 use App\Services\FileRejectedException;
 use App\Services\GuestVerificationService;
 use App\Services\MembershipService;
+use App\Services\StudentDetails;
 use DomainException;
 
 /**
@@ -24,6 +25,10 @@ final class ApplyController
 {
     private const VACANCY_KEY = 'apply_vacancy';
     private const PENDING_KEY = 'apply_pending';
+    /** What they chose on the first page ("general" or "position:<id>"), preselected on step 3. */
+    private const CHOICE_KEY = 'apply_choice';
+    /** Documents uploaded on the first page, doc_type => stored file, attached when the draft is created. */
+    private const DOCUMENTS_KEY = 'apply_documents';
     private const TOO_MANY = 'Too many tries. Please wait 15 minutes, then try again.';
     private const BAD_LINK = 'This link is invalid, expired or already used. If your application was returned for revision, ask for a new link on this page. To continue a draft, start again from Apply and confirm your email.';
 
@@ -41,9 +46,13 @@ final class ApplyController
 
         if (current_user_id() === null && ApplicantAccessService::current() === null) {
             $pending = Session::get(self::PENDING_KEY);
+            $open = $this->membership->openPositions();
+            // From Open Positions: "Apply" on a card arrives with ?position=<id>, already chosen.
+            $picked = array_values(array_filter($open, static fn (array $p): bool => (string) $p['position_id'] === $request->queryText('position')))[0] ?? null;
 
             return $pending === null
-                ? $this->publicPage('membership/apply/start', ['forPosition' => ctype_digit($vacancy)])
+                ? $this->publicPage('membership/apply/start', ['forPosition' => ctype_digit($vacancy), 'positions' => $open, 'yearLevels' => $this->membership->yearLevelOptions(), 'semester' => $this->membership->currentSemester(),
+                    'prefill' => $picked === null ? [] : ['applying_for' => $picked['role_type'], 'position_id' => (string) $picked['position_id']]])
                 : $this->publicPage('membership/apply/verify', ['email' => $pending['email']]);
         }
 
@@ -64,8 +73,12 @@ final class ApplyController
             'last_name' => $request->text('last_name'),
             'email' => strtolower($request->text('email')),
             'student_no' => strtoupper($request->text('student_no')),
+            'year_level' => $request->text('year_level'),
+            'section' => strtoupper($request->text('section')),
+            'contact_no' => $request->text('contact_no'),
         ];
-        $errors = Validator::check($data + ['privacy_consent' => $request->text('privacy_consent')], [
+        $errors = $this->contactErrors($data['contact_no']) + Validator::check($data + ['privacy_consent' => $request->text('privacy_consent')], [
+            'section' => ['label' => 'Section', 'rules' => ['required', 'max:30']],
             'first_name' => ['label' => 'First name', 'rules' => ['required', 'max:80']],
             'last_name' => ['label' => 'Last name', 'rules' => ['required', 'max:80']],
             'email' => ['label' => 'Email', 'rules' => ['required', 'email', 'max:150']],
@@ -77,9 +90,61 @@ final class ApplyController
             'privacy_consent' => ['label' => 'Your consent', 'rules' => ['accepted']],
         ]);
 
-        if ($errors !== []) {
-            return $this->backWithErrors(route('apply'), $errors, $data);
+        // The same year levels step 2 offers; it becomes their step 2 answer.
+        if (!in_array($data['year_level'], $this->membership->yearLevelOptions(), true)) {
+            $errors['year_level'] = 'Please choose your year level.';
         }
+
+        // Two dropdowns: what they apply for (General Membership, Committee Head, Deputy Committee Head, Committee Member,
+        // The Source Code), then the committee, or the post in The Source Code. Only positions the MSW Committee Head
+        // opened, with slots left, are offered; the pair must match one of them.
+        $role = $request->text('applying_for');
+        $positionId = (int) $request->text('position_id');
+        $chosen = array_values(array_filter($this->membership->openPositions(), static fn (array $p): bool => $p['position_id'] === $positionId));
+        $forPosition = $chosen !== [] && $chosen[0]['role_type'] === $role;
+        $choice = $role === 'general' ? 'general' : ($forPosition ? 'position:' . $positionId : '');
+
+        if (!in_array($role, ['general', ...MembershipService::APPLICATION_ROLE_TYPES], true)) {
+            $errors['applying_for'] = 'Please choose what you are applying for.';
+        } elseif ($role !== 'general' && !$forPosition) {
+            $errors['position_id'] = $role === 'source_code' ? 'Please choose the post in The Source Code.' : 'Please choose the committee.';
+        }
+
+        // The documents follow what they apply for and their year level (AGILE's requirements): the COR always; for a
+        // position, the grades too, except for a 1st year in a 1st semester, who has none yet.
+        $uploads = [];
+        $storage = new \App\Services\FileStorageService();
+        $grades = $this->membership->gradesForYear($data['year_level']);
+        $needsGrades = $forPosition && $grades['needed'];
+
+        foreach ($needsGrades ? ['cor', 'grades'] : ['cor'] as $type) {
+            $file = $request->files($type);
+            $chosen = is_array($file) && ($file['error'] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_NO_FILE;
+
+            if (!$chosen) {
+                $errors[$type] = $type === 'cor' ? 'Please upload your current COR.' : 'Please upload your ' . lcfirst($grades['label']) . '.';
+
+                continue;
+            }
+
+            try {
+                $storage->validate($file);
+                $uploads[$type] = $file;
+            } catch (\App\Services\FileRejectedException $exception) {
+                $errors[$type] = $exception->getMessage();
+            }
+        }
+
+        if ($errors !== []) {
+            // A browser cannot refill file fields, so the message says to choose them again.
+            if ($uploads !== []) {
+                $errors['upload_again'] = 'For your security, files are not kept when something needs fixing. Please choose them again.';
+            }
+
+            return $this->backWithErrors(route('apply'), $errors, $data + ['applying_for' => $role, 'position_id' => (string) $positionId]);
+        }
+
+        Session::set(self::CHOICE_KEY, $choice);
 
         // A bot that filled the hidden field sees the normal next page, but no email is sent.
         if ($request->text('website') === '' && !$this->verification->requestCode($data['email'], $request->ip(), GuestVerificationService::PURPOSE_APPLICATION)) {
@@ -89,7 +154,18 @@ final class ApplyController
             return redirect(route('apply'));
         }
 
+        // Saved now, in the same private folder as every application document, and attached to the application once the
+        // email is confirmed and the draft exists (createNew). A bot that filled the hidden field gets nothing saved.
+        $documents = [];
+
+        if ($request->text('website') === '') {
+            foreach ($uploads as $type => $file) {
+                $documents[$type] = $storage->store($file, 'applications');
+            }
+        }
+
         Session::set(self::PENDING_KEY, $data);
+        Session::set(self::DOCUMENTS_KEY, $documents);
         flash('success', 'We sent a 6-digit code to your email.');
 
         return redirect(route('apply'));
@@ -156,6 +232,8 @@ final class ApplyController
     public function restart(Request $request): Response
     {
         Session::set(self::PENDING_KEY, null);
+        Session::set(self::CHOICE_KEY, null);
+        Session::set(self::DOCUMENTS_KEY, null);
 
         return redirect(route('apply'));
     }
@@ -241,15 +319,28 @@ final class ApplyController
             return $blocked;
         }
 
-        $contactNo = $request->text('contact_no');
+        $details = StudentDetails::fromRequest($request);
+        $contactNo = $details['contact_no'];
         $personal = $this->personalInput($request);
-        $errors = $this->contactErrors($contactNo) + $this->personalErrors($personal);
+        $errors = StudentDetails::errors($details) + $this->personalErrors($personal);
 
         if ($errors !== []) {
-            return $this->backWithErrors(route('apply.new'), $errors, $personal + ['contact_no' => $contactNo]);
+            return $this->backWithErrors(route('apply.new'), $errors, $personal + $details);
         }
 
         $id = $this->membership->startDraft($contactNo, $personal);
+        $this->membership->saveContact($id, $contactNo, $personal + ['year_level' => $details['year_level'], 'section' => $details['section']]);
+
+        // The COR (and grades) from the first page join the new application.
+        $documents = Session::get(self::DOCUMENTS_KEY);
+
+        if (is_array($documents) && $documents !== []) {
+            $this->membership->attachFirstPageDocuments($id, $documents);
+            Session::set(self::DOCUMENTS_KEY, null);
+        }
+
+        // The year level from the first page answers step 2's question.
+        $this->membership->prefillYearLevel($id);
 
         if ($request->text('intent') === 'save') {
             flash('success', $this->savedMessage());
@@ -292,7 +383,9 @@ final class ApplyController
             'step' => $number,
             'reached' => (int) $application['wizard_step'],
             'vacancies' => $number === 3 ? $this->membership->openVacancies() : [],
+            'positions' => $number === 3 ? $this->membership->openPositions() : [],
             'preselected' => $number === 3 ? Session::get(self::VACANCY_KEY) : null,
+            'preselectedChoice' => $number === 3 ? Session::get(self::CHOICE_KEY) : null,
         ] + $this->membership->details($application));
     }
 
@@ -455,12 +548,12 @@ final class ApplyController
 
         switch ($step) {
             case 1:
-                $contactNo = $request->text('contact_no');
+                $details = StudentDetails::fromRequest($request);
                 $personal = $application['applicant_id'] !== null ? $this->personalInput($request) : [];
-                $errors = $this->contactErrors($contactNo) + $this->personalErrors($personal);
+                $errors = StudentDetails::errors($details) + $this->personalErrors($personal);
 
                 if ($errors === []) {
-                    $this->membership->saveContact($id, $contactNo, $personal);
+                    $this->membership->saveContact($id, $details['contact_no'], $personal + ['year_level' => $details['year_level'], 'section' => $details['section']]);
                 }
 
                 return $errors;
@@ -482,10 +575,22 @@ final class ApplyController
                     return $request->text('intent') === 'save' ? [] : ['membership_type' => 'Please choose a membership type.'];
                 }
 
-                $this->membership->chooseType($id, $choice === 'general' ? null : (int) $choice);
+                // "general", "position" with a position_id (opened for application), or an open vacancy's id.
+                if ($choice === 'position') {
+                    $positionId = (int) $request->text('position_id');
+
+                    if ($positionId <= 0) {
+                        return ['membership_type' => 'Please choose the position you are applying for.'];
+                    }
+
+                    $this->membership->chooseType($id, null, $positionId);
+                } else {
+                    $this->membership->chooseType($id, $choice === 'general' ? null : (int) $choice);
+                }
                 // Recorded right away, because "no vacancy" alone cannot show that general membership was chosen.
                 $this->membership->advance($id, 4);
                 Session::set(self::VACANCY_KEY, null);
+                Session::set(self::CHOICE_KEY, null);
 
                 return [];
 
@@ -599,7 +704,7 @@ final class ApplyController
     /** @return array<string, mixed> */
     private function oldInput(Request $request): array
     {
-        $old = ['contact_no' => $request->text('contact_no')] + $this->personalInput($request);
+        $old = StudentDetails::fromRequest($request) + $this->personalInput($request);
         $answers = $request->input('q', []);
 
         foreach (is_array($answers) ? $answers : [] as $questionId => $answer) {
@@ -634,6 +739,8 @@ final class ApplyController
         return $this->page($view, $data + [
             'user' => $this->membership->person($data['application']),
             'mayChooseGeneral' => current_user_id() === null || !(new \App\Models\UserRepository())->hasMemberRecord(current_user_id()),
+            // Choosing an open position is for people without a position yet (MembershipService::assertPositionChoice).
+            'mayChoosePosition' => current_user_id() === null || ((new \App\Models\MemberRepository())->findByUser(current_user_id())['position_id'] ?? null) === null,
             'breadcrumbs' => [['label' => 'Dashboard', 'url' => route('dashboard')], ['label' => 'My Applications', 'url' => route('my_applications')], ['label' => 'Apply']],
         ]);
     }

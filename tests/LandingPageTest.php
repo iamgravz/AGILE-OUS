@@ -119,7 +119,7 @@ final class LandingPageTest extends TestCase
         $this->assertStringContainsString('js/landing.js', $body);
         $this->assertStringContainsString('Learn · Collaborate · Innovate · Grow', $body);
         // Committees are in the nav bar now, not a home page section.
-        $this->assertStringContainsString('href="/about#committees"', $body);
+        $this->assertStringContainsString('href="/committees"', $body);
         $this->assertStringNotContainsString('home-committees', $body);
 
         // Nothing moves by itself, and the page has five sections at most.

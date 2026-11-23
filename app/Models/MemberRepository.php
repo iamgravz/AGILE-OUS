@@ -77,7 +77,7 @@ final class MemberRepository extends BaseRepository
             "SELECT m.*, COALESCE(u.first_name, ap.first_name) AS first_name, COALESCE(u.last_name, ap.last_name) AS last_name,
                     COALESCE(u.email, ap.email) AS email, COALESCE(u.student_no, ap.student_no) AS student_no, u.photo_path,
                     COALESCE(r.slug, 'general_member') AS role_slug, COALESCE(r.role_name, 'General Member') AS role_name,
-                    p.title AS position_title, p.role_type, c.name AS committee_name
+                    p.title AS position_title, p.role_type, p.committee_id, c.name AS committee_name
              " . self::DETAILED_FROM . '
              WHERE m.member_id = ?'
         );
@@ -113,7 +113,9 @@ final class MemberRepository extends BaseRepository
         }
 
         if (isset($filters['committee_id'])) {
-            $conditions[] = 'p.committee_id = ?';
+            // Their main position's committee, or their second one (member_committees).
+            $conditions[] = '(p.committee_id = ? OR EXISTS (SELECT 1 FROM member_committees mc WHERE mc.member_id = m.member_id AND mc.committee_id = ?))';
+            $params[] = $filters['committee_id'];
             $params[] = $filters['committee_id'];
         }
 

@@ -1,0 +1,129 @@
+# System alignment with the AGILE-OUS Constitution and By-Laws
+
+Audit date: November 22, 2026. Source: *Constitution and By-Laws, AGILE-OUS* (16 pages, for ratification in 2026). System: `main` plus the local commits up to `62f7a6d`, and the `agile_ams` database.
+
+Status: **Aligned**, **Partly** (works, but differs in a detail), **Gap** (the by-laws require it and the system does not have it), **Conflict** (the system does something different from the by-laws).
+
+## 1. Summary
+
+| Area | Status | In short |
+|---|---|---|
+| Name, affiliation | Aligned | AGILE-OUS, PUP Open University System. |
+| Contact details | Fixed | `agile.pupous@gmail.com` on the site and in every email; no Facebook link until the page is published; the NALLRC address is in the footer and on About. |
+| Vision and mission | Fixed | Article II's vision, mission and objectives on About (editable in Settings). |
+| Membership eligibility | Aligned | Enrolled BSIT-OUS students; enrollment is confirmed on every application. |
+| Membership categories | **Gap** | Only Regular (called General Member). No Associate or Honorary members. |
+| Member rights | Partly | Access to resources and records works through accounts; voting is not in the system (see Elections). |
+| Fees and dues (₱50) | **Gap** | No fee or receipt records. |
+| Data privacy (RA 10173) | Partly | Consent, encryption, access control and audit logs are in place. Decided COR and grades are archived each semester (Nov 23); nothing is purged, by decision. |
+| Board of Officers | Aligned | Executive Committee (with General Secretary) and committee heads. |
+| Standing committees | Aligned | All seven, named as Article V writes them. |
+| The Source Code | Decided (Nov 23) | Stays separate from the seven standing committees for now, although the by-laws do not mention it. |
+| Committee Heads and Deputies | Aligned | One head and one deputy per committee. |
+| Year-Level Representatives | Fixed (Nov 23) | Year-Level Council with 1st to 4th Year Representative; recorded in Administration, Elected officers. |
+| Ad Hoc Committees, Advisory Board | **Gap** | No faculty adviser role; no ad hoc committees. |
+| Elections (COMELEC, online voting) | Partly (Nov 23) | Filing of candidacy and qualification are in the system; voting itself is not. |
+| Candidate qualifications | Fixed (Nov 23) | Elected officers checks the year-level minimums and asks the MSW Committee Head to confirm full load and no 5.0, W or D. |
+| Term of office, term limits | Fixed (Nov 23) | Terms are recorded per academic year; a third consecutive term in the same post is refused. |
+| Incompatible offices (4-A) | Fixed (Nov 23) | One office for officers; a Committee Member or Year-Level Representative may join one more standing committee. |
+| Who decides, who is elected | Aligned (decided Nov 22) | Committee heads approve or reject applicants; the MSW team sets interview dates; the Executive Board and Year-Level Representatives are elected, never applied for. |
+| Transition and handover | Gap (outside the system) | Turnover packets and account handover are manual. |
+| Meetings, quorum, notices | Partly | Announcements and email exist; no meeting or quorum records. |
+| Financial management | **Gap** | No budget, disbursement or liquidation records. |
+| Discipline and impeachment | **Gap** | Not in the system. |
+| Official seal on certificates | Aligned | The logo is on the digital ID and certificate. |
+| Student welfare (MSW receives concerns confidentially, refers them) | Aligned | Confidential welfare cases with referrals; stricter than the by-laws (only the MSW Head and President read them). |
+| Membership applications by MSW | Aligned | MSW manages applications; committee heads decide their own committee's (BR-20). |
+
+## 2. Findings in detail
+
+### Conflicts: the system says something different
+
+**C1. Official email (Article I, letterhead).** The by-laws and letterhead give `agile.pupous@gmail.com`. The footer shows `agile.ous@gmail.com` (`ORG_CONTACT_EMAIL` in `.env`), and Settings › Contact email holds `msw.agileous@gmail.com`. *Fix:* set `ORG_CONTACT_EMAIL=agile.pupous@gmail.com`, keeping the MSW address as the MSW contact. Needs your confirmation that `agile.ous@gmail.com` was a typo.
+
+**C2. Facebook link.** Settings › Facebook page holds `https://AGILE-OUS@facebook.com`, which is not a web address. The footer uses `https://www.facebook.com/agile.ous`, which was never confirmed. *Fix:* the real page address of "AGILE OUS".
+
+**C3. Address (Article I, Section 3).** NALLRC, PUP Main Campus, Anonas St., Sta. Mesa, Manila. Not shown anywhere. *Fix:* add it to the footer and the About page.
+
+**C4. Vision and mission (Article II).** Settings hold sample text. *Fix:* copy Article II Sections 1 to 3 into Settings › Vision, Mission (and the objectives onto About).
+
+**C5. The Source Code.** The system treats it as a committee with 11 positions, decided by the MSW Committee Head, and it is open for application. The by-laws list seven standing committees and give newsletters and publications to the Creatives, Social Media & Communication Committee. *Decision needed:* keep The Source Code as a publication staff outside the by-laws, or move its positions under Creatives.
+
+**C6. Who fills a vacancy (Article VI, Section 5).** The by-laws: a permanent vacancy in the Presidency goes to the Vice President; in the General Secretary's office to the Assistant Secretary; any other vacancy by appointment by the President with a 2/3 Board vote. The system: appointments are prepared by MSW staff and approved by the MSW Committee Head (Step 14), and the MSW Head approves Committee Member and Committee Head applications. *Decision needed:* whether the system should follow the by-laws (President appoints, Board confirms) or the current MSW-led process stays as the operating procedure.
+
+### Partly aligned: small differences
+
+**P1. Names.** "Secretary" should be **General Secretary** (Article IV). "Research and Extensions" is **Research & Extension**; "Finance and Fund Raising" is **Finance & Fundraising**. The signature page calls the Academics head "Academic Support Head", while Article V says Academics & Training; the system follows Article V.
+
+**P2. Candidate qualifications (Article VI, Section 2).** President and Vice President at least 3rd year; other Executive Committee positions at least 2nd year; full load; no 5.0, W or D. The apply page now records the year level, but nothing checks these minimums, and the officer eligibility screening (BR-09) checks failed subjects and enrollment, not W, D or full load.
+
+**P3. Term limits (Article VI, Section 4).** One academic year, re-election to the same post at most two consecutive terms. Roles expire; the term limit is not checked.
+
+**P4. Dual capacity (Article VI, Section 4-A).** The system allows one position per person, which keeps Executive Committee members and heads to one office. General members may join up to two standing committees under the by-laws; the system allows one.
+
+**P5. Data retention (Article III, Section 6).** "Securely archived or safely purged upon the conclusion of each academic year." Still open as L-05 in `security-review.md`: nothing archives or purges at year end.
+
+**P6. Requirements table.** Grades for "Executive Committee officers" and "Year-Level Representatives" apply only through vacancies, because neither is open for application on the apply page.
+
+### Gaps: required by the by-laws, not in the system
+
+| # | By-laws | What would be needed |
+|---|---|---|
+| G1 | Associate and Honorary members (Art. III §2) | Membership categories; Honorary conferred by the Board |
+| G2 | ₱50 voluntary semestral fee, receipts (Art. III §5, Art. IV §6) | Fee records and official receipts |
+| G3 | Year-Level Council (Art. V §3) | A Year-Level Representative position per year level |
+| G4 | Faculty Adviser and Co-Adviser, Advisory Board (Art. V §5) | An adviser role (read-only oversight, sign-offs) |
+| G5 | Ad Hoc Committees (Art. V §4) | Temporary committees that dissolve on report |
+| G6 | COMELEC and online elections (Art. VI §1, §3) | Candidacy, verification, secret one-vote-per-member ballot, canvass, proclamation |
+| G7 | Financial management (Art. VIII) | Budget, dual authorization, liquidation within 15 days, Auditor verification |
+| G8 | Impeachment (Art. IX) | Charges, tribunal, 2/3 Board vote |
+| G9 | Meetings and quorum (Art. VII) | Notices 14 days ahead, attendance, quorum |
+
+G6 to G9 are whole modules. They are listed for completeness; the by-laws do not say they must be run through this system.
+
+## 3. Fixed on November 22, 2026
+
+Migration `2026_11_22_constitution_alignment.php` (applied to `agile_ams` after a backup), with the seeds, `.env` and views:
+
+- **C1** Official email `agile.pupous@gmail.com`: `ORG_CONTACT_EMAIL` and Settings, Contact email (every email's footer). The MSW address stays as the MSW contact in the footer.
+- **C2** Settings, Facebook page is now `https://www.facebook.com/agile.ous`, the same as the footer. *Still to confirm:* that this is the page "AGILE OUS".
+- **C3** Address: in full on About (Quick facts), short in the footer (`ORG_ADDRESS` in `.env`).
+- **C4** Vision, mission (as a list) and objectives (new setting `org.objectives`) from Article II, on About. Edited wording is never overwritten.
+- **P1** "General Secretary"; "Research and Extension"; "Finance and Fundraising".
+
+### Decisions on November 22, 2026 (C6)
+
+- **Committee Heads approve or reject applicants** for their committees (BR-20, as built). A Committee Head position and The Source Code still go to the MSW Committee Head.
+- **The MSW team sets the interview dates** (`interview.manage`, as built).
+- **The Executive Board and the Year-Level Representatives are chosen by election** (Article VI), not by application. The system already cannot open them: an HR request must be for a position in the requester's own committee, Executive positions have no committee, and Open for application covers Committee Head to The Source Code only. The apply page now says so.
+- Vacancy succession (Article VI Section 5) and the elections themselves stay outside the system until G6 (COMELEC and online voting) is built. The Year-Level Representatives positions exist since Nov 23 (section 3); the winners are recorded in Elected officers.
+
+### Added on November 23, 2026
+
+- **G3** Migration `2026_11_23_year_level_council.php`: the Year-Level Council with one 1st, 2nd, 3rd and 4th Year Representative (`role_type 'general'`, never open for application; the holder keeps the General Member role).
+- **Administration, Elected officers** (`/admin/elected-officers`, `admin.users`): the MSW Committee Head records each election winner for the Executive Board or the Year-Level Council. A new email gets an account and the password link; an existing account keeps its login and gains the position (one office per person). The role follows `config/role_mapping.php`: President, Executive Committee, or General Member.
+- Demo data: the whole Executive Board has demo accounts (`Password123!`), and four demo Year-Level Representatives. No real names.
+
+### Decided and added on November 23, 2026 (second round)
+
+- **C2** The Facebook page is not published yet: the link is gone from the footer (`ORG_FACEBOOK_URL` empty) and Settings. Put the address back in both when the page is live.
+- **C5** The Source Code stays separate for now.
+- **P2** `config/elections.php` holds the Article VI rules: President and both Vice Presidents at least 3rd year, the other Executive Board posts at least 2nd year, a Year-Level Representative in their own year level, and two confirmations (full load; no 5.0, W or D). The by-laws may still change; only that file needs editing.
+- **P3** New table `officer_terms` (migration `2026_11_23_officer_terms.php`): one row per officer, post and academic year. Recording the holder again for the next academic year is a re-election; a third consecutive term is refused (`max_consecutive_terms`). Terms served before Nov 23, 2026 are not in the table, so they are not counted.
+- **P6** The apply page's requirements table no longer lists the Executive Board or the Year-Level Representatives: they are elected, and their qualifications are on Elected officers.
+- **Every submission asks for year level, section and contact number** (`StudentDetails`, `partials/student_details`): Ask for Help (guest and member, kept encrypted on the case), apply step 1, My Account, Elected officers and Run for office. Accounts gained `year_level` and `section` (migration `2026_11_23_student_details.php`).
+- **P6, Run for office** (`/elections/candidacy`, migration `2026_11_23_candidacies.php`): members file for an Executive Board or Year-Level Representative seat with their COR and previous semester copy of grades while the MSW Committee Head has filing open. The year-level minimum and the term limit are checked at filing; one candidacy per member per academic year. **Administration, Candidacies** opens and closes filing, shows the documents, qualifies or disqualifies (with the reason), and marks winners elected, which records them as in Elected officers.
+- **P5, Document archive** (`/admin/archive`, `backup.manage`, `config/retention.php`): archive only. 120 days after the decision, the COR and grades of approved, rejected and withdrawn applications and of closed candidacies move to `storage/uploads/archive/<academic year>-<semester>/`. Records stay, the files still open from the same pages, and nothing is deleted. Run once a semester.
+- **P4, second committee** (migration `2026_11_23_member_committees.php`, `MemberCommitteeService`): every member keeps one main position. A Committee Member or a Year-Level Representative may also be a Committee Member of one other standing committee, added from the member record or by approving their application to it; two committees at most. The Executive Board, Committee Heads and Deputies hold one office, and a promotion ends the second committee. An MSW second committee gives the MSW Member role to someone who would otherwise be a General Member. The Members list for a committee includes its second-committee members, and they count toward its target.
+
+### ID and certificate (Nov 23, 2026)
+
+- `CREDENTIAL_MODE=manual` (`config/credentials.php`): the system no longer draws IDs and certificates. A member requests one under My Account; the MSW Committee Head makes it from AGILE's template and uploads it (PDF, JPG or PNG) on **ID and certificate requests**, or declines with the reason. The upload is the member's current copy, replacing an earlier one of the same kind. `generated` brings back the drawn PDFs and the approval queue.
+- **One QR code per member** (migration `2026_11_23_member_verify_token.php`, `MemberVerificationService`): the MSW Committee Head downloads it from the request or the member record and puts it on the template. Scanning it opens `/verify/member/<token>`, which shows the member's current digital ID, name, member number, role and that they are an active member. A new ID keeps the same QR code.
+
+## 4. Recommended order
+
+1. Done: C1 to C4 and P1 (see section 3).
+2. **Decision for the Board:** C5 (The Source Code). C6 is decided (section 3).
+3. **Next features, if wanted:** G4 Faculty Adviser, P2 candidate checks, P3 term limits, P5 retention, G1 member categories.
+4. **Separate projects:** G6 elections, G7 finance, G2 fees, G8 to G9.

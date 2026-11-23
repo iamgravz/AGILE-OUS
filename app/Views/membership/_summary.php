@@ -33,6 +33,9 @@ $section = static function (int $number, string $title) use ($application, $with
 <dl class="detail-list">
     <div><dt>Student number</dt><dd><?= e($user['student_no'] ?? 'Not set') ?></dd></div>
     <div><dt>Program</dt><dd>BSIT-OU</dd></div>
+    <?php if (($user['section'] ?? null) !== null && $user['section'] !== '') : ?>
+        <div><dt>Section</dt><dd><?= e($user['section']) ?></dd></div>
+    <?php endif; ?>
     <?php foreach ($academicQuestions as $question) : ?>
         <div><dt><?= e($question['question_text']) ?></dt><dd><?= e($answers[(int) $question['question_id']] ?? 'Not answered') ?></dd></div>
     <?php endforeach; ?>

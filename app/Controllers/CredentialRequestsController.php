@@ -1,0 +1,96 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Controllers;
+
+use App\Core\Request;
+use App\Core\Response;
+use App\Core\View;
+use App\Services\CredentialRequestService;
+use App\Services\FileRejectedException;
+use App\Services\FileStorageService;
+use DomainException;
+
+/** ID and certificate requests: members ask, and the MSW Committee Head uploads the file made from AGILE's template. */
+final class CredentialRequestsController
+{
+    public function __construct(private readonly CredentialRequestService $requests = new CredentialRequestService())
+    {
+    }
+
+    public function request(Request $request): Response
+    {
+        try {
+            $this->requests->request($request->text('type'), $request->text('note'), $request->files('id_photo'));
+            flash('success', 'Your request was sent. We will let you know when it is ready to download.');
+        } catch (FileRejectedException | DomainException $exception) {
+            flash('error', $exception->getMessage());
+        }
+
+        return redirect(route('account') . '#credential-requests');
+    }
+
+    public function cancel(Request $request, string $id): Response
+    {
+        try {
+            $this->requests->cancel((int) $id);
+            flash('success', 'Your request was cancelled.');
+        } catch (DomainException $exception) {
+            flash('error', $exception->getMessage());
+        }
+
+        return redirect(route('account') . '#credential-requests');
+    }
+
+    public function index(Request $request): Response
+    {
+        $status = $request->queryText('status') === '' ? 'requested' : $request->queryText('status');
+
+        return Response::html(View::render('credentials/requests', [
+            'rows' => $this->requests->list($status === 'all' ? '' : $status),
+            'status' => $status,
+            'maxMb' => (new FileStorageService())->maxUploadMb(),
+            'breadcrumbs' => [['label' => 'Dashboard', 'url' => route('dashboard')], ['label' => 'ID and certificate requests']],
+        ], 'layouts/dashboard'));
+    }
+
+    public function upload(Request $request, string $id): Response
+    {
+        try {
+            $this->requests->upload((int) $id, $request->files('file') ?? []);
+            flash('success', 'Uploaded. The member can download it from My Account now.');
+        } catch (FileRejectedException | DomainException $exception) {
+            flash('error', $exception->getMessage());
+        }
+
+        return redirect(route('credentials.requests'));
+    }
+
+    /** The picture a member sent with their request, for the MSW Committee Head to put on the template. */
+    public function photo(Request $request, string $id): Response
+    {
+        $row = ctype_digit($id) ? $this->requests->find((int) $id) : null;
+
+        if ($row === null || $row['photo_path'] === null) {
+            return Response::error(Response::HTTP_NOT_FOUND);
+        }
+
+        \App\Services\AuditService::log('file.accessed', 'credential_request_photo', (int) $id);
+        $name = 'Photo-' . preg_replace('/[^A-Za-z0-9-]/', '', (string) $row['member_no']) . '.' . pathinfo((string) $row['photo_path'], PATHINFO_EXTENSION);
+
+        return (new FileStorageService())->stream((string) $row['photo_path'], $name, $request->queryText('inline') === '1');
+    }
+
+    public function decline(Request $request, string $id): Response
+    {
+        try {
+            $this->requests->decline((int) $id, $request->text('remarks'));
+            flash('success', 'The request was declined, and the member was told why.');
+        } catch (DomainException $exception) {
+            flash('error', $exception->getMessage());
+        }
+
+        return redirect(route('credentials.requests'));
+    }
+}

@@ -12,7 +12,7 @@
 
 <?php if ($result['data'] === []) : ?>
     <div class="empty-state">
-        <p class="empty-state__text">Concerns you submit appear here, and only the MSW Committee Head and the President can read them.</p>
+        <p class="empty-state__text">Concerns you submit appear here, and they stay confidential.</p>
         <a class="btn btn--secondary btn--sm" href="<?= e(route('welfare.new')) ?>">Ask for help</a>
     </div>
 <?php else : ?>

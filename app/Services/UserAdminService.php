@@ -98,6 +98,52 @@ final class UserAdminService
         });
     }
 
+    /**
+     * Corrects someone's name, email, student number, year level, section and contact number (My Account tells members to
+     * ask the MSW Committee for this). Email and student number stay unique. The audit log keeps which fields changed.
+     *
+     * @param array{first_name: string, last_name: string, email: string, student_no: string, year_level: string, section: string, contact_no: string} $details
+     * @throws DomainException
+     */
+    public function updateDetails(int $userId, array $details, string $reason): void
+    {
+        authorize('admin.users');
+
+        if (trim($reason) === '') {
+            throw new DomainException('Please write why the details are changing.');
+        }
+
+        $details['email'] = mb_strtolower(trim($details['email']));
+        $details['student_no'] = mb_strtoupper(trim($details['student_no']));
+
+        Database::transaction(function () use ($userId, $details, $reason): void {
+            $this->users->lockRow($userId);
+            $user = $this->users->findWithRole($userId) ?? throw new DomainException('This account no longer exists.');
+            $sameEmail = $this->users->findByEmail($details['email']);
+
+            if ($sameEmail !== null && (int) $sameEmail['user_id'] !== $userId) {
+                throw new DomainException('Another account already uses this email.');
+            }
+
+            $sameNumber = $details['student_no'] === '' ? [] : $this->users->findBy(['student_no' => $details['student_no']]);
+
+            if ($sameNumber !== [] && (int) $sameNumber[0]['user_id'] !== $userId) {
+                throw new DomainException('Another account already uses this student number.');
+            }
+
+            $values = $details;
+            $values['student_no'] = $details['student_no'] === '' ? null : $details['student_no'];
+            $changed = array_keys(array_filter($values, static fn (mixed $value, string $key): bool => (string) ($user[$key] ?? '') !== (string) ($value ?? ''), ARRAY_FILTER_USE_BOTH));
+
+            if ($changed === []) {
+                throw new DomainException('Nothing changed.');
+            }
+
+            $this->users->update($userId, array_intersect_key($values, array_flip($changed)));
+            AuditService::log('user.details_changed', 'user', $userId, ['fields' => $changed, 'reason' => mb_substr(trim($reason), 0, 255)]);
+        });
+    }
+
     /** Active to disabled and back. Pending accounts are decided on the approvals page (BR-21). */
     public function setEnabled(int $userId, bool $enabled, string $reason): void
     {

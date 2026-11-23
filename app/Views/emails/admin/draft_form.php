@@ -14,7 +14,6 @@ $bodyValue = (string) old('body', $draft['body_html'] ?? '');
 $bodyHelp = 'The email opens with "Dear" and the person\'s first name and the committee greeting. The signature, footer and unsubscribe note are added for you.';
 ?>
 <?php $this->start('title') ?><?= e($heading) ?><?php $this->end() ?>
-<?php $this->start('form_side') ?><?= $this->partial('partials/side_panel', ['blocks' => [['title' => 'Before you send', 'items' => ['Save the draft first. The number of recipients comes from the saved draft.', 'Each person gets their own email, with a greeting and signature added.', 'Sending cannot be undone.']]]]) ?><?php $this->end() ?>
 <?php $this->start('page_title') ?><?= e($heading) ?><?php $this->end() ?>
 <?php if (!$isSent) : ?>
     <?php $this->start('head') ?>

@@ -22,6 +22,21 @@ final class Config
         return $path === '' ? $base : $base . DIRECTORY_SEPARATOR . ltrim($path, '/\\');
     }
 
+    /** Replaces one loaded value, for tests that try another setting. */
+    public static function set(string $key, mixed $value): void
+    {
+        $segments = explode('.', $key);
+        $file = array_shift($segments);
+        self::get($file . '.__load');
+        $target = &self::$items[$file];
+
+        foreach ($segments as $segment) {
+            $target = &$target[$segment];
+        }
+
+        $target = $value;
+    }
+
     /** Reads "file.key" from config/file.php, loading the file on first use. */
     public static function get(string $key, mixed $default = null): mixed
     {

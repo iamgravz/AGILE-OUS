@@ -65,7 +65,7 @@ final class HttpFlowsTest extends TestCase
         $browser->get('/welfare/new');
         $count = static fn (): int => (int) TestServer::db()->query('SELECT COUNT(*) FROM welfare_attachments')->fetchColumn();
         $before = $count();
-        $form = ['category_id' => '1', 'subject' => 'Upload check', 'description' => 'Words', 'privacy_consent' => '1'];
+        $form = ['category_id' => '1', 'subject' => 'Upload check', 'description' => 'Words', 'privacy_consent' => '1', 'year_level' => '2nd Year', 'section' => 'BSITOUMN 2-1', 'contact_no' => '09171234567'];
 
         $exe = $browser->upload('/welfare/new', $form, 'attachments[]', 'program.exe', "MZ\x90\x00 not a document", 'application/octet-stream');
         $this->assertStringContainsString('not allowed', $exe['body']);
@@ -102,7 +102,7 @@ final class HttpFlowsTest extends TestCase
     {
         $owner = TestServer::loggedIn('nomember@agile.test');
         $owner->get('/welfare/new');
-        $response = $owner->post('/welfare/new', ['category_id' => '1', 'subject' => 'Private', 'description' => 'Words', 'privacy_consent' => '1']);
+        $response = $owner->post('/welfare/new', ['category_id' => '1', 'subject' => 'Private', 'description' => 'Words', 'privacy_consent' => '1', 'year_level' => '2nd Year', 'section' => 'BSITOUMN 2-1', 'contact_no' => '09171234567']);
         $this->assertStringContainsString('/my-welfare-cases/', $response['location']);
         $id = (int) substr((string) strrchr($response['location'], '/'), 1);
 

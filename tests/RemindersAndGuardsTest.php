@@ -70,7 +70,7 @@ final class RemindersAndGuardsTest extends TestCase
         $this->inRollback(function (): void {
             $db = Database::connection();
             $db->exec("UPDATE membership_applications SET submitted_at = NOW() - INTERVAL 5 DAY WHERE status = 'submitted'");
-            $service = new MembershipService();
+            $service = new \App\Services\ApplicationReminderService();
 
             $first = $service->sendPendingReminders(static function (): void {
             });
@@ -90,7 +90,7 @@ final class RemindersAndGuardsTest extends TestCase
         $this->inRollback(function (): void {
             Database::connection()->exec("UPDATE membership_applications SET submitted_at = NOW() WHERE status IN ('submitted', 'under_review')");
 
-            $this->assertSame(0, (new MembershipService())->sendPendingReminders(static function (): void {
+            $this->assertSame(0, (new \App\Services\ApplicationReminderService())->sendPendingReminders(static function (): void {
             })['sent']);
         });
     }
@@ -102,7 +102,7 @@ final class RemindersAndGuardsTest extends TestCase
             $id = (int) $db->query("SELECT application_id FROM membership_applications WHERE tracking_code = 'DEMAPPREV2SE'")->fetchColumn();
             $db->prepare('DELETE FROM application_access_links WHERE application_id = ?')->execute([$id]);
             $db->prepare("INSERT INTO application_status_history (application_id, old_status, new_status, remarks, changed_at) VALUES (?, 'under_review', 'for_revision', 'Please upload a clearer ID', NOW())")->execute([$id]);
-            $service = new MembershipService();
+            $service = new \App\Services\ApplicationReminderService();
 
             $first = $service->sendRevisionReminders(static function (): void {
             });
@@ -127,7 +127,7 @@ final class RemindersAndGuardsTest extends TestCase
             $db = Database::connection();
             $id = (int) $db->query("SELECT application_id FROM membership_applications WHERE tracking_code = 'DEMAPPREV2SE'")->fetchColumn();
             (new ApplicantAccessService())->newRevisionLink($id);
-            $service = new MembershipService();
+            $service = new \App\Services\ApplicationReminderService();
 
             $service->sendRevisionReminders(static function (): void {
             });

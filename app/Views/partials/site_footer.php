@@ -4,16 +4,21 @@
             <div class="site-footer__grid">
                 <div>
                     <h2 class="site-footer__heading">Organization</h2>
-                    <p>Academic Guild of IT Learners and Experts</p>
-                    <p>PUP Open University System</p>
+                    <p>AGILE-OUS, PUP Open University System</p>
+                    <?php /* Constitution, Article I Section 3. The full address is on the About page. */ ?>
+                    <p>NALLRC, Sta. Mesa, Manila</p>
                 </div>
                 <div>
                     <h2 class="site-footer__heading">Contact</h2>
-                    <?php /* TODO: replace with the PUP OUS street address and the real Facebook page link. */ ?>
+                    <?php /* From .env (ORG_*), not Settings: error pages use this footer and must render with the database down. */ ?>
                     <div class="site-footer__contact">
-                        <p>TODO: PUP OUS address</p>
                         <p><a href="mailto:<?= e(config('app.contact_email')) ?>"><?= e(config('app.contact_email')) ?></a></p>
-                        <p>TODO: Facebook page link</p>
+                        <?php if (config('app.msw_email') !== '') : ?>
+                            <p><abbr title="Membership and Student Welfare Committee">MSW</abbr>: <a href="mailto:<?= e(config('app.msw_email')) ?>"><?= e(config('app.msw_email')) ?></a></p>
+                        <?php endif; ?>
+                        <?php if (config('app.facebook_url') !== '') : ?>
+                            <p><a href="<?= e(config('app.facebook_url')) ?>" rel="noopener" title="AGILE OUS on Facebook">Facebook</a></p>
+                        <?php endif; ?>
                     </div>
                 </div>
                 <div>

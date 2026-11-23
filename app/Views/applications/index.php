@@ -47,6 +47,7 @@ $ariaSort = static fn (string $column): string => $sort === $column ? ' aria-sor
         <select class="select" id="type" name="type">
             <option value="">All applications</option>
             <option value="general"<?= $filters['type'] === 'general' ? ' selected' : '' ?>>General Membership</option>
+            <option value="position"<?= $filters['type'] === 'position' ? ' selected' : '' ?>>A position, without a vacancy</option>
             <?php foreach ($vacancies as $vacancy) : ?>
                 <option value="<?= e($vacancy['vacancy_id']) ?>"<?= $filters['type'] === (string) $vacancy['vacancy_id'] ? ' selected' : '' ?>><?= e($vacancy['title']) ?></option>
             <?php endforeach; ?>

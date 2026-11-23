@@ -8,7 +8,6 @@ use App\Core\Database;
 use App\Core\ForbiddenException;
 use App\Core\Validator;
 use App\Models\ApplicantRepository;
-use App\Models\ApplicationAccessLinkRepository;
 use App\Models\ApplicationAnswerRepository;
 use App\Models\ApplicationDocumentRepository;
 use App\Models\ApplicationQuestionRepository;
@@ -16,14 +15,12 @@ use App\Models\AuditLogRepository;
 use App\Models\CommitteeRepository;
 use App\Models\MemberRepository;
 use App\Models\MembershipApplicationRepository;
-use App\Models\NotificationRepository;
 use App\Models\PositionRepository;
 use App\Models\RoleRepository;
 use App\Models\UserRepository;
 use App\Models\VacancyRepository;
 use DomainException;
 use RuntimeException;
-use Throwable;
 
 /**
  * Membership applications. The applicant's methods act only on the visitor's own records: a logged-in member, or
@@ -34,19 +31,13 @@ final class MembershipService
 {
     public const LAST_STEP = 6;
 
-    /** Fixed requirements of the documents step. doc_type => label. */
-    public const DOCUMENT_TYPES = [
-        'school_id' => 'School ID',
-        'cor' => 'Proof of enrollment (COR)',
-        'certificate' => 'Certificates (optional)',
-    ];
-    private const REQUIRED_DOCUMENTS = ['school_id', 'cor'];
+    /** AGILE's requirements live in ApplicationRequirements; these names stay for existing callers. */
+    public const DOCUMENT_TYPES = ApplicationRequirements::DOCUMENT_TYPES;
+    public const REQUIREMENT_GROUPS = ApplicationRequirements::REQUIREMENT_GROUPS;
 
     // No 0/O, 1/I or L, so a code can be read aloud or retyped without mistakes.
     private const CODE_ALPHABET = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789';
     private const CODE_LENGTH = 12;
-    private const PENDING_REMINDER_DAYS = 3;
-    private const REVISION_REMINDER_DAYS = 3;
     private const ACTIVE_MESSAGE_GENERAL = 'You already have an active general membership application (%s). Only one is allowed.';
     private const ACTIVE_MESSAGE_STUDENT = 'This student number already has an active general membership application (%s). Only one is allowed.';
     private const ACTIVE_MESSAGE_VACANCY = 'You already have an active application for this position (%s). Only one is allowed per position.';
@@ -238,7 +229,7 @@ final class MembershipService
             return;
         }
 
-        $this->users->update($this->userId(), ['contact_no' => $contactNo]);
+        $this->users->update($this->userId(), ['contact_no' => $contactNo] + array_intersect_key($personal, ['year_level' => 0, 'section' => 0]));
     }
 
     /** @param array<int|string, mixed> $answers */
@@ -259,11 +250,12 @@ final class MembershipService
     }
 
     /**
-     * Step 3. $vacancyId is null for general membership.
+     * Step 3. Both null means General Membership; $vacancyId is an open vacancy; $positionId is a position the MSW
+     * Committee Head opened for application (openPositions()).
      *
      * @throws DomainException with a message to show the applicant
      */
-    public function chooseType(int $id, ?int $vacancyId): void
+    public function chooseType(int $id, ?int $vacancyId, ?int $positionId = null): void
     {
         $application = $this->editable($id);
 
@@ -271,10 +263,15 @@ final class MembershipService
             throw new DomainException('The membership type cannot be changed during a revision.');
         }
 
-        $this->assertAllowedChoice($application, $vacancyId);
+        if ($vacancyId !== null && $positionId !== null) {
+            throw new DomainException('Please choose either a position or a vacancy, not both.');
+        }
 
-        Database::transaction(function () use ($id, $vacancyId): void {
-            $this->applications->update($id, ['vacancy_id' => $vacancyId]);
+        $this->assertAllowedChoice($application, $vacancyId, $positionId);
+        $this->assertPositionChoice($application, $positionId);
+
+        Database::transaction(function () use ($id, $vacancyId, $positionId): void {
+            $this->applications->update($id, ['vacancy_id' => $vacancyId, 'position_id' => $positionId]);
             $application = $this->applications->findDetailed($id);
             $keep = array_map(static fn (array $q): int => (int) $q['question_id'], [
                 ...$this->questions->forRoleTypes(['academic']),
@@ -328,11 +325,11 @@ final class MembershipService
      */
     public function uploadDocument(int $id, string $docType, array $file): array
     {
-        if (!isset(self::DOCUMENT_TYPES[$docType])) {
-            throw new DomainException('Unknown document type.');
-        }
-
         $application = $this->editable($id);
+
+        if (!in_array($docType, $this->documentsToAsk($this->applications->findDetailed($id)), true)) {
+            throw new DomainException('This document is not asked for in your application.');
+        }
 
         return $docType === 'certificate'
             ? $this->addDocument($application, $docType, $file)
@@ -402,9 +399,11 @@ final class MembershipService
             }
 
             $vacancyId = $application['vacancy_id'] === null ? null : (int) $application['vacancy_id'];
+            $positionId = $application['position_id'] === null ? null : (int) $application['position_id'];
 
             if ($row['status'] === 'draft') {
-                $this->assertAllowedChoice($application, $vacancyId);
+                $this->assertAllowedChoice($application, $vacancyId, $positionId);
+                $this->assertPositionChoice($application, $positionId);
             }
 
             $from = $row['status'];
@@ -460,6 +459,9 @@ final class MembershipService
             'questions' => $this->stepFourQuestions($application),
             'answers' => $this->answers->forApplication($id),
             'documents' => $this->documents->forApplication($id),
+            'requiredDocuments' => $this->requiredDocuments($application),
+            'documentsToAsk' => $this->documentsToAsk($application),
+            'firstYearFirstSemester' => $this->isFirstYearFirstSemester($application),
         ];
     }
 
@@ -764,6 +766,10 @@ final class MembershipService
             $accountId = $row['user_id'] ?? $applicant['user_id'] ?? null;
             $member = $accountId !== null ? $this->ensureMember((int) $accountId, $remarks) : $this->ensureApplicantMember((int) $row['applicant_id'], $remarks);
 
+            if ($row['position_id'] !== null) {
+                $this->assignPosition((int) $member['member_id'], (int) $row['position_id'], $remarks);
+            }
+
             AuditService::log('application.approved', 'membership_application', $id, [
                 'from' => $row['status'],
                 'to' => 'approved',
@@ -827,7 +833,157 @@ final class MembershipService
 
     public static function documentLabel(string $docType): string
     {
-        return self::DOCUMENT_TYPES[$docType] ?? 'Attachment';
+        return ApplicationRequirements::documentLabel($docType);
+    }
+
+    /** @return list<string> See ApplicationRequirements::requiredDocuments(). */
+    public function requiredDocuments(array $application): array
+    {
+        return (new ApplicationRequirements($this->questions, $this->answers))->requiredDocuments($application);
+    }
+
+    /** @return list<string> */
+    public function documentsToAsk(array $application): array
+    {
+        return (new ApplicationRequirements($this->questions, $this->answers))->documentsToAsk($application);
+    }
+
+    public function needsGrades(array $application): bool
+    {
+        return (new ApplicationRequirements($this->questions, $this->answers))->needsGrades($application);
+    }
+
+    public function isFirstYearFirstSemester(array $application): bool
+    {
+        return (new ApplicationRequirements($this->questions, $this->answers))->isFirstYearFirstSemester($application);
+    }
+
+    /**
+     * The COR and grades uploaded on the first apply page, before the email was confirmed, join the new draft. Each was
+     * checked and saved then (FileStorageService::store); a type the draft already has is left alone.
+     *
+     * @param array<string, array{stored_path: string, original_name: string, mime_type: string, size_bytes: int}> $documents doc_type => stored file
+     */
+    public function attachFirstPageDocuments(int $id, array $documents): void
+    {
+        $application = $this->editable($id);
+        $existing = array_column($this->documents->forApplication($id), 'doc_type');
+
+        foreach ($documents as $type => $stored) {
+            if (!in_array($type, ['cor', 'grades'], true) || in_array($type, $existing, true) || !isset($stored['stored_path'])) {
+                continue;
+            }
+
+            $documentId = $this->documents->insert([
+                'application_id' => $application['application_id'],
+                'doc_type' => $type,
+                'stored_path' => (string) $stored['stored_path'],
+                'original_name' => (string) $stored['original_name'],
+                'mime_type' => (string) $stored['mime_type'],
+                'size_bytes' => (int) $stored['size_bytes'],
+            ]);
+            AuditService::log('application.document_uploaded', 'application_document', $documentId, ['doc_type' => $type, 'from' => 'apply page']);
+        }
+    }
+
+    /** @return list<string> */
+    public function yearLevelOptions(): array
+    {
+        return (new ApplicationRequirements($this->questions, $this->answers))->yearLevelOptions();
+    }
+
+    public function currentSemester(): ?string
+    {
+        return (new ApplicationRequirements($this->questions, $this->answers))->currentSemester();
+    }
+
+    /** @return array{needed: bool, label: string} */
+    public function gradesForYear(string $yearLevel): array
+    {
+        return (new ApplicationRequirements($this->questions, $this->answers))->gradesForYear($yearLevel);
+    }
+
+    /** The year level from the first apply page becomes the step 2 answer, unless they already answered it. */
+    public function prefillYearLevel(int $id): void
+    {
+        $application = $this->editable($id);
+        $academic = $this->questions->forRoleTypes(['academic']);
+        $yearLevel = (string) ($this->person($application)['year_level'] ?? '');
+
+        if ($academic === [] || $yearLevel === '' || isset($this->answers->forApplication($id)[(int) $academic[0]['question_id']])) {
+            return;
+        }
+
+        $this->storeAnswers($id, [$academic[0]], [(int) $academic[0]['question_id'] => $yearLevel]);
+    }
+
+    /** The role types the Open for application module covers: Committee Head down to The Source Code. */
+    public const APPLICATION_ROLE_TYPES = ['committee_head', 'deputy', 'committee_member', 'source_code'];
+
+    /** @return list<array<string, mixed>> See OpenPositionsService::all(). */
+    public function applicationPositions(): array
+    {
+        return OpenPositionsService::all();
+    }
+
+    /** @return list<array<string, mixed>> See OpenPositionsService::openNow(). */
+    public function openPositions(): array
+    {
+        return OpenPositionsService::openNow();
+    }
+
+    /**
+     * An approved application for a position: the member takes it, with the role it gives (config/role_mapping.php)
+     * if they have an account; without one, /register gives it later. A Committee Head becomes the committee's head.
+     * Refused when the position is already full. The caller holds the transaction and checked who decides (BR-20).
+     *
+     * @throws DomainException
+     */
+    private function assignPosition(int $memberId, int $positionId, string $reason): void
+    {
+        $position = (new PositionRepository())->findWithCommittee($positionId) ?? throw new DomainException('This position no longer exists, so the application cannot be approved.');
+        $members = new MemberRepository();
+        $before = $members->findDetailed($memberId) ?? throw new DomainException('This member no longer exists.');
+
+        // Someone who meanwhile got a position keeps it; the choice does not replace a role quietly.
+        if ($before['position_id'] !== null) {
+            // A Committee Member or Year-Level Representative may take this as their second committee (P4).
+            if ($position['role_type'] === 'committee_member' && (int) $position['committee_id'] !== (int) ($before['committee_id'] ?? 0)) {
+                $this->assertSlotLeft($positionId);
+                (new MemberCommitteeService())->joinFromApplication($memberId, $positionId, trim($reason));
+            }
+
+            return;
+        }
+
+        $this->assertSlotLeft($positionId);
+
+        $members->update($memberId, ['position_id' => $positionId, 'membership_type' => 'officer', 'role_status' => 'active', 'role_expired_at' => null]);
+
+        if ($before['user_id'] !== null) {
+            $userId = (int) $before['user_id'];
+            $this->users->update($userId, ['role_id' => (new RoleRepository())->findBySlug(self::roleSlugFor($position))['role_id']]);
+
+            if ($position['role_type'] === 'committee_head') {
+                (new CommitteeRepository())->update((int) $position['committee_id'], ['head_user_id' => $userId]);
+            }
+
+            RbacService::clearCache();
+        }
+
+        // Written out, because roleLabel() needs an account's role and someone without one has not registered yet.
+        $label = $position['committee_name'] === null ? $position['title'] : $position['title'] . ', ' . $position['committee_name'];
+        $members->addHistory($memberId, 'General Member', $label, trim($reason), (int) current_user_id());
+    }
+
+    /** @throws DomainException when every slot of the position is filled. */
+    private function assertSlotLeft(int $positionId): void
+    {
+        foreach ($this->applicationPositions() as $row) {
+            if ($row['position_id'] === $positionId && $row['remaining'] === 0) {
+                throw new DomainException('Every slot for ' . $row['label'] . ' is filled. Raise its target in Open for application, or waitlist this application.');
+            }
+        }
     }
 
     /**
@@ -880,6 +1036,8 @@ final class MembershipService
             $oldLabel = self::roleLabel($member);
             $newLabel = self::roleLabel($members->findDetailed($memberId));
             $members->addHistory($memberId, $oldLabel, $newLabel, trim($reason), $actorId);
+            // A new main position may not allow a second committee, and an MSW second committee raises the role (P4).
+            (new MemberCommitteeService())->afterMainChange($memberId, $reason);
             RbacService::clearCache();
 
             AuditService::log('member.role_changed', 'member', $memberId, ['from' => $oldLabel, 'to' => $newLabel, 'reason' => mb_substr(trim($reason), 0, 255), 'actor_id' => $actorId]);
@@ -907,80 +1065,6 @@ final class MembershipService
         AuditService::log('member.role_expired', 'member', $memberId, ['position' => $position, 'actor_id' => $actorId]);
 
         $this->notifications->notify((int) $member['user_id'], 'ROLE_EXPIRED', ['position' => $position, 'remarks' => trim($remarks)], '/account');
-    }
-
-    /**
-     * For jobs/application_reminders.php: tells MSW staff about applications waiting over 3 days. Once a day per person.
-     *
-     * @return array{sent: int, failed: int}
-     */
-    public function sendPendingReminders(callable $log): array
-    {
-        $counts = ['sent' => 0, 'failed' => 0];
-        $count = $this->applications->countPendingSince(date('Y-m-d H:i:s', time() - self::PENDING_REMINDER_DAYS * 86400));
-
-        if ($count === 0) {
-            return $counts;
-        }
-
-        $sent = new NotificationRepository();
-
-        foreach (array_merge($this->users->activeIdsByRole('msw_head'), $this->users->activeIdsByRole('msw_member')) as $userId) {
-            try {
-                if (!$sent->sentToday((int) $userId, 'APP_PENDING_REMINDER')) {
-                    $this->notifications->notify((int) $userId, 'APP_PENDING_REMINDER', ['count' => $count, 'link' => '/applications'], null, ['email']);
-                    $counts['sent']++;
-                }
-            } catch (Throwable $exception) {
-                $counts['failed']++;
-                $log("User {$userId}: " . $exception->getMessage());
-            }
-        }
-
-        return $counts;
-    }
-
-    /**
-     * For jobs/application_reminders.php: reminds people whose application is For Revision every 3 days, with a fresh
-     * edit link for those without an account. The queue erases the payload, so for them the edit link's date says when
-     * the last one went out, which also counts the email sent when it was returned.
-     *
-     * @return array{sent: int, failed: int}
-     */
-    public function sendRevisionReminders(callable $log): array
-    {
-        $counts = ['sent' => 0, 'failed' => 0];
-        // By calendar day, so the job's exact run time does not push a reminder to the next day.
-        $since = date('Y-m-d 00:00:00', time() - (self::REVISION_REMINDER_DAYS - 1) * 86400);
-        $sent = new NotificationRepository();
-        $links = new ApplicationAccessLinkRepository();
-
-        foreach ($this->applications->forRevisionWithRemarks() as $row) {
-            $id = (int) $row['application_id'];
-
-            try {
-                $userId = $row['user_id'] ?? ($row['applicant_id'] === null ? null : $this->applicants->find((int) $row['applicant_id'])['user_id'] ?? null);
-                $alreadyToday = $row['applicant_id'] !== null && $links->issuedSince($id, ApplicantAccessService::PURPOSE_REVISE, $since);
-                $alreadyToday = $alreadyToday || ($userId !== null && $sent->sentSince((int) $userId, 'APP_FOR_REVISION', $since));
-
-                if ($alreadyToday) {
-                    continue;
-                }
-
-                Database::transaction(function () use ($row, $id): void {
-                    $this->notifyOwner($row, 'APP_FOR_REVISION', [
-                        'tracking_code' => $row['tracking_code'],
-                        'remarks' => (string) $row['revision_remarks'],
-                    ] + ($row['applicant_id'] !== null ? ['link' => (new ApplicantAccessService())->newRevisionLink($id)] : []), "/my-applications/{$id}");
-                });
-                $counts['sent']++;
-            } catch (Throwable $exception) {
-                $counts['failed']++;
-                $log("Application {$id}: " . $exception->getMessage());
-            }
-        }
-
-        return $counts;
     }
 
     /**
@@ -1043,7 +1127,7 @@ final class MembershipService
     {
         $required = [];
 
-        foreach (self::REQUIRED_DOCUMENTS as $type) {
+        foreach ($this->requiredDocuments($application) as $type) {
             $required[$type] = self::documentLabel($type);
         }
 
@@ -1207,8 +1291,9 @@ final class MembershipService
     {
         $errors = [];
         $documents = $this->documents->forApplication((int) $application['application_id']);
+        $asked = $this->documentsToAsk($application);
 
-        foreach (self::REQUIRED_DOCUMENTS as $type) {
+        foreach ($this->requiredDocuments($application) as $type) {
             $usable = array_filter($documents, static fn (array $d): bool => $d['doc_type'] === $type && $d['verification_status'] !== 'rejected');
 
             if ($usable === []) {
@@ -1216,8 +1301,9 @@ final class MembershipService
             }
         }
 
+        // Only what the step still asks for can be corrected there. An older School ID is the reviewer's to settle.
         foreach ($documents as $document) {
-            if ($document['verification_status'] === 'needs_correction' && !isset($errors[$document['doc_type']])) {
+            if ($document['verification_status'] === 'needs_correction' && in_array($document['doc_type'], $asked, true) && !isset($errors[$document['doc_type']])) {
                 $errors[$document['doc_type']] = 'This document needs correction. Please upload a new copy.';
             }
         }
@@ -1332,7 +1418,33 @@ final class MembershipService
      *
      * @param array<string, mixed> $application
      */
-    private function assertAllowedChoice(array $application, ?int $vacancyId): void
+    /**
+     * A position opened for application (openPositions()): for people without an account and for members with no
+     * position yet. Someone who already holds a position applies through a vacancy, so no role is replaced quietly.
+     *
+     * @param array<string, mixed> $application
+     * @throws DomainException
+     */
+    private function assertPositionChoice(array $application, ?int $positionId): void
+    {
+        if ($positionId === null) {
+            return;
+        }
+
+        if (!in_array($positionId, array_column($this->openPositions(), 'position_id'), true)) {
+            throw new DomainException('This position is not open for application. Please choose another.');
+        }
+
+        if ($application['user_id'] !== null) {
+            $member = (new MemberRepository())->findByUser((int) $application['user_id']);
+
+            if ($member !== null && $member['position_id'] !== null) {
+                throw new DomainException('You already hold a position. To take another, apply for one of the open vacancies.');
+            }
+        }
+    }
+
+    private function assertAllowedChoice(array $application, ?int $vacancyId, ?int $positionId = null): void
     {
         $id = (int) $application['application_id'];
 
@@ -1346,6 +1458,18 @@ final class MembershipService
 
         if ($vacancyId !== null && $this->vacancies->findOpen($vacancyId) === null) {
             throw new DomainException('This position is no longer open. Please choose another.');
+        }
+
+        // A member applying for a position: their approved general membership does not count, only another position
+        // application still waiting for a decision (BR-02).
+        if ($positionId !== null && $this->users->hasMemberRecord($userId)) {
+            $pending = $this->applications->findPendingPosition($userId, $id);
+
+            if ($pending !== null) {
+                throw new DomainException(sprintf('You already have a position application waiting for a decision (%s). Only one is allowed.', $pending['tracking_code']));
+            }
+
+            return;
         }
 
         if ($vacancyId === null && $this->users->hasMemberRecord($userId)) {

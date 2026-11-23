@@ -8,7 +8,6 @@
 $remarksError = field_error('remarks');
 ?>
 <?php $this->start('title') ?>Prepare appointment<?php $this->end() ?>
-<?php $this->start('form_side') ?><?= $this->partial('partials/side_panel', ['blocks' => [['title' => 'What happens next', 'items' => ['Preparing changes nothing yet.', 'The MSW Committee Head approves or returns it.', 'On approval the person gets the position and the slot count goes up.']]]]) ?><?php $this->end() ?>
 <?php $this->start('page_title') ?>Prepare appointment<?php $this->end() ?>
 
 <form class="card cms-form" method="post" action="<?= e(route('appointments.prepare')) ?>">

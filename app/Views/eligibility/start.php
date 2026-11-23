@@ -10,7 +10,6 @@ use App\Services\MembershipService;
 $count = count($covered);
 ?>
 <?php $this->start('title') ?>Start a screening<?php $this->end() ?>
-<?php $this->start('form_side') ?><?= $this->partial('partials/side_panel', ['blocks' => [['title' => 'Who is screened', 'text' => 'Officers only: executive officers, committee heads, deputies, members and The Source Code. General Members are left out.'], ['title' => 'What happens next', 'items' => ['Each officer is told to submit their documents.', 'Reminders go out before the deadline.', 'After the deadline and grace days, those who did not submit are marked incomplete.']]]]) ?><?php $this->end() ?>
 <?php $this->start('page_title') ?>Start a screening<?php $this->end() ?>
 
 <div class="case-sections">

@@ -649,6 +649,37 @@
 }
 
 @media (min-width: 1200px) {
+    /* The footer as one thin line: each group's items side by side, headings kept for screen readers only. */
+    .site-footer {
+        padding-block: var(--space-2);
+    }
+
+    .site-footer__grid {
+        grid-template-columns: auto minmax(0, 1fr) auto;
+        align-items: center;
+    }
+
+    .site-footer__grid > div,
+    .site-footer__contact {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: baseline;
+        gap: 0 var(--space-3);
+    }
+
+    .site-footer__grid > div:last-child {
+        justify-content: flex-end;
+    }
+
+    .site-footer__heading {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        overflow: hidden;
+        clip-path: inset(50%);
+        white-space: nowrap;
+    }
+
     .nav-toggle {
         display: none;
     }
@@ -773,15 +804,19 @@
         display: none;
     }
 
-    .site-nav {
-        display: block;
-    }
-
     .sidebar {
         position: static;
         width: auto;
         transform: none;
         visibility: visible;
+    }
+}
+
+/* Below 1200px the menu sits behind the toggle, so without JavaScript it is shown as a block. From 1200px it is
+   already a row in the header, and display: block here would push the log-in buttons onto a second line. */
+@media (scripting: none) and (max-width: 1199.98px) {
+    .site-nav {
+        display: block;
     }
 }
 

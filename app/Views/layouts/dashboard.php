@@ -77,15 +77,7 @@ $avatar = static function () use ($user, $account): string {
                     </ul>
                 <?php endforeach; ?>
             </nav>
-            <a class="sidebar__user" href="/account" title="<?= e($account['name']) ?>">
-                <?= $avatar() ?>
-                <span class="sidebar__user-text">
-                    <?= e($account['name']) ?>
-                    <?php if ($account['role'] !== '') : ?>
-                        <span class="sidebar__user-role"><?= e($account['role']) ?></span>
-                    <?php endif; ?>
-                </span>
-            </a>
+            <?php // The name and role live in the top bar's account menu only (removed from the sidebar foot, Nov 23, 2026). ?>
         </aside>
         <div class="sidebar-backdrop" data-sidebar-backdrop hidden></div>
 

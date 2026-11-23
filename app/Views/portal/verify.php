@@ -8,7 +8,6 @@ $result ??= null;
 $blocked ??= false;
 ?>
 <?php $this->start('title') ?>Verify a credential<?php $this->end() ?>
-<?php $this->start('form_side') ?><?= $this->partial('partials/side_panel', ['blocks' => [['title' => 'What this page shows', 'items' => ['Whether a digital ID or certificate is valid', 'The name, member number and role on it', 'When it was issued or revoked']], ['title' => 'Something looks wrong?', 'text' => 'Ask the MSW Committee to confirm it.', 'contact' => true]]]) ?><?php $this->end() ?>
 <?php $this->start('description') ?>Check whether an AGILE digital ID or certificate is valid.<?php $this->end() ?>
 <div class="track-page">
     <h1>Verify a credential</h1>

@@ -8,7 +8,7 @@ return [
     'public' => [
         ['label' => 'Home', 'url' => '/'],
         ['label' => 'About', 'url' => '/about'],
-        ['label' => 'Committees', 'url' => '/about#committees'],
+        ['label' => 'Committees', 'url' => '/committees'],
         ['label' => 'News', 'url' => '/news'],
         ['label' => 'Events', 'url' => '/events'],
         ['label' => 'Publications', 'url' => '/publications'],
@@ -29,15 +29,16 @@ return [
             'items' => [
                 ['label' => 'My Account', 'url' => '/account', 'icon' => 'user', 'permission' => null],
                 ['label' => 'My Submissions', 'url' => '/my-submissions', 'icon' => 'inbox', 'permission' => null],
-                ['label' => 'Notifications', 'url' => '/notifications', 'icon' => 'bell', 'permission' => null],
             ],
         ],
         [
             'heading' => 'Membership',
             'items' => [
                 ['label' => 'My Applications', 'url' => '/my-applications', 'icon' => 'clipboard', 'permission' => 'application.submit'],
+                ['label' => 'Run for office', 'url' => '/elections/candidacy', 'icon' => 'award', 'permission' => 'welfare.submit'],
                 ['label' => 'Members', 'url' => '/members', 'icon' => 'users', 'permission' => 'member.view'],
-                ['label' => 'IDs and certificates for approval', 'url' => '/credentials/approvals', 'icon' => 'award', 'permission' => 'credential.approve', 'badge' => 'credentials'],
+                // Manual mode (config/credentials.php): members request, the MSW Committee Head uploads from the template.
+                ['label' => 'ID and certificate requests', 'url' => '/credentials/requests', 'icon' => 'award', 'permission' => 'credential.approve', 'badge' => 'credential_requests'],
             ],
         ],
         [
@@ -45,6 +46,7 @@ return [
             'items' => [
                 ['label' => 'HR Requests', 'url' => '/recruitment/hr-requests', 'icon' => 'file', 'permission' => 'hr_request.submit'],
                 ['label' => 'Vacancies', 'url' => '/recruitment/vacancies', 'icon' => 'briefcase', 'permission' => 'vacancy.manage'],
+                ['label' => 'Open for application', 'url' => '/admin/open-positions', 'icon' => 'clipboard', 'permission' => 'admin.settings'],
                 ['label' => 'Applications', 'url' => '/applications', 'icon' => 'inbox', 'permission' => 'evaluation.view'],
                 ['label' => 'Evaluations', 'url' => '/recruitment/evaluations', 'icon' => 'check', 'permission' => 'evaluation.view'],
                 ['label' => 'Applications to my committee', 'url' => '/applications/my-committee', 'icon' => 'inbox', 'permission' => 'application.decide'],
@@ -93,10 +95,13 @@ return [
             'items' => [
                 ['label' => 'New accounts for approval', 'url' => '/accounts/approvals', 'icon' => 'users', 'permission' => 'account.approve', 'badge' => 'accounts'],
                 ['label' => 'Users', 'url' => '/admin/users', 'icon' => 'users', 'permission' => 'admin.users'],
+                ['label' => 'Candidacies', 'url' => '/admin/candidacies', 'icon' => 'clipboard', 'permission' => 'admin.users'],
+                ['label' => 'Elected officers', 'url' => '/admin/elected-officers', 'icon' => 'users', 'permission' => 'admin.users'],
                 ['label' => 'Roles and permissions', 'url' => '/admin/roles', 'icon' => 'shield', 'permission' => 'admin.users'],
                 ['label' => 'Committees and positions', 'url' => '/admin/committees', 'icon' => 'layers', 'permission' => 'admin.settings'],
                 ['label' => 'Settings', 'url' => '/admin/settings', 'icon' => 'settings', 'permission' => 'admin.settings'],
                 ['label' => 'Audit log', 'url' => '/admin/audit-logs', 'icon' => 'list', 'permission' => 'audit.view'],
+                ['label' => 'Document archive', 'url' => '/admin/archive', 'icon' => 'database', 'permission' => 'backup.manage'],
                 ['label' => 'System health', 'url' => '/admin/system-health', 'icon' => 'database', 'permission' => 'backup.manage'],
             ],
         ],

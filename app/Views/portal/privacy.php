@@ -55,7 +55,13 @@
         <p>Passwords are stored as secure hashes. Welfare case text is encrypted. Uploaded files are kept outside the public website and are released only after a permission check, and access to sensitive records is logged.</p>
 
         <h2>How long we keep it</h2>
-        <p>We keep your data only as long as it is needed for the purposes above and for the organization's records, or as the law requires. After that, it is securely deleted or anonymized.</p>
+        <p>We keep your data only as long as it is needed for the purposes above and for the organization's records, or as the law requires.</p>
+        <ul class="portal-list">
+            <li>Your member record and history stay while you are a member, because they prove your membership and the positions you held.</li>
+            <li>The COR and copy of grades you upload are moved to a protected archive about a semester after your application or candidacy is decided. Only authorized MSW Committee staff can open them.</li>
+            <li>Welfare concerns stay encrypted for as long as they are kept.</li>
+            <li>You may ask the MSW Committee to correct your data, or to remove data AGILE no longer needs, at <a href="mailto:<?= e(org_contact_email()) ?>"><?= e(org_contact_email()) ?></a>.</li>
+        </ul>
 
         <h2>Your rights</h2>
         <p>Under the Data Privacy Act, you have the right to:</p>

@@ -15,7 +15,7 @@ final class ApplicantRepository extends BaseRepository
     /**
      * Their email was just proven with a code, so the details they typed replace any earlier ones.
      *
-     * @param array{email: string, first_name: string, last_name: string, student_no: string} $details
+     * @param array{email: string, first_name: string, last_name: string, student_no: string, contact_no?: string, year_level?: string, section?: string} $details
      * @return int The applicant's id.
      */
     public function saveVerified(array $details): int
@@ -24,13 +24,18 @@ final class ApplicantRepository extends BaseRepository
         $details['student_no'] = $this->studentNo($details['student_no']);
         $existing = $this->findBy(['email' => $details['email']])[0] ?? null;
         $this->assertStudentNoFree($details['student_no'], $existing === null ? 0 : (int) $existing['applicant_id']);
+        // From the first apply page; an empty value keeps what an earlier visit saved.
+        $optional = static fn (string $key): ?string => ($details[$key] ?? '') === '' ? null : (string) $details[$key];
 
         $this->pdo()->prepare(
-            'INSERT INTO applicants (email, first_name, last_name, student_no, email_verified_at)
-             VALUES (?, ?, ?, ?, ?)
+            'INSERT INTO applicants (email, first_name, last_name, student_no, contact_no, year_level, section, email_verified_at)
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?)
              ON DUPLICATE KEY UPDATE first_name = VALUES(first_name), last_name = VALUES(last_name),
-                 student_no = VALUES(student_no), email_verified_at = VALUES(email_verified_at)'
-        )->execute([$details['email'], $details['first_name'], $details['last_name'], $details['student_no'], $now]);
+                 student_no = VALUES(student_no), email_verified_at = VALUES(email_verified_at),
+                 contact_no = COALESCE(VALUES(contact_no), contact_no), year_level = COALESCE(VALUES(year_level), year_level),
+                 section = COALESCE(VALUES(section), section)'
+        )->execute([$details['email'], $details['first_name'], $details['last_name'], $details['student_no'],
+            $optional('contact_no'), $optional('year_level'), $optional('section'), $now]);
 
         return (int) $this->findBy(['email' => $details['email']])[0]['applicant_id'];
     }

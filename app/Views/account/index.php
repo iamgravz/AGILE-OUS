@@ -34,7 +34,7 @@ $member = $membership['member'] ?? null;
         'headingId' => 'account-details',
         'lines' => array_filter([e($membership['roleLabel'] ?? $account['role_name']), $member !== null ? status_badge($member['status']) : null]),
         'facts' => $facts,
-        'note' => 'Contact the MSW Committee to correct your name, email or student number.',
+        'note' => 'To correct your name, email or student number, ask the MSW Committee Head (Administration, Users).',
     ]) ?>
 
     <?php if ($membership !== null) : ?>
@@ -43,6 +43,9 @@ $member = $membership['member'] ?? null;
                 <?= $this->partial('members/_profile', $memberPart(['credentials'])) ?>
             </div>
         </section>
+        <?php if (\App\Services\CredentialService::manual()) : ?>
+            <?= $this->partial('account/_credential_requests', ['requests' => $credentialRequests]) ?>
+        <?php endif; ?>
     <?php endif; ?>
 
     <div data-tabs>
@@ -71,12 +74,12 @@ $member = $membership['member'] ?? null;
     </section>
 
     <section class="plain-section" aria-labelledby="account-contact">
-        <div class="card__header"><h2 class="card__title" id="account-contact">Contact number</h2></div>
+        <div class="card__header"><h2 class="card__title" id="account-contact">Year, section and contact number</h2></div>
         <div class="card__body">
             <form method="post" action="<?= e(route('account.contact')) ?>">
                 <?= csrf_field() ?>
-                <?= $this->partial('partials/form_field', ['name' => 'contact_no', 'label' => 'Contact number', 'type' => 'tel', 'value' => old('contact_no', $account['contact_no']), 'autocomplete' => 'tel']) ?>
-                <button type="submit" class="btn btn--primary">Save contact number</button>
+                <?= $this->partial('partials/student_details', ['values' => ['year_level' => $account['year_level'] ?? '', 'section' => $account['section'] ?? '', 'contact_no' => $account['contact_no']]]) ?>
+                <button type="submit" class="btn btn--primary">Save</button>
             </form>
         </div>
     </section>

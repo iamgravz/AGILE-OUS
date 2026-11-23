@@ -1663,3 +1663,63 @@ Re-audit 10/10 (was 7/10). Details and evidence in [database-audit.md](database-
 - Kept: a member who registers gets their position's role (`AuthService::registerMember()`).
 - Real members and officers are added through the app: officers by the MSW Committee Head (Administration › Users) and members through approved applications and /register.
 - `composer test`: OK, 336 tests.
+
+### Data: 100 more sample people (Nov 20–21, 2026)
+- `database/seeds/demo_bulk.php`, on with `DEMO_BULK=true` in `.env` (off by default, never in production, forced off in tests): 7 former Executive Committee officers, 3 deputies, 7 Source Code staff, 21 committee members, 22 approved general members (6 registered) and 40 applicants at every stage. Details in `docs/database.md`.
+- Checked on a throwaway database, run twice: the stage counts match and nothing is added twice. No single-holder position gets two people.
+
+## Step 24 of 24: Going live (Nov 21, 2026)
+
+### What was built
+- **`database/remove_demo.php`** with `App\Services\DemoDataRemover`: removes every `@agile.test` account and applicant and what belongs to them, for a database that was used for testing. Without `--yes` it only lists what it would do. With `--yes` it needs `APP_ENV=production` (or `--any-env`), makes a backup first (unless `--no-backup`), and works in one transaction that is rolled back if any link would break.
+  - The foreign keys are read from `information_schema`, so tables from later migrations are covered.
+  - Real records are never deleted. A demo account's name in a who-did-it column that may be empty (approved by, decided by, the audit log's user) is cleared. If it may not be empty and the row belongs to a real record, such as a demo evaluation of a real applicant, nothing is removed and the row is listed.
+  - It refuses if no real MSW Committee Head account would be left (`--allow-no-admin` overrides).
+  - Files only those rows used are moved to `storage/removed-demo/<time>/`, never deleted.
+- **`docs/deployment.md`:** the go-live steps in order: server, files, production `.env`, database, the first MSW Committee Head (`jobs/create_user.php ... msw_head`), scheduled jobs, backups and last checks. Linked from the README, whose second, outdated Tests section was replaced.
+- **Compression and caching** in `public/.htaccess` (`mod_deflate`, a week's `Cache-Control` on assets). `asset()` adds `?v=<file time>`, so a changed CSS or JS file is fetched at once.
+
+### Fixes
+- **Public header without JavaScript (1200px and up):** the `@media (scripting: none)` rule set `.site-nav` to `display: block`, which beat the desktop row and put Member log in and Apply on a second line (98px tall instead of 73px). It now applies only below 1200px, where the menu sits behind the toggle. Measured at 1366: one row, 73px, the same as with JavaScript.
+- **Committee page (`/admin/committees/{id}`):** the Delete form was a bare third column with no heading. It is now a section like the other two. The 40px measured at 2560 was the 80ch reading limit on its one-line help text, which is intended, not a layout fault.
+- **`cms-editor.js`:** Quill's link box and the heading select it hides now have labels, as in `email-editor.js`.
+- **`phpunit.xml`:** `APP_DEBUG` and `DEMO_BULK` are forced with `"0"`, not `"false"`. PHPUnit turns `"false"` into an empty value, Windows removes an empty variable, and the database rebuild and test server then read `.env` instead. With `DEMO_BULK=true` in `.env`, the 100 sample people reached the test database and two tests failed.
+- **4 PHP warnings in the test run:** `use DomainException;` in `tests/AccountsAndDecisionsTest.php` does nothing in the global namespace and printed a warning first, so the session tests found headers already sent. Removed.
+
+### Test results
+- `composer test`: OK, 341 tests, 3216 assertions, no warnings. Includes `tests/DemoDataRemoverTest.php` (5 tests: the plan covers every demo person and no reference data, it refuses with no real MSW Head, removal leaves no broken links, a real application decided by a demo account is kept with the name cleared, a demo evaluation of a real application stops everything).
+- The real `storage/` was listed before and after the run: the same 73 files.
+
+### Checked on the real database (read-only)
+`php database/remove_demo.php` on `agile_ams` lists only demo data and stops because no real MSW Committee Head exists yet, as intended. Nothing was changed.
+
+### Known issues
+- `public/.htaccess` compression and caching only work under Apache with `mod_deflate` and `mod_headers`; `php -S` ignores them. Not tested under Apache.
+- `AI_API_KEY` is forced empty in `phpunit.xml`, which Windows also removes, so child processes see the key from `.env`. Harmless while `AI_PROVIDER=none` is forced, which it is.
+- The Step 3 to Step 23 browser suites were not rerun; only the header and committee pages were measured.
+
+### After Step 24 (Nov 22, 2026)
+- **Footer:** one thin line from 1200px, with AGILE's real contacts from `.env` (`ORG_CONTACT_EMAIL`, `ORG_MSW_EMAIL`, `ORG_FACEBOOK_URL`).
+- **Login:** in the site's own layout like Track Status, with Iskobot standing on the card and holding its corners; the demo switcher folds away.
+
+### Feature: membership requirements and choosing a committee (Nov 22, 2026)
+- **Requirements (from AGILE):** General Membership needs the current COR only. Joining a committee, or any position, needs the current COR and the previous semester copy of grades. 1st years in a 1st semester give the COR only; 1st years joining in the 2nd semester give their 1st semester grades. School ID is no longer asked for (old uploads still show).
+- **Where:** `MembershipService::requiredDocuments()`, `documentsToAsk()`, `needsGrades()`, `isFirstYearFirstSemester()` (year level from step 2, semester from the current academic term; with no current term, grades are asked for). The documents step, the approval check and uploads all follow it. `membership/_requirements.php` shows AGILE's table on the apply page and in step 3.
+- **Choosing a committee (step 3):** General Membership, or Committee Member with a committee to choose, for people without an account and for members who hold no position. Open positions stay for logged-in members. The Source Code has no Committee Member position, so it is not listed; its positions open as vacancies.
+- **Who decides:** that committee's head (BR-20), or the MSW Committee Head for the MSW committee. The application shows as "Committee Member, <committee>" in every list, and in the committee head's list. Staff can filter by Committee Member.
+- **On approval:** the member becomes that committee's Committee Member (`membership_type` officer). With an account, they get the position's role at once; without one, `/register` gives it later. Someone who meanwhile got a position keeps it.
+- **Database:** `membership_applications.committee_id` with a CHECK that a vacancy and a committee are never both set (migration `2026_11_22_committee_applications.php`, `schema.sql`). Applied to `agile_ams` after a backup.
+- **Demo data:** demo applicants give a COR only; with `DEMO_BULK=true`, every third applicant not yet approved applies to a committee (on fresh seeds).
+- **Tests:** `tests/MembershipRequirementsTest.php` (8). Test data for position applications now has COR and grades. `composer test`: OK, 349 tests, 3236 assertions.
+- **Checked in the browser** as `nomember@agile.test`: the apply page's table, step 3 (no committee chosen gives "Please choose the committee you want to join."), and step 5 asking for COR and grades for Logistics. This left one draft application for that demo account.
+- **Not built:** Year-Level Representative is in AGILE's table but is not a position in the system yet.
+
+### Feature: Open for application, and the apply page asks everything at once (Nov 22, 2026)
+- **Open for application** (Recruitment, MSW Committee Head, `/admin/open-positions`): every position from Committee Head to The Source Code, by committee, with AGILE's dashboard numbers: Target (editable, empty for no limit), Filled (active holders), Remaining and Status (Open, Closed, Filled), and an Open tick. Saving is audited (`positions.open_updated`). `OpenPositionsService`, `OpenPositionsController`, `admin/open_positions.php`.
+- **Starting values:** targets from the dashboard (Committee Head 1, Deputy 1, Committee Member 4; The Source Code: Editor-in-Chief 1, Managing Editor 2, News Editor 2, Writer 3, Head Cartoonist 1, Cartoonist 3, Layout Editor 3, Head Photojournalist 1, Photojournalist 3, Videographer/Editor 3; Feature Editor none). Committee Members start open; the rest start closed.
+- **Apply page card:** Applying for (General Membership, or an open position that still has slots, by committee, with slots left), Requirements (AGILE's table as a dropdown, `MembershipService::REQUIREMENT_GROUPS`), the required documents for that row, and the upload fields it needs: the COR always, and the previous semester (or 1st semester) grades when the row asks for them. General Membership takes General members or a 1st year row; a position takes any row but General members.
+- **Files from the apply page** are checked and saved in `storage/uploads/applications` once the code is sent, kept in the session, and attached to the draft after the email is confirmed (`MembershipService::attachFirstPageDocuments`). If something on the page needs fixing, files are not kept and the page says to choose them again. Files of someone who never confirms their email stay in that folder; nothing deletes them.
+- **Replaces the committee choice:** `membership_applications.position_id` instead of `committee_id` (the earlier migration was removed before being pushed; `2026_11_22_open_positions.php` converts `agile_ams`). Approval gives the position, makes a Committee Head the committee's head when they have an account, and is refused when the position is full. A Committee Head position is decided by the MSW Committee Head (R6); The Source Code by the MSW Committee Head (BR-20); the rest by the committee's head.
+- **Tests:** `MembershipRequirementsTest` (14), `HttpWholeFlowsTest` (the apply page needs the row and the COR, and the COR joins the application). `composer test`: OK, 355 tests, 3258 assertions.
+- **Checked in the browser:** each Requirements row shows its documents and shows or hides the grades field (COR only for General members and 1st year 1st semester; "1st semester copy of grades" for 1st years in the 2nd semester); the admin page at 1366. With the demo data most positions are full, so only one shows on the apply page.
+- **Applied to `agile_ams`** after a backup (the morning's backup was copied to `%TEMP%\agile_2026-11-22_before-open-positions.sql.gz` first).

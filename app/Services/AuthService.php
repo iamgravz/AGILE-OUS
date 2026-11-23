@@ -83,6 +83,8 @@ final class AuthService
                 'last_name' => $applicant['last_name'],
                 'student_no' => $applicant['student_no'],
                 'contact_no' => (string) $applicant['contact_no'],
+                'year_level' => $applicant['year_level'] ?? null,
+                'section' => $applicant['section'] ?? null,
                 'status' => 'pending',
                 'email_verified_at' => date('Y-m-d H:i:s'),
             ]);

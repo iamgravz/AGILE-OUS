@@ -10,5 +10,7 @@
 <link rel="stylesheet" href="<?= e(asset('css/tokens.css')) ?>">
 <link rel="stylesheet" href="<?= e(asset('css/components.css')) ?>">
 <link rel="stylesheet" href="<?= e(asset('css/layout.css')) ?>">
+<?php /* One look for every page: the bands, cards and buttons of the public redesign (Nov 23, 2026). */ ?>
+<link rel="stylesheet" href="<?= e(asset('css/modern.css')) ?>">
 <?= $this->section('head') ?>
 <script src="<?= e(asset('js/app.js')) ?>" defer></script>

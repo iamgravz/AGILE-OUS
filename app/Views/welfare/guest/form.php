@@ -10,7 +10,6 @@
  */
 ?>
 <?php $this->start('title') ?>Tell us about your concern<?php $this->end() ?>
-<?php $this->start('form_side') ?><?= $this->partial('partials/side_panel', ['blocks' => [['title' => 'Your concern is confidential', 'text' => 'Only the MSW Committee Head and the President can read it. It is stored encrypted, and every view is logged.'], ['title' => 'What happens next', 'items' => ['You get a case code by email.', 'A handler reviews your concern. Urgent and harassment cases are acknowledged within 24 hours.', 'You can follow its status with your case code.']], ['title' => 'In immediate danger?', 'text' => 'Please contact emergency services or your local authorities first. This form is not monitored around the clock.']]]) ?><?php $this->end() ?>
 <?php $this->start('head') ?>
 <script src="<?= e(asset('js/welfare-form.js')) ?>" defer></script>
 <?php $this->end() ?>

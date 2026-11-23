@@ -3,14 +3,14 @@
 declare(strict_types=1);
 
 use App\Services\MemberRecordsService;
-use App\Services\MembershipService;
+use App\Services\ApplicationReminderService;
 
 require __DIR__ . '/_bootstrap.php';
 
 job_run('application_reminders', static function (): array {
-    $membership = new MembershipService();
-    $pending = $membership->sendPendingReminders(job_log(...));
-    $revision = $membership->sendRevisionReminders(job_log(...));
+    $reminders = new ApplicationReminderService();
+    $pending = $reminders->sendPendingReminders(job_log(...));
+    $revision = $reminders->sendRevisionReminders(job_log(...));
     $registration = (new MemberRecordsService())->sendRegistrationReminders(job_log(...));
     $failed = $pending['failed'] + $revision['failed'] + $registration['failed'];
 

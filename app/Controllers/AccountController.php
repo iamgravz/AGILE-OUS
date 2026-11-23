@@ -23,27 +23,22 @@ final class AccountController
         return Response::html(View::render('account/index', [
             'account' => current_user(),
             'membership' => (new MemberRecordsService())->ownProfile(),
+            'credentialRequests' => (new \App\Services\CredentialRequestService())->mine(),
             'breadcrumbs' => [['label' => 'Dashboard', 'url' => route('dashboard')], ['label' => 'My Account']],
         ], 'layouts/dashboard'));
     }
 
     public function updateContact(Request $request): Response
     {
-        $contactNo = $request->text('contact_no');
-        $errors = Validator::check(['contact_no' => $contactNo], [
-            'contact_no' => [
-                'label' => 'Contact number',
-                'rules' => ['required', 'regex:' . Validator::PHONE_PATTERN],
-                'message' => 'Enter a valid contact number, such as 09171234567.',
-            ],
-        ]);
+        $details = \App\Services\StudentDetails::fromRequest($request);
+        $errors = \App\Services\StudentDetails::errors($details);
 
         if ($errors !== []) {
-            return $this->backWithErrors($errors, ['contact_no' => $contactNo]);
+            return $this->backWithErrors($errors, $details);
         }
 
-        $this->profile->updateContact($contactNo);
-        flash('success', 'Your contact number has been updated.');
+        $this->profile->updateContact($details['contact_no'], $details['year_level'], $details['section']);
+        flash('success', 'Your year level, section and contact number have been updated.');
 
         return redirect(route('account'));
     }

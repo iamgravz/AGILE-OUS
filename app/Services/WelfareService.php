@@ -158,7 +158,7 @@ final class WelfareService
      * @return array<string, mixed> The new case.
      * @throws FileRejectedException|DomainException
      */
-    public function submit(array $input, ?int $relatedCaseId, array $uploads): array
+    public function submit(array $input, ?int $relatedCaseId, array $uploads, array $details = []): array
     {
         authorize('welfare.submit');
 
@@ -172,7 +172,37 @@ final class WelfareService
             }
         }
 
-        return $this->create(['user_id' => $userId], $input, $relatedCaseId, $uploads);
+        // The member's year level, section and contact number: kept on their account, and with the case as they were then.
+        if ($details !== []) {
+            (new UserRepository())->update($userId, array_intersect_key($details, ['year_level' => 0, 'section' => 0, 'contact_no' => 0]));
+        }
+
+        return $this->create(['user_id' => $userId] + self::encryptedDetails($details), $input, $relatedCaseId, $uploads);
+    }
+
+    /**
+     * The submitter's contact number, year level and section for the case row, encrypted like a guest's identity (M3).
+     *
+     * @param array<string, mixed> $details
+     * @return array<string, string|null>
+     */
+    private static function encryptedDetails(array $details): array
+    {
+        $encryption = new EncryptionService();
+        $encrypt = static fn (string $key): ?string => ($details[$key] ?? '') === '' ? null : $encryption->encrypt((string) $details[$key]);
+
+        return ['submitter_contact_no' => $encrypt('contact_no'), 'submitter_year_level' => $encrypt('year_level'), 'submitter_section' => $encrypt('section')];
+    }
+
+    /**
+     * @param array<string, mixed> $case A welfare_cases row.
+     * @return array{contact_no: string, year_level: string, section: string} Empty strings for cases from before Nov 23, 2026.
+     */
+    public function submitterDetails(array $case): array
+    {
+        $read = fn (?string $value): string => $value === null ? '' : $this->readable($value, '');
+
+        return ['contact_no' => $read($case['submitter_contact_no'] ?? null), 'year_level' => $read($case['submitter_year_level'] ?? null), 'section' => $read($case['submitter_section'] ?? null)];
     }
 
     /**
@@ -206,7 +236,7 @@ final class WelfareService
             'guest_email' => $encryption->encrypt($guest['email']),
             'guest_email_hash' => $encryption->blindIndex($guest['email']),
             'guest_student_no' => $guest['student_no'] === '' ? null : $encryption->encrypt($guest['student_no']),
-        ], $input, $relatedId, $uploads);
+        ] + self::encryptedDetails($guest), $input, $relatedId, $uploads);
     }
 
     /**
@@ -458,6 +488,7 @@ final class WelfareService
         $case['guest_name'] = $guest['name'];
         $case['guest_email'] = $guest['email'];
         $case['guest_student_no'] = $guest['student_no'] === '' ? null : $guest['student_no'];
+        $case['submitter_details'] = $this->submitterDetails($case);
         $case['closing_remarks'] = $case['closing_remarks'] === null ? null : $this->readable($case['closing_remarks'], 'Remarks unavailable');
         $case['overdue'] = self::isOverdue($case);
         $resolution = $this->resolutions->forCase($id);

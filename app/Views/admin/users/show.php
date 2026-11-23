@@ -42,6 +42,24 @@ if ($isLocked) {
         'facts' => $facts,
     ]) ?>
 
+<section class="plain-section" id="user-edit" aria-labelledby="user-edit-title">
+    <div class="card__header"><h2 class="card__title" id="user-edit-title">Details</h2></div>
+    <div class="card__body">
+        <form method="post" action="<?= e(route('admin.users.details', ['id' => $id])) ?>">
+            <?= csrf_field() ?>
+            <div class="grid grid--2">
+                <?= $this->partial('partials/form_field', ['name' => 'first_name', 'label' => 'First name', 'value' => (string) old('first_name', $user['first_name'])]) ?>
+                <?= $this->partial('partials/form_field', ['name' => 'last_name', 'label' => 'Last name', 'value' => (string) old('last_name', $user['last_name'])]) ?>
+                <?= $this->partial('partials/form_field', ['name' => 'email', 'label' => 'Email', 'type' => 'email', 'value' => (string) old('email', $user['email']), 'help' => 'They log in with this.']) ?>
+                <?= $this->partial('partials/form_field', ['name' => 'student_no', 'label' => 'PUP student number', 'value' => (string) old('student_no', (string) ($user['student_no'] ?? '')), 'required' => false, 'help' => 'For example, 2024-xxxxx-MN-0.']) ?>
+            </div>
+            <?= $this->partial('partials/student_details', ['values' => ['year_level' => $user['year_level'] ?? '', 'section' => $user['section'] ?? '', 'contact_no' => $user['contact_no'] ?? '']]) ?>
+            <?= $this->partial('partials/form_field', ['name' => 'details_reason', 'label' => 'Reason for the change', 'value' => '', 'help' => 'Saved in the audit log.']) ?>
+            <button type="submit" class="btn btn--primary">Save details</button>
+        </form>
+    </div>
+</section>
+
 <div class="account-forms">
     <section class="plain-section" aria-labelledby="user-role">
         <div class="card__header"><h2 class="card__title" id="user-role">Role</h2></div>

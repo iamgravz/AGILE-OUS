@@ -26,7 +26,6 @@ $descriptionError = field_error('description');
 $action = $isNew ? route('vacancies.create') : route('vacancies.edit', ['id' => (int) $vacancy['vacancy_id']]);
 ?>
 <?php $this->start('title') ?><?= e($heading) ?><?php $this->end() ?>
-<?php $this->start('form_side') ?><?= $this->partial('partials/side_panel', ['blocks' => [['title' => 'About vacancies', 'items' => ['A draft stays off the public site.', 'Publishing needs a closing date in the future.', 'It closes by itself on that date, or once every slot is filled.']]]]) ?><?php $this->end() ?>
 <?php $this->start('page_title') ?><?= e($heading) ?><?php $this->end() ?>
 
 <form class="card cms-form" method="post" action="<?= e($action) ?>">

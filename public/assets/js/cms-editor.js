@@ -124,6 +124,9 @@
     quill.clipboard.addMatcher('IMG', (node, delta) => (/^\/media\/[a-f0-9]{32}$/.test(node.getAttribute('src') || '') ? delta : new Delta()));
 
     quill.root.setAttribute('aria-label', 'Body');
+    // Quill's own fields have no labels: the link box in its tooltip, and the heading select it hides behind its picker.
+    holder.querySelector('.ql-tooltip input')?.setAttribute('aria-label', 'Link address');
+    form.querySelectorAll('.ql-toolbar select').forEach((select) => select.setAttribute('aria-label', 'Heading level'));
     // Not dangerouslyPasteHTML, which also moves keyboard focus into the editor as the page loads.
     quill.setContents(quill.clipboard.convert({ html: textarea.value }), 'silent');
     quill.history.clear();

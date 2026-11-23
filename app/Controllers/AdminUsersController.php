@@ -84,6 +84,36 @@ final class AdminUsersController
         ]);
     }
 
+    public function details(Request $request, string $id): Response
+    {
+        $data = ['first_name' => $request->text('first_name'), 'last_name' => $request->text('last_name'), 'email' => $request->text('email'), 'student_no' => strtoupper($request->text('student_no'))]
+            + \App\Services\StudentDetails::fromRequest($request);
+        $errors = Validator::check($data, [
+            'first_name' => ['label' => 'First name', 'rules' => ['required', 'max:80']],
+            'last_name' => ['label' => 'Last name', 'rules' => ['required', 'max:80']],
+            'email' => ['label' => 'Email', 'rules' => ['required', 'email', 'max:150']],
+            'student_no' => ['label' => 'PUP student number', 'rules' => ['max:20']],
+        ]) + \App\Services\StudentDetails::errors($data);
+        $back = route('admin.users.show', ['id' => (int) $id]) . '#user-edit';
+
+        if ($errors !== []) {
+            flash('_errors', $errors);
+            flash('_old_input', $data);
+
+            return redirect($back);
+        }
+
+        try {
+            $this->users->updateDetails((int) $id, $data, $request->text('details_reason'));
+            flash('success', 'The details were saved.');
+        } catch (DomainException $exception) {
+            flash('error', $exception->getMessage());
+            flash('_old_input', $data);
+        }
+
+        return redirect($back);
+    }
+
     public function role(Request $request, string $id): Response
     {
         return $this->act((int) $id, fn () => $this->users->changeRole((int) $id, $request->text('role'), $request->text('reason')), 'The role was changed.');

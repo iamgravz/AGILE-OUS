@@ -35,11 +35,11 @@ final class AuthController
         $state = Session::get(self::REGISTER_KEY);
 
         if ($state === null) {
-            return $this->page('auth/register');
+            return $this->robotPage('auth/register');
         }
 
         if ($state['member_id'] === null) {
-            return $this->page('auth/register_verify');
+            return $this->robotPage('auth/register_verify');
         }
 
         if ($state['verified_at'] + self::REGISTER_MINUTES * 60 < time()) {
@@ -49,7 +49,7 @@ final class AuthController
             return redirect(route('register'));
         }
 
-        return $this->page('auth/register_password');
+        return $this->robotPage('auth/register_password');
     }
 
     /** One reply for every student number, so this page cannot be used to test them. */
@@ -163,7 +163,8 @@ final class AuthController
     {
         $devUsers = dev_tools_allowed() ? (new UserRepository())->activeDemoUsers() : [];
 
-        return $this->page('auth/login', ['devUsers' => $devUsers]);
+        // The site's own layout, so login looks like the other public pages. The registration steps keep layouts/auth.
+        return Response::html(View::render('auth/login', ['devUsers' => $devUsers], 'layouts/public'));
     }
 
     /** The route exists only when APP_ENV=local, and the service refuses it otherwise too. */
@@ -219,7 +220,7 @@ final class AuthController
 
     public function showForgot(Request $request): Response
     {
-        return $this->page('auth/forgot_password');
+        return $this->robotPage('auth/forgot_password');
     }
 
     public function forgot(Request $request): Response
@@ -245,7 +246,7 @@ final class AuthController
             return $this->invalidResetLink();
         }
 
-        return $this->page('auth/reset_password', ['token' => $token]);
+        return $this->robotPage('auth/reset_password', ['token' => $token]);
     }
 
     public function reset(Request $request): Response
@@ -283,7 +284,7 @@ final class AuthController
             return $this->invalidSetupLink();
         }
 
-        return $this->page('auth/set_password', ['token' => $token]);
+        return $this->robotPage('auth/set_password', ['token' => $token]);
     }
 
     public function setup(Request $request): Response
@@ -327,9 +328,10 @@ final class AuthController
     }
 
     /** @param array<string, mixed> $data */
-    private function page(string $view, array $data = []): Response
+    /** The password pages, in the site layout like the login page, with Iskobot on the card. */
+    private function robotPage(string $view, array $data = []): Response
     {
-        return Response::html(View::render($view, $data, 'layouts/auth'));
+        return Response::html(View::render($view, $data, 'layouts/public'));
     }
 
     /**
