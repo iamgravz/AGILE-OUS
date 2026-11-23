@@ -112,6 +112,8 @@ Codes (stored in `permissions.code`; mapped to roles in `role_permissions`; extr
 |---|---|---|---|---|---|---|
 | `account.approve` *(addition, BR-21)* | | | | | ✔ | |
 | `application.submit` (vacancy applications while logged in) | ✔ | | | | | |
+| `service_request.submit` | ✔ | ✔ | ✔ | ✔ | ✔ | ✔ |
+| `service_request.manage` | | | | ✔ | ✔ | |
 | `welfare.submit` | ✔ | ✔ | ✔ | ✔ | ✔ | ✔ |
 | `profile.manage_own` (profile, ID, certificate) | ✔ | ✔ | ✔ | ✔ | ✔ | ✔ |
 | `hr_request.submit` (own committee) | | ✔ | | | ✔ | |

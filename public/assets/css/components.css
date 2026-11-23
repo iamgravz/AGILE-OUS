@@ -4351,3 +4351,37 @@ form .grid--2 {
     cursor: pointer;
     font-weight: 600;
 }
+
+
+/* Service request thread (My Requests). Staff replies sit on the right, tinted. */
+.request-thread {
+    display: grid;
+    gap: var(--space-3);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.request-thread__item {
+    max-width: 85%;
+    padding: var(--space-3) var(--space-4);
+    border: 1px solid var(--color-border);
+    border-radius: 12px;
+    background: var(--color-surface);
+}
+
+.request-thread__item--staff {
+    justify-self: end;
+    background: var(--info-bg);
+}
+
+.request-thread__meta {
+    margin: 0 0 var(--space-1);
+    font-size: 0.875rem;
+    color: var(--color-text-muted);
+}
+
+.request-thread__body {
+    margin: 0;
+    overflow-wrap: anywhere;
+}

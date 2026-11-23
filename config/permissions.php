@@ -8,6 +8,14 @@ return [
         'description' => 'Submit a membership application',
         'roles' => ['general_member'],
     ],
+    'service_request.submit' => [
+        'description' => 'Send a service request to the MSW Committee',
+        'roles' => ['general_member', 'committee_head', 'execomm', 'msw_member', 'msw_head', 'president'],
+    ],
+    'service_request.manage' => [
+        'description' => 'Handle service requests',
+        'roles' => ['msw_member', 'msw_head'],
+    ],
     'welfare.submit' => [
         'description' => 'Submit a welfare concern',
         'roles' => ['general_member', 'committee_head', 'execomm', 'msw_member', 'msw_head', 'president'],

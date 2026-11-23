@@ -29,6 +29,7 @@ return [
             'items' => [
                 ['label' => 'My Account', 'url' => '/account', 'icon' => 'user', 'permission' => null],
                 ['label' => 'My Submissions', 'url' => '/my-submissions', 'icon' => 'inbox', 'permission' => null],
+                ['label' => 'My Requests', 'url' => '/requests', 'icon' => 'mail', 'permission' => 'service_request.submit'],
             ],
         ],
         [

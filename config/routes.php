@@ -246,6 +246,12 @@ return static function (Router $router): void {
         // Own records only, like applications. A linked guest case stays visible whatever the role.
         $router->get('/my-welfare-cases', 'WelfareController@index', 'my_welfare_cases');
         $router->get('/my-welfare-cases/{id}', 'WelfareController@show', 'my_welfare_cases.show');
+        // Service requests (Nov 23, 2026). The owner or MSW staff; ServiceRequestService checks which.
+        $router->get('/requests', 'ServiceRequestsController@index', 'requests')->middleware('perm:service_request.submit');
+        $router->post('/requests', 'ServiceRequestsController@store', 'requests.store')->middleware('perm:service_request.submit');
+        $router->get('/requests/{id}', 'ServiceRequestsController@show', 'requests.show');
+        $router->post('/requests/{id}/reply', 'ServiceRequestsController@reply', 'requests.reply');
+        $router->post('/requests/{id}/cancel', 'ServiceRequestsController@cancel', 'requests.cancel');
         // Event registration (Nov 23, 2026). Members only; EventRegistrationService checks membership and the event.
         $router->post('/events/{id}/register', 'EventRegistrationsController@register', 'events.register');
         $router->post('/events/{id}/cancel', 'EventRegistrationsController@cancel', 'events.cancel');
