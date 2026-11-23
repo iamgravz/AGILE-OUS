@@ -102,14 +102,14 @@ final class ApplicationDocumentService
      * was checked and saved then (FileStorageService::store); a type the draft already has is left alone.
      *
      * @param array<string, mixed> $application
-     * @param array<string, array{stored_path: string, original_name: string, mime_type: string, size_bytes: int}> $documents doc_type => stored file
+     * @param array<string, mixed> $documents doc_type => stored file, read back from the session
      */
     public function attachFirstPage(array $application, array $documents): void
     {
         $existing = array_column($this->documents->forApplication((int) $application['application_id']), 'doc_type');
 
         foreach ($documents as $type => $stored) {
-            if (!in_array($type, ['cor', 'grades'], true) || in_array($type, $existing, true) || !isset($stored['stored_path'])) {
+            if (!in_array($type, ['cor', 'grades'], true) || in_array($type, $existing, true) || !is_array($stored) || !isset($stored['stored_path'])) {
                 continue;
             }
 

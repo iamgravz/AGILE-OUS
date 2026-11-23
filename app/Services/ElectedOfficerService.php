@@ -94,7 +94,7 @@ final class ElectedOfficerService
      * Records an election winner. A new email gets a new account and the password link; an email that already has an
      * account (a member who won) keeps it and only gains the position.
      *
-     * @param array{first_name: string, last_name: string, email: string, student_no: string, contact_no: string, reason: string, year_level: string, academic_year: string, confirmations: list<string>} $person
+     * @param array{first_name: string, last_name: string, email: string, student_no: string, contact_no: string, reason: string, year_level: string, section: string, academic_year: string, confirmations: list<string>} $person
      * @return int The account's user_id.
      * @throws DomainException
      */

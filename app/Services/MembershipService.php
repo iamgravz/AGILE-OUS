@@ -866,7 +866,7 @@ final class MembershipService
      * The COR and grades uploaded on the first apply page, before the email was confirmed, join the new draft. Each was
      * checked and saved then (FileStorageService::store); a type the draft already has is left alone.
      *
-     * @param array<string, array{stored_path: string, original_name: string, mime_type: string, size_bytes: int}> $documents doc_type => stored file
+     * @param array<string, mixed> $documents doc_type => stored file, read back from the session
      */
     public function attachFirstPageDocuments(int $id, array $documents): void
     {

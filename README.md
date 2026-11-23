@@ -73,6 +73,12 @@ Add `127.0.0.1 agile.test` to your hosts file and set `APP_URL=http://agile.test
 composer test
 ```
 
+Static analysis (PHPStan, level 5, settings in `phpstan.neon`):
+
+```
+composer analyse
+```
+
 This drops and rebuilds its own databases, `agile_ams_test` and `agile_ams_test_http_test`, and uses a temporary folder for files, so your data and `storage/` are not touched. It sends no email. `docs/test-cases.md` lists every test case, with manual steps for the ones a person has to check.
 
 ## Email and background jobs

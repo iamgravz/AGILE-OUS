@@ -352,7 +352,7 @@ final class WelfareService
     /**
      * The submitting user and those with welfare.view. Anyone else, guests included, gets a 403 whether or not it exists.
      *
-     * @return array{contents: string, download_name: string, inline: bool, log: bool}|null
+     * @return array{contents: string, mime_type: string, download_name: string, inline: bool, log: bool}|null
      */
     public function openAttachment(int $id): ?array
     {

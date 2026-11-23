@@ -39,12 +39,13 @@ final class ApplicantAccessService
     ) {
     }
 
-    /** @return array{applicant_id: int, application_id: ?int, may_revise: bool}|null Who this visitor has proven to be. */
+    /** @return array{applicant_id: int, application_id: ?int, may_revise: bool, last_activity: int}|null Who this visitor has proven to be. */
     public static function current(): ?array
     {
         $access = Session::get(self::SESSION_KEY);
 
-        if (!is_array($access)) {
+        // Anything else in that session slot (an older or damaged value) counts as no proof.
+        if (!is_array($access) || !is_int($access['applicant_id'] ?? null) || !is_int($access['last_activity'] ?? null)) {
             return null;
         }
 

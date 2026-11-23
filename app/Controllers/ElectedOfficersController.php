@@ -41,8 +41,6 @@ final class ElectedOfficersController
             'reason' => $request->text('reason'),
             'academic_year' => $request->text('academic_year'),
         ] + StudentDetails::fromRequest($request);
-        $ticked = $request->input('confirmations', []);
-        $data['confirmations'] = is_array($ticked) ? array_values(array_filter($ticked, 'is_string')) : [];
         $errors = Validator::check($data, [
             'position_id' => ['label' => 'Position', 'rules' => ['required']],
             'first_name' => ['label' => 'First name', 'rules' => ['required', 'max:80']],
@@ -54,6 +52,8 @@ final class ElectedOfficersController
         ]);
 
         $errors += StudentDetails::errors($data);
+        $ticked = $request->input('confirmations', []);
+        $data['confirmations'] = is_array($ticked) ? array_values(array_filter($ticked, 'is_string')) : [];
 
         if ($errors === []) {
             try {

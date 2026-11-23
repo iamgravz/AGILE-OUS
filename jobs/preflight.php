@@ -53,7 +53,8 @@ foreach (['uploads', 'credentials', 'backups', 'logs'] as $folder) {
 }
 
 $check(is_file(dirname(__DIR__) . '/public/.htaccess') ? 'PASS' : 'WARN', 'public/.htaccess is present', 'Needed on Apache; on Nginx, point the root at public/ and deny dotfiles.');
-$check(PHP_VERSION_ID >= 80200 ? 'PASS' : 'FAIL', 'PHP ' . PHP_VERSION, 'Use PHP 8.2 or newer.');
+// Composer's platform check already stops on PHP below 8.2, before this script runs, so this only reports the version.
+$check('PASS', 'PHP ' . PHP_VERSION);
 
 foreach (['pdo_mysql', 'openssl', 'mbstring', 'fileinfo', 'gd'] as $extension) {
     $check(extension_loaded($extension) ? 'PASS' : 'FAIL', "PHP extension {$extension}", "Enable {$extension} in php.ini.");

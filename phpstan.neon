@@ -1,0 +1,18 @@
+# Static analysis: composer analyse. Level 5 checks argument and return types, unknown methods and properties, and
+# code that can never run; higher levels mostly ask for more array-shape annotations.
+parameters:
+    level: 5
+    paths:
+        - app
+        - config
+        - jobs
+        - database
+    excludePaths:
+        # Templates, analysed through the tests that render them.
+        - app/Views
+        # Sample-data scripts. PHPStan narrows the literal rows of their foreach loops wrongly and reports live
+        # branches as dead (for example the 'guest' row in sample_users.php); the tests run every one of them.
+        - database/seeds
+    bootstrapFiles:
+        - app/helpers.php
+    tmpDir: storage/cache/phpstan

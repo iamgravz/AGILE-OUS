@@ -38,7 +38,7 @@ final class DashboardService
             'notifications' => (new NotificationService())->latest($userId, 5),
             // The notice bar at the top rolls through up to five unread ones.
             'unread' => array_values(array_filter((new NotificationService())->latest($userId, 10), static fn (array $n): bool => $n['read_at'] === null)),
-            'announcements' => (new ContentPostRepository())->publishedList('announcement', '', 1, 3)['data'] ?? [],
+            'announcements' => (new ContentPostRepository())->publishedList('announcement', '', 1, 3)['data'],
         ];
 
         return $common + match ($user['role_slug']) {

@@ -32,7 +32,6 @@ final class InterviewService
         private readonly InterviewRepository $interviews = new InterviewRepository(),
         private readonly MembershipApplicationRepository $applications = new MembershipApplicationRepository(),
         private readonly UserRepository $users = new UserRepository(),
-        private readonly NotificationService $notifications = new NotificationService(),
     ) {
     }
 

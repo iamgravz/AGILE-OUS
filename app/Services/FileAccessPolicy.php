@@ -51,9 +51,9 @@ final class FileAccessPolicy
     /**
      * Someone without an account, for the one application they proved is theirs. Everyone else gets a 403.
      *
-     * @return FileRecord|null
+     * @return FileRecord
      */
-    public function applicantDocument(int $id): ?array
+    public function applicantDocument(int $id): array
     {
         $access = ApplicantAccessService::current();
         $document = (new ApplicationDocumentRepository())->find($id);
