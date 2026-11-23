@@ -24,7 +24,7 @@ $isSourceCode = $committee['name'] === 'The Source Code';
 
 <div class="px-detail">
     <section class="px-section" aria-labelledby="open-here">
-        <header><div><p class="px-eyebrow">// open now</p><h2 id="open-here">Positions open in this <?= $isSourceCode ? 'staff' : 'committee' ?></h2></div></header>
+        <header><div><p class="px-eyebrow">open now</p><h2 id="open-here">Positions open in this <?= $isSourceCode ? 'staff' : 'committee' ?></h2></div></header>
         <?php if ($committee['open'] === []) : ?>
             <div class="px-empty">
                 Nothing is open here right now. The MSW Committee opens positions each semester.
@@ -40,7 +40,7 @@ $isSourceCode = $committee['name'] === 'The Source Code';
     </section>
 
     <aside class="px-card" aria-label="Who leads it">
-        <p class="px-eyebrow">// leads</p>
+        <p class="px-eyebrow">leads</p>
         <dl class="px-facts">
             <div><dt><?= $isSourceCode ? 'Editor-in-Chief' : 'Committee Head' ?></dt><dd><?= e($committee['head'] ?? 'To be named') ?></dd></div>
             <?php if (!$isSourceCode) : ?>

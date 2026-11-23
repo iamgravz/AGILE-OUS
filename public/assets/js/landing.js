@@ -4,45 +4,12 @@
 
     const root = document.documentElement;
     const calm = window.matchMedia('(prefers-reduced-motion: reduce)');
-    const PAUSE_KEY = 'agile-landing-paused';
 
-    /* ---------- The Pause animation button (WCAG 2.2.2). The grid is the only thing that loops ---------- */
+    /* ---------- The hero's moving grid and photos rest while the hero is off screen ---------- */
 
-    const motionToggle = document.querySelector('[data-motion-toggle]');
     const hero = document.querySelector('[data-hero]');
 
-    if (motionToggle !== null && hero !== null) {
-        let paused = false;
-
-        try {
-            paused = localStorage.getItem(PAUSE_KEY) === '1';
-        } catch (error) {
-            // Storage can be blocked. Motion then simply starts each time.
-        }
-
-        const show = () => {
-            root.classList.toggle('motion-paused', paused);
-            motionToggle.textContent = paused ? 'Play animation' : 'Pause animation';
-        };
-
-        motionToggle.hidden = calm.matches;
-        show();
-
-        motionToggle.addEventListener('click', () => {
-            paused = !paused;
-            show();
-
-            try {
-                localStorage.setItem(PAUSE_KEY, paused ? '1' : '0');
-            } catch (error) {
-                // Only remembering the choice failed.
-            }
-        });
-
-        calm.addEventListener('change', (event) => {
-            motionToggle.hidden = event.matches;
-        });
-
+    if (hero !== null && 'IntersectionObserver' in window) {
         new IntersectionObserver((entries) => {
             hero.classList.toggle('is-offscreen', !entries[0].isIntersecting);
         }).observe(hero);

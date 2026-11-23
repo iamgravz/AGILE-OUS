@@ -33,7 +33,7 @@ if ($type === 'event' && $lead !== null) {
     $extra = '<div class="px-next">'
         . ($lead['cover_image'] !== null ? '<img class="px-next__photo" src="' . e(media_url($lead['cover_image'])) . '" alt="" width="320" height="200" loading="lazy">' : '')
         . '<span class="px-date px-date--gold"><small>' . e(date('M', $start)) . '</small><b>' . e(date('j', $start)) . '</b></span>'
-        . '<div><p class="px-eyebrow">// next up</p><h2>' . e($lead['title']) . '</h2><p>' . e(date('l', $start)) . ', ' . e(time_ph((string) $lead['event_start'])) . ($venue($lead) !== '' ? ' · ' . e($venue($lead)) : '') . '</p></div>'
+        . '<div><p class="px-eyebrow">next up</p><h2>' . e($lead['title']) . '</h2><p>' . e(date('l', $start)) . ', ' . e(time_ph((string) $lead['event_start'])) . ($venue($lead) !== '' ? ' · ' . e($venue($lead)) : '') . '</p></div>'
         . '<a class="btn btn--primary" href="' . e(route('posts.show', ['slug' => $lead['slug']])) . '">See details</a></div>';
 }
 ?>
@@ -45,7 +45,7 @@ if ($type === 'event' && $lead !== null) {
     <section class="px-hero">
         <div class="container">
             <div class="px-masthead">
-                <p class="px-eyebrow">// official student publication of agile-ous</p>
+                <p class="px-eyebrow">official student publication of agile-ous</p>
                 <p class="px-title">The Source Code<span>;</span></p>
             </div>
             <p class="px-lead">News, features, opinion and comics by the publication staff. <?= e(date('F Y')) ?>.</p>
@@ -129,7 +129,7 @@ if ($type === 'event' && $lead !== null) {
     <?php endif; ?>
     <?php if ($posts !== []) : ?>
         <section class="px-section" aria-labelledby="shelf">
-            <header><div><p class="px-eyebrow">// archive</p><h2 id="shelf">Past issues and stories</h2></div></header>
+            <header><div><p class="px-eyebrow">archive</p><h2 id="shelf">Past issues and stories</h2></div></header>
             <ul class="px-shelf" role="list">
                 <?php foreach ($posts as $post) : ?>
                     <li>

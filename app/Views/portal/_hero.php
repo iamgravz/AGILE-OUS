@@ -1,10 +1,9 @@
 <?php
 /**
- * The band at the top of every public page (css/portal.css). The eyebrow is written like a code comment, because
- * AGILE is an IT guild: "// committees".
+ * The band at the top of every public page (css/portal.css), with a small uppercase eyebrow such as "Committees".
  *
  * @var \App\Core\View $this
- * @var string $eyebrow without the slashes
+ * @var string $eyebrow
  * @var string $title
  * @var string $lead (optional)
  * @var list<array{0: string|int, 1: string}> $stats (optional) [number, label]
@@ -16,7 +15,7 @@ $extra ??= '';
 ?>
 <section class="px-hero">
     <div class="container">
-        <p class="px-eyebrow">// <?= e($eyebrow) ?></p>
+        <p class="px-eyebrow"><?= e($eyebrow) ?></p>
         <h1><?= e($title) ?></h1>
         <?php if ($lead !== '') : ?><p class="px-lead"><?= e($lead) ?></p><?php endif; ?>
         <?php if ($stats !== []) : ?>

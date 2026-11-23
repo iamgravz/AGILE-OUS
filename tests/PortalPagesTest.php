@@ -21,7 +21,7 @@ final class PortalPagesTest extends TestCase
             $page = $server->get($path);
             $this->assertSame(200, $page['status'], $path);
             $this->assertStringContainsString('css/portal.css', $page['body'], $path);
-            $this->assertStringContainsString('// ' . $eyebrow, $page['body'], $path);
+            $this->assertStringContainsString('class="px-eyebrow">' . $eyebrow, $page['body'], $path);
             $this->assertDoesNotMatchRegularExpression('/<main[\s\S]*style="/', $page['body'], "{$path} has an inline style, which the CSP blocks.");
         }
     }

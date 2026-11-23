@@ -567,8 +567,7 @@ html:not(.js) .hero--landing .glass-glows {
     }
 }
 
-/* Off screen, or stopped with the Pause button. */
-.motion-paused .hero--landing::before,
+/* Off screen, the grid rests. */
 .hero--landing.is-offscreen::before {
     animation-play-state: paused !important;
 }
@@ -665,8 +664,8 @@ html:not(.js) .hero--landing .glass-glows {
     position: relative;
 }
 
-/* The page's Pause animation button stops the slideshow where it is. */
-.motion-paused .hero__campus-slide {
+/* Off screen, the slideshow rests where it is. */
+.hero--landing.is-offscreen .hero__campus-slide {
     animation-play-state: paused;
 }
 
@@ -755,46 +754,8 @@ html:not(.js) .hero--landing .glass-glows {
     justify-content: center;
 }
 
-.hero__scroll {
-    position: absolute;
-    left: 50%;
-    bottom: var(--space-4);
-    z-index: 2;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 2.75rem;
-    height: 2.75rem;
-    border: 1px solid rgba(255, 255, 255, 0.35);
-    border-radius: 50%;
-    background: rgba(255, 255, 255, 0.12);
-    color: #fff;
-    transform: translateX(-50%);
-}
 
-.hero__scroll:hover {
-    background: rgba(255, 255, 255, 0.24);
-}
 
-.hero__scroll .icon {
-    width: 1.25rem;
-    height: 1.25rem;
-}
-
-@media (prefers-reduced-motion: no-preference) {
-    .hero__scroll {
-        animation: hero-scroll-bob 2.4s ease-in-out infinite;
-    }
-
-    .motion-paused .hero__scroll {
-        animation-play-state: paused;
-    }
-}
-
-@keyframes hero-scroll-bob {
-    0%, 100% { transform: translate(-50%, 0); }
-    50% { transform: translate(-50%, 6px); }
-}
 
 #explore:focus {
     outline: none;

@@ -367,6 +367,8 @@ APP_APPROVED for someone without an account says: "Create your AGILE account at 
 
 *Exception, decided by the project owner (Oct 31, 2026):* the robot on the login page stays, with its own rounded shapes and offset shadows.
 
+*Exception, decided by the project owner (Nov 23, 2026):* the dashboard's notice bar (eligibility notice and new notifications) rolls upward one line at a time. It holds on hover or focus, holds still with one line, and shows every line at once with reduced motion. The glass everywhere and the navy-to-maroon gradients tried the same day were removed again to follow this section.
+
 **Copy voice**
 Plain, polite, specific campus English, written as AGILE talking to a BSIT-OU student. Buttons say exactly what happens ("Submit application", "Mark as verified", "Send to MSW Head for approval"). Page titles say what the page is ("Applications for review", not "Dashboard Overview"). Empty states say what will appear and what to do ("No open positions this semester. Watch the Announcements page for the next recruitment."). Errors say what went wrong and how to fix it, no "Oops".
 

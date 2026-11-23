@@ -39,14 +39,14 @@ $person = static function (array $officer, bool $lead = false) use ($initials): 
 <?php $this->end() ?>
 
 <section class="px-section" aria-labelledby="who-we-are">
-    <header><div><p class="px-eyebrow">// article ii</p><h2 id="who-we-are">What we stand for</h2></div></header>
+    <header><div><p class="px-eyebrow">article ii</p><h2 id="who-we-are">What we stand for</h2></div></header>
     <div class="px-bento">
         <article class="px-card px-tile--vision">
-            <p class="px-eyebrow">// vision</p>
+            <p class="px-eyebrow">vision</p>
             <blockquote><?= e($vision) ?></blockquote>
         </article>
         <article class="px-card">
-            <p class="px-eyebrow">// mission</p>
+            <p class="px-eyebrow">mission</p>
             <?php if (count($missionLines) > 1) : ?>
                 <p>The Organization commits to:</p>
                 <ul class="px-list"><?php foreach ($missionLines as $line) : ?><li><?= e($line) ?></li><?php endforeach; ?></ul>
@@ -55,7 +55,7 @@ $person = static function (array $officer, bool $lead = false) use ($initials): 
             <?php endif; ?>
         </article>
         <article class="px-card px-tile--gold">
-            <p class="px-eyebrow">// what agile does</p>
+            <p class="px-eyebrow">what agile does</p>
             <ul class="px-list">
                 <li><b>Membership</b>: member records, digital IDs and certificates for BSIT-OU students.</li>
                 <li><b>Recruitment</b>: committee positions through applications, interviews and decisions.</li>
@@ -66,7 +66,7 @@ $person = static function (array $officer, bool $lead = false) use ($initials): 
     </div>
 
     <?php if ($objectiveLines !== []) : ?>
-        <h3 class="px-subhead">// objectives, article ii section 3</h3>
+        <h3 class="px-subhead">objectives, article ii section 3</h3>
         <ul class="px-objectives" role="list">
             <?php foreach ($objectiveLines as $index => $line) : ?>
                 <li class="px-card px-card--lift"><p class="px-eyebrow">(<?= e(chr(97 + $index % 26)) ?>)</p><p><?= e($line) ?></p></li>
@@ -77,26 +77,26 @@ $person = static function (array $officer, bool $lead = false) use ($initials): 
 
 <section class="px-section" aria-labelledby="officers">
     <header>
-        <div><p class="px-eyebrow">// officers</p><h2 id="officers">The people behind AGILE</h2></div>
+        <div><p class="px-eyebrow">officers</p><h2 id="officers">The people behind AGILE</h2></div>
         <a class="btn btn--secondary btn--sm" href="<?= e(route('committees')) ?>">Meet the committees</a>
     </header>
     <?php if ($officers['executive'] === [] && $officers['council'] === [] && $officers['heads'] === []) : ?>
         <div class="px-empty">The officer list appears here once appointments are approved.</div>
     <?php else : ?>
         <?php if ($officers['executive'] !== []) : ?>
-            <h3 class="px-subhead">// executive board</h3>
+            <h3 class="px-subhead">executive board</h3>
             <ul class="px-people" role="list">
                 <?php foreach ($officers['executive'] as $index => $officer) : ?><?= $person($officer, $index === 0 && $officer['title'] === 'President') ?><?php endforeach; ?>
             </ul>
         <?php endif; ?>
         <?php if ($officers['council'] !== []) : ?>
-            <h3 class="px-subhead">// year-level council</h3>
+            <h3 class="px-subhead">year-level council</h3>
             <ul class="px-people" role="list">
                 <?php foreach ($officers['council'] as $officer) : ?><?= $person($officer) ?><?php endforeach; ?>
             </ul>
         <?php endif; ?>
         <?php if ($officers['heads'] !== []) : ?>
-            <h3 class="px-subhead">// committee heads</h3>
+            <h3 class="px-subhead">committee heads</h3>
             <ul class="px-people" role="list">
                 <?php foreach ($officers['heads'] as $officer) : ?><?= $person($officer) ?><?php endforeach; ?>
             </ul>
@@ -107,7 +107,7 @@ $person = static function (array $officer, bool $lead = false) use ($initials): 
 <section class="px-section" aria-labelledby="reach-us">
     <div class="px-callout">
         <div>
-            <p class="px-eyebrow">// reach us</p>
+            <p class="px-eyebrow">reach us</p>
             <h2 id="reach-us" class="px-callout__title">Visit or write to AGILE</h2>
             <p><?= e(config('app.address')) ?> · <a href="mailto:<?= e(org_contact_email()) ?>"><?= e(org_contact_email()) ?></a></p>
         </div>

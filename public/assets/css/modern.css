@@ -1,17 +1,13 @@
 /*
- * One look for every page, after the public redesign (portal.css): the sidebar pages and the long public
- * pages take the same navy-to-maroon band with a gold glow, code-comment eyebrows ("// recruitment"), rounder cards that
- * lift, mono table headings, and pill buttons. Loaded on every page after layout.css; it only restyles, so no view changes.
+ * One look for every page, after the public pages (portal.css): the sidebar pages and the long public pages take the
+ * same flat navy band with a gold rule, small uppercase mono eyebrows and mono table headings. Corners stay at the 8px
+ * token and nothing lifts on hover (docs/PROJECT_CONTEXT.md §12.1). Loaded on every page after layout.css.
  */
 
 :root {
-    --band-bg:
-        radial-gradient(48rem 22rem at 100% 0%, rgb(212 167 44 / 24%), transparent 60%),
-        linear-gradient(125deg, #12223a 0%, #1c2440 55%, #5a1a26 100%);
-    --band-dots: radial-gradient(rgb(255 255 255 / 13%) 1px, transparent 1px);
-    --radius-card: 16px;
-    --radius-control: 10px;
-    --lift-shadow: 0 12px 28px rgb(18 34 58 / 13%);
+    --band-bg: #12223a;
+    --radius-card: var(--radius-md);
+    --radius-control: var(--radius-sm);
 }
 
 /* ---------- Buttons and controls ---------- */
@@ -21,7 +17,7 @@
  * registration, apply, Track Status, Ask for Help, Run for office. Nothing below reaches inside these.
  */
 :where(.app-main, .site-main:has(.px-hero), .docs__main) .btn:not(:where(.glass-stage, .robot-stage, .auth-page, .wizard-form, .welfare-page, .centered-page) .btn) {
-    border-radius: var(--radius-full);
+    border-radius: var(--radius-sm);
 }
 
 :where(.app-main, .site-main:has(.px-hero), .docs__main) :is(.input, .select, .textarea):not(:where(.glass-stage, .robot-stage, .auth-page, .wizard-form, .welfare-page, .centered-page) *) {
@@ -35,7 +31,8 @@
 /* ---------- Sidebar: the current page carries the gold ---------- */
 
 .sidebar__link[aria-current="page"] {
-    background: linear-gradient(90deg, rgb(212 167 44 / 16%), transparent 85%);
+    background: rgb(212 167 44 / 12%);
+    box-shadow: inset 3px 0 0 var(--gold);
     color: #fff;
 }
 
@@ -59,16 +56,6 @@
     color: #d3dbe6;
 }
 
-.app-main:not(:has(.wizard-form, .welfare-page, .centered-page)) > .page-header::after {
-    content: "";
-    position: absolute;
-    inset: 0;
-    background-image: var(--band-dots);
-    background-size: 18px 18px;
-    mask-image: linear-gradient(100deg, transparent 40%, #000 90%);
-    pointer-events: none;
-}
-
 .app-main:not(:has(.wizard-form, .welfare-page, .centered-page)) > .page-header > * {
     position: relative;
     z-index: 1;
@@ -80,17 +67,12 @@
     letter-spacing: -0.02em;
 }
 
-/* The eyebrow reads like a code comment, as on the public pages. */
+/* A small uppercase mono eyebrow above the title, as on the public pages. */
 .app-main:not(:has(.wizard-form, .welfare-page, .centered-page)) > .page-header .eyebrow,
 .docs__eyebrow {
     color: var(--gold);
-    letter-spacing: 0.04em;
-    text-transform: lowercase;
-}
-
-.app-main:not(:has(.wizard-form, .welfare-page, .centered-page)) > .page-header .eyebrow::before,
-.docs__eyebrow:not(:empty)::before {
-    content: "// ";
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
 }
 
 /* Buttons on the band stay readable. */
@@ -111,15 +93,14 @@
     border-radius: var(--radius-card);
 }
 
+/* Hover changes the edge colour only; nothing lifts or scales (§12.1). */
 .app-main :is(a.card, .card--link, .stat-card, .post-card):not(:where(.glass-stage, .robot-stage, .auth-page, .wizard-form, .welfare-page, .centered-page) *) {
-    transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
+    transition: border-color 0.15s ease;
 }
 
 .app-main :is(a.card, .card--link, .post-card):not(:where(.glass-stage, .robot-stage, .auth-page, .wizard-form, .welfare-page, .centered-page) *):hover,
 .app-main .stat-card:has(a):hover {
-    transform: translateY(-3px);
     border-color: var(--card-hover-border);
-    box-shadow: var(--lift-shadow);
 }
 
 .app-main .stat-card {
@@ -149,7 +130,7 @@
 /* A table on its own gets a frame; one inside a card already has the card's. */
 .app-main :not(.card__body, .card) > .table-wrap {
     border: 1px solid var(--color-border);
-    border-radius: 14px;
+    border-radius: var(--radius-md);
     background: var(--color-surface);
 }
 
@@ -173,7 +154,7 @@
 
 .app-main .alert:not(:where(.glass-stage, .robot-stage, .auth-page, .wizard-form, .welfare-page, .centered-page) *),
 .docs__main .alert {
-    border-radius: 12px;
+    border-radius: var(--radius-md);
 }
 
 /* ---------- Long public pages (news story, position, privacy) ---------- */
@@ -189,16 +170,6 @@
     background: var(--band-bg);
     box-shadow: inset 0 -4px 0 var(--gold);
     color: #d3dbe6;
-}
-
-.docs__head::after {
-    content: "";
-    position: absolute;
-    inset: 0;
-    background-image: var(--band-dots);
-    background-size: 18px 18px;
-    mask-image: linear-gradient(100deg, transparent 40%, #000 90%);
-    pointer-events: none;
 }
 
 .docs__head > * {

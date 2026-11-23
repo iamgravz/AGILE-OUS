@@ -36,7 +36,7 @@ foreach ($open as $position) {
 
 <section class="px-section" aria-labelledby="open-list">
     <header>
-        <div><p class="px-eyebrow">// open for application</p><h2 id="open-list">Choose a position</h2></div>
+        <div><p class="px-eyebrow">open for application</p><h2 id="open-list">Choose a position</h2></div>
         <nav class="px-chips" aria-label="Filter by role">
             <a class="px-chip" href="<?= e(route('positions')) ?>"<?= $role === '' ? ' aria-current="page"' : '' ?>>All roles</a>
             <?php foreach ($roles as $key => $label) : ?>
@@ -52,7 +52,7 @@ foreach ($open as $position) {
         </div>
     <?php else : ?>
         <?php foreach ($byCommittee as $committee => $rows) : ?>
-            <h3 class="px-subhead">// <?= e(strtolower($committee)) ?></h3>
+            <h3 class="px-subhead"><?= e(strtolower($committee)) ?></h3>
             <ul class="px-grid" role="list">
                 <?php foreach ($rows as $position) : ?>
                     <li><?= $this->partial('portal/_open_position', ['position' => $position, 'withCommittee' => false]) ?></li>
@@ -64,7 +64,7 @@ foreach ($open as $position) {
 
 <?php if ($positions !== []) : ?>
     <section class="px-section" aria-labelledby="vacancies">
-        <header><div><p class="px-eyebrow">// vacancies</p><h2 id="vacancies">Also hiring, with a deadline</h2></div></header>
+        <header><div><p class="px-eyebrow">vacancies</p><h2 id="vacancies">Also hiring, with a deadline</h2></div></header>
         <div class="card-grid">
             <?php foreach ($positions as $position) : ?>
                 <?= $this->partial('portal/_position_card', ['position' => $position]) ?>
@@ -74,7 +74,7 @@ foreach ($open as $position) {
 <?php endif; ?>
 
 <section class="px-section" aria-labelledby="how">
-    <header><div><p class="px-eyebrow">// how applying works</p><h2 id="how">From application to appointment</h2></div></header>
+    <header><div><p class="px-eyebrow">how applying works</p><h2 id="how">From application to appointment</h2></div></header>
     <ol class="px-steps">
         <li><b>Apply</b><span>Choose the position and upload your COR and grades. A 1st year in the 1st semester gives the COR only.</span></li>
         <li><b>Documents checked</b><span>The MSW Committee verifies your files and may ask you to fix one.</span></li>

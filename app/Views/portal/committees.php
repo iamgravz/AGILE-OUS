@@ -26,7 +26,7 @@ $hiring = count(array_filter($cards['standing'], static fn (array $c): bool => $
 
 <section class="px-section" aria-labelledby="standing">
     <header>
-        <div><p class="px-eyebrow">// article v</p><h2 id="standing">Standing committees</h2></div>
+        <div><p class="px-eyebrow">article v</p><h2 id="standing">Standing committees</h2></div>
         <a class="btn btn--secondary btn--sm" href="<?= e(route('positions')) ?>">See open positions</a>
     </header>
     <?php if ($cards['standing'] === []) : ?>
