@@ -30,7 +30,9 @@ $extra = '';
 
 if ($type === 'event' && $lead !== null) {
     $start = (int) strtotime((string) $lead['event_start']);
-    $extra = '<div class="px-next"><span class="px-date px-date--gold"><small>' . e(date('M', $start)) . '</small><b>' . e(date('j', $start)) . '</b></span>'
+    $extra = '<div class="px-next">'
+        . ($lead['cover_image'] !== null ? '<img class="px-next__photo" src="' . e(media_url($lead['cover_image'])) . '" alt="" width="320" height="200" loading="lazy">' : '')
+        . '<span class="px-date px-date--gold"><small>' . e(date('M', $start)) . '</small><b>' . e(date('j', $start)) . '</b></span>'
         . '<div><p class="px-eyebrow">// next up</p><h2>' . e($lead['title']) . '</h2><p>' . e(date('l', $start)) . ', ' . e(time_ph((string) $lead['event_start'])) . ($venue($lead) !== '' ? ' · ' . e($venue($lead)) : '') . '</p></div>'
         . '<a class="btn btn--primary" href="' . e(route('posts.show', ['slug' => $lead['slug']])) . '">See details</a></div>';
 }
@@ -115,6 +117,7 @@ if ($type === 'event' && $lead !== null) {
                     <span class="px-meta"><?= e(date('D', $start)) ?>, <?= e(time_ph((string) $post['event_start'])) ?><?= $venue($post) !== '' ? ' · ' . e($venue($post)) : '' ?></span>
                 </div>
                 <?php if ($venue($post) !== '') : ?><span class="px-chip px-chip--gold"><?= $venue($post) === 'Online' ? 'Online' : 'Onsite' ?></span><?php endif; ?>
+                <?php if ($post['cover_image'] !== null) : ?><img class="px-event__photo" src="<?= e(media_url($post['cover_image'])) ?>" alt="" width="160" height="100" loading="lazy"><?php endif; ?>
             </a>
         <?php endforeach; ?>
     </div>

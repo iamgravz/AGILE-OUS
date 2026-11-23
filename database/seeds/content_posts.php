@@ -47,4 +47,29 @@ return static function (PDO $db): void {
             'published_at' => $now,
         ]);
     }
+
+    // Free Pexels photos as covers (demo-media/SOURCES.md), copied once into storage/uploads/media. A post that already
+    // has a cover, for example one changed in the CMS, keeps it. The files in the repo are copied, never moved.
+    $find = $db->prepare('SELECT post_id FROM content_posts WHERE slug = ? AND cover_image IS NULL');
+    $set = $db->prepare('UPDATE content_posts SET cover_image = ? WHERE post_id = ?');
+
+    foreach (glob(__DIR__ . '/demo-media/*.jpg') ?: [] as $photo) {
+        $find->execute(['demo-' . basename($photo, '.jpg')]);
+        $postId = $find->fetchColumn();
+
+        if ($postId === false) {
+            continue;
+        }
+
+        $stored = 'media/' . date('Y/m') . '/' . bin2hex(random_bytes(16)) . '.jpg';
+        $target = \App\Core\Config::basePath('storage/uploads/' . $stored);
+
+        if (!is_dir(dirname($target)) && !mkdir(dirname($target), 0750, true) && !is_dir(dirname($target))) {
+            continue;
+        }
+
+        if (copy($photo, $target)) {
+            $set->execute([$stored, (int) $postId]);
+        }
+    }
 };

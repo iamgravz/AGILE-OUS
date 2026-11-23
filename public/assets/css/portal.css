@@ -914,3 +914,33 @@ a.px-chip[aria-current="page"] {
 .px-meter .px-w-80 { width: 80%; }
 .px-meter .px-w-90 { width: 90%; }
 .px-meter .px-w-100 { width: 100%; }
+
+/* Event photos: a small picture at the end of each row, and a wide one in the Next up panel. */
+.px-event__photo {
+    flex: none;
+    width: 8rem;
+    max-width: 30%;
+    aspect-ratio: 16 / 10;
+    height: auto;
+    border-radius: var(--px-radius-sm);
+    object-fit: cover;
+}
+
+.px-next__photo {
+    flex: 0 0 13rem;
+    max-width: 100%;
+    aspect-ratio: 16 / 10;
+    height: auto;
+    border-radius: var(--px-radius-sm);
+    object-fit: cover;
+}
+
+@media (max-width: 560px) {
+    .px-event__photo {
+        display: none;
+    }
+
+    .px-next__photo {
+        flex-basis: 100%;
+    }
+}
