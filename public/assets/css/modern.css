@@ -16,15 +16,19 @@
 
 /* ---------- Buttons and controls ---------- */
 
-.btn {
+/*
+ * Pages where someone submits something keep their own card and Iskobot exactly as designed (Nov 23, 2026): login and
+ * registration, apply, Track Status, Ask for Help, Run for office. Nothing below reaches inside these.
+ */
+:where(.app-main, .site-main:has(.px-hero), .docs__main) .btn:not(:where(.glass-stage, .robot-stage, .auth-page, .wizard-form, .welfare-page, .centered-page) .btn) {
     border-radius: var(--radius-full);
 }
 
-:is(.input, .select, .textarea) {
+:where(.app-main, .site-main:has(.px-hero), .docs__main) :is(.input, .select, .textarea):not(:where(.glass-stage, .robot-stage, .auth-page, .wizard-form, .welfare-page, .centered-page) *) {
     border-radius: var(--radius-control);
 }
 
-.badge {
+:where(.app-main, .site-main:has(.px-hero), .docs__main) .badge {
     border-radius: var(--radius-full);
 }
 
@@ -41,7 +45,7 @@
 
 /* ---------- The band at the top of every sidebar page ---------- */
 
-.app-main > .page-header {
+.app-main:not(:has(.wizard-form, .welfare-page, .centered-page)) > .page-header {
     --color-focus-inner: #fff;
 
     position: relative;
@@ -55,7 +59,7 @@
     color: #d3dbe6;
 }
 
-.app-main > .page-header::after {
+.app-main:not(:has(.wizard-form, .welfare-page, .centered-page)) > .page-header::after {
     content: "";
     position: absolute;
     inset: 0;
@@ -65,53 +69,53 @@
     pointer-events: none;
 }
 
-.app-main > .page-header > * {
+.app-main:not(:has(.wizard-form, .welfare-page, .centered-page)) > .page-header > * {
     position: relative;
     z-index: 1;
 }
 
-.app-main > .page-header h1 {
+.app-main:not(:has(.wizard-form, .welfare-page, .centered-page)) > .page-header h1 {
     color: #fff;
     font-size: clamp(1.6rem, 3vw, 2.2rem);
     letter-spacing: -0.02em;
 }
 
 /* The eyebrow reads like a code comment, as on the public pages. */
-.page-header .eyebrow,
+.app-main:not(:has(.wizard-form, .welfare-page, .centered-page)) > .page-header .eyebrow,
 .docs__eyebrow {
     color: var(--gold);
     letter-spacing: 0.04em;
     text-transform: lowercase;
 }
 
-.page-header .eyebrow::before,
+.app-main:not(:has(.wizard-form, .welfare-page, .centered-page)) > .page-header .eyebrow::before,
 .docs__eyebrow:not(:empty)::before {
     content: "// ";
 }
 
 /* Buttons on the band stay readable. */
-.app-main > .page-header :is(.btn--secondary, .btn--ghost) {
+.app-main:not(:has(.wizard-form, .welfare-page, .centered-page)) > .page-header :is(.btn--secondary, .btn--ghost) {
     border-color: rgb(255 255 255 / 45%);
     background: rgb(255 255 255 / 10%);
     color: #fff;
 }
 
-.app-main > .page-header :is(.btn--secondary, .btn--ghost):hover {
+.app-main:not(:has(.wizard-form, .welfare-page, .centered-page)) > .page-header :is(.btn--secondary, .btn--ghost):hover {
     background: rgb(255 255 255 / 20%);
 }
 
 /* ---------- Cards, sections and numbers ---------- */
 
-.app-main :is(.card, .stat-card, .document-card, .post-card),
+.app-main :is(.card, .stat-card, .document-card, .post-card):not(:where(.glass-stage, .robot-stage, .auth-page, .wizard-form, .welfare-page, .centered-page) *),
 .docs__main :is(.card, .document-card) {
     border-radius: var(--radius-card);
 }
 
-.app-main :is(a.card, .card--link, .stat-card, .post-card) {
+.app-main :is(a.card, .card--link, .stat-card, .post-card):not(:where(.glass-stage, .robot-stage, .auth-page, .wizard-form, .welfare-page, .centered-page) *) {
     transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
 }
 
-.app-main :is(a.card, .card--link, .post-card):hover,
+.app-main :is(a.card, .card--link, .post-card):not(:where(.glass-stage, .robot-stage, .auth-page, .wizard-form, .welfare-page, .centered-page) *):hover,
 .app-main .stat-card:has(a):hover {
     transform: translateY(-3px);
     border-color: var(--card-hover-border);
@@ -138,7 +142,7 @@
 }
 
 /* Section titles get the short gold rule under them. */
-.app-main .plain-section > .card__header .card__title::after {
+.app-main .plain-section:not(:where(.glass-stage, .robot-stage, .auth-page, .wizard-form, .welfare-page, .centered-page) *) > .card__header .card__title::after {
     content: "";
     display: block;
     width: 2rem;
@@ -170,11 +174,11 @@
 
 /* ---------- Empty states and alerts ---------- */
 
-.empty-state {
+:where(.app-main, .docs__main) .empty-state:not(:where(.glass-stage, .robot-stage, .auth-page, .wizard-form, .welfare-page, .centered-page) *) {
     border-radius: var(--radius-card);
 }
 
-.app-main .alert,
+.app-main .alert:not(:where(.glass-stage, .robot-stage, .auth-page, .wizard-form, .welfare-page, .centered-page) *),
 .docs__main .alert {
     border-radius: 12px;
 }
