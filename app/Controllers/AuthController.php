@@ -220,7 +220,7 @@ final class AuthController
 
     public function showForgot(Request $request): Response
     {
-        return $this->page('auth/forgot_password');
+        return $this->robotPage('auth/forgot_password');
     }
 
     public function forgot(Request $request): Response
@@ -246,7 +246,7 @@ final class AuthController
             return $this->invalidResetLink();
         }
 
-        return $this->page('auth/reset_password', ['token' => $token]);
+        return $this->robotPage('auth/reset_password', ['token' => $token]);
     }
 
     public function reset(Request $request): Response
@@ -284,7 +284,7 @@ final class AuthController
             return $this->invalidSetupLink();
         }
 
-        return $this->page('auth/set_password', ['token' => $token]);
+        return $this->robotPage('auth/set_password', ['token' => $token]);
     }
 
     public function setup(Request $request): Response
@@ -331,6 +331,12 @@ final class AuthController
     private function page(string $view, array $data = []): Response
     {
         return Response::html(View::render($view, $data, 'layouts/auth'));
+    }
+
+    /** The password pages, in the site layout like the login page, with Iskobot on the card. */
+    private function robotPage(string $view, array $data = []): Response
+    {
+        return Response::html(View::render($view, $data, 'layouts/public'));
     }
 
     /**
