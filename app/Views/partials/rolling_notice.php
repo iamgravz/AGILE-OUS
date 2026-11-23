@@ -9,9 +9,11 @@
  * @var string $message plain text
  * @var string|null $linkUrl (optional)
  * @var string|null $linkText (optional)
+ * @var list<array{text: string, url: string}> $items (optional) linked entries after the message, such as new notifications
  */
 $linkUrl ??= null;
 $linkText ??= null;
+$items ??= [];
 $icon = $tone === 'success' ? 'check' : ($tone === 'info' ? 'info' : 'alert');
 ?>
 <div class="rolling-notice rolling-notice--<?= e($tone) ?>" role="status">
@@ -19,6 +21,9 @@ $icon = $tone === 'success' ? 'check' : ($tone === 'info' ? 'info' : 'alert');
     <div class="rolling-notice__track">
         <p class="rolling-notice__text">
             <?= e($message) ?>
+            <?php foreach ($items as $item) : ?>
+                <span class="rolling-notice__sep" aria-hidden="true">•</span> <a href="<?= e($item['url']) ?>"><?= e($item['text']) ?></a>
+            <?php endforeach; ?>
             <?php if ($linkUrl !== null && $linkText !== null) : ?> <a href="<?= e($linkUrl) ?>"><?= e($linkText) ?></a><?php endif; ?>
         </p>
     </div>

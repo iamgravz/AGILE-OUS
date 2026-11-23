@@ -15,6 +15,19 @@ $today = date('l, ') . date_ph(date('Y-m-d'));
 $semester = $dash['semester'] ?? null;
 ?>
 <p class="dashboard-intro"><?= e($greeting . ', ' . $user['first_name']) ?>. <?= e($today) ?><?= $semester === null ? '' : ' · AY ' . e($semester) ?></p>
+<?php
+// New notifications roll across the top (Nov 23, 2026), with the way to choose which ones arrive.
+$unread = array_values(array_filter((new \App\Services\NotificationService())->latest((int) $user['user_id'], 10), static fn (array $n): bool => $n['read_at'] === null));
+?>
+<?php if ($unread !== []) : ?>
+    <?= $this->partial('partials/rolling_notice', [
+        'tone' => 'info',
+        'message' => count($unread) === 1 ? '1 new notification:' : count($unread) . ' new notifications:',
+        'items' => array_map(static fn (array $n): array => ['text' => (string) $n['title'], 'url' => (string) ($n['link'] ?? '') !== '' ? (string) $n['link'] : route('notifications')], array_slice($unread, 0, 5)),
+        'linkUrl' => route('account') . '#notifications',
+        'linkText' => '· Notification settings',
+    ]) ?>
+<?php endif; ?>
 <?php if ($notice !== null) : ?>
     <?= $this->partial('partials/rolling_notice', ['tone' => $notice['tone'], 'message' => $notice['message'], 'linkUrl' => route('my_eligibility'), 'linkText' => 'My Eligibility']) ?>
 <?php endif; ?>

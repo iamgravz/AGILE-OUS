@@ -4327,3 +4327,8 @@ form .grid--2 {
         grid-template-columns: 1fr;
     }
 }
+
+.rolling-notice__sep {
+    margin: 0 var(--space-2);
+    opacity: 0.6;
+}

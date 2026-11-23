@@ -54,6 +54,12 @@ final class NotificationPreferenceTest extends TestCase
         $this->assertSame(['email' => 1, 'in_app' => 0], array_map('intval', $row));
 
         $db->exec("DELETE p FROM notification_preferences p JOIN users u ON u.user_id = p.user_id WHERE u.email = 'member@agile.test'");
+
+        // Unread notifications roll across the top of the dashboard, with the settings link.
+        $db->exec("INSERT INTO notifications (user_id, channel, title, payload_json, status) SELECT user_id, 'in_app', 'Rolling test notice', '{}', 'sent' FROM users WHERE email = 'member@agile.test'");
+        $dashboard = $browser->get('/dashboard')['body'];
+        $db->exec("DELETE FROM notifications WHERE title = 'Rolling test notice'");
+        $this->assertMatchesRegularExpression('/rolling-notice[\s\S]*Rolling test notice[\s\S]*Notification settings/', $dashboard);
     }
 
     private function inRollback(callable $test): void
