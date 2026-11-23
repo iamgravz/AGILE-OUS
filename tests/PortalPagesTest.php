@@ -35,6 +35,8 @@ final class PortalPagesTest extends TestCase
             $this->markTestSkipped('No upcoming event is seeded.');
         }
 
+        $db->prepare("DELETE r FROM event_registrations r JOIN members m ON m.member_id = r.member_id JOIN users u ON u.user_id = m.user_id WHERE r.post_id = ? AND u.email = 'member@agile.test'")
+            ->execute([(int) $event['post_id']]);
         $guest = (new TestServer())->get("/posts/{$event['slug']}");
         $this->assertStringContainsString('Sign in to register', $guest['body']);
 
@@ -43,8 +45,17 @@ final class PortalPagesTest extends TestCase
         $page = $member->follow($member->post("/events/{$event['post_id']}/register", []))['body'];
         $this->assertStringContainsString('You are registered', $page);
 
+        $this->assertStringContainsString('id="sub-events"', $member->get('/my-submissions')['body'], 'My Submissions lists the event.');
         $page = $member->follow($member->post("/events/{$event['post_id']}/cancel", []))['body'];
         $this->assertStringContainsString('Register for this event', $page, 'Cancelling gives the slot back.');
+        $this->assertSame(403, $member->get('/events/attendance')['status'], 'Members do not take attendance.');
+
+        $officer = TestServer::loggedIn('mswmember@agile.test');
+        $this->assertStringContainsString('Event attendance', $officer->get('/events/attendance')['body']);
+        $sheet = $officer->get("/events/attendance/{$event['post_id']}");
+        $this->assertSame(200, $sheet['status']);
+        $this->assertStringContainsString('Member number or ID QR', $sheet['body']);
+        $this->assertDoesNotMatchRegularExpression('/<main[\s\S]*style="/', $sheet['body']);
     }
 
     public function testCommitteesShowTheStandingSevenAndTheSourceCodeApart(): void

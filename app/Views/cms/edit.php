@@ -65,6 +65,9 @@ $heading = $post === null ? 'New post' : 'Edit post';
                 <?= $this->partial('partials/form_field', ['name' => 'event_end', 'label' => 'Ends', 'type' => 'datetime-local', 'value' => $dateValue('event_end'), 'required' => false]) ?>
             </div>
             <?= $this->partial('partials/form_field', ['name' => 'venue_or_link', 'label' => 'Venue or online link', 'value' => $value('venue_or_link'), 'required' => false, 'help' => 'Start and venue are required before submitting an event.']) ?>
+            <?php $registrationOpen = (string) old('registration_open', (string) ($post['registration_open'] ?? '1')) === '1'; ?>
+            <label class="check"><input type="checkbox" name="registration_open" value="1"<?= $registrationOpen ? ' checked' : '' ?>> <span>Members can register on the event page</span></label>
+            <?= $this->partial('partials/form_field', ['name' => 'capacity', 'label' => 'Slots', 'type' => 'number', 'value' => $value('capacity'), 'required' => false, 'help' => 'Leave blank for no limit. Registration closes when the slots are taken.']) ?>
         </fieldset>
 
         <div class="field <?= $bodyError !== null ? 'field--error' : '' ?>">

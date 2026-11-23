@@ -7,12 +7,13 @@
  * @var list<array<string, mixed>> $cases
  * @var list<array<string, mixed>> $candidacies
  * @var list<array<string, mixed>> $requests
+ * @var list<array<string, mixed>> $events registrations, newest event first
  */
 use App\Services\CandidacyService;
 use App\Services\CredentialRequestService;
 use App\Services\CredentialService;
 
-$total = count($applications) + count($cases) + count($candidacies) + count($requests);
+$total = count($applications) + count($cases) + count($candidacies) + count($requests) + count($events);
 $candidacyTones = ['filed' => 'info', 'qualified' => 'success', 'disqualified' => 'danger', 'withdrawn' => 'neutral', 'elected' => 'success'];
 $requestTones = ['requested' => 'info', 'issued' => 'success', 'declined' => 'danger', 'cancelled' => 'neutral'];
 ?>
@@ -25,6 +26,7 @@ $requestTones = ['requested' => 'info', 'issued' => 'success', 'declined' => 'da
     <div class="stat-card"><p class="stat-card__label">Welfare concerns</p><p class="stat-card__value"><?= e(count($cases)) ?></p></div>
     <div class="stat-card"><p class="stat-card__label">Candidacies</p><p class="stat-card__value"><?= e(count($candidacies)) ?></p></div>
     <div class="stat-card"><p class="stat-card__label">ID and certificate requests</p><p class="stat-card__value"><?= e(count($requests)) ?></p></div>
+    <div class="stat-card"><p class="stat-card__label">Events</p><p class="stat-card__value"><?= e(count($events)) ?></p></div>
 </div>
 
 <?php if ($total === 0) : ?>
@@ -110,6 +112,34 @@ $requestTones = ['requested' => 'info', 'issued' => 'success', 'declined' => 'da
                             <td data-label="Requested"><?= e(date_ph((string) $row['created_at'])) ?></td>
                             <td data-label="Status"><span class="badge badge--<?= e($requestTones[$row['status']]) ?>"><?= e(CredentialRequestService::STATUSES[$row['status']]) ?></span></td>
                             <td data-label="Remarks"><?= e($row['remarks'] ?? '') ?></td>
+                        </tr>
+                    <?php endforeach; ?>
+                </tbody>
+            </table>
+        </div>
+    </section>
+<?php endif; ?>
+
+<?php if ($events !== []) : ?>
+    <section class="plain-section" aria-labelledby="sub-events">
+        <div class="card__header"><h2 class="card__title" id="sub-events">Events</h2></div>
+        <div class="table-wrap">
+            <table class="table table--stack">
+                <thead><tr><th scope="col">Event</th><th scope="col">Date</th><th scope="col">Attendance</th></tr></thead>
+                <tbody>
+                    <?php foreach ($events as $row) : ?>
+                        <tr>
+                            <td data-label="Event"><a href="<?= e(route('posts.show', ['slug' => $row['slug']])) ?>"><?= e($row['title']) ?></a></td>
+                            <td data-label="Date"><?= $row['event_start'] !== null ? e(datetime_ph((string) $row['event_start'])) : '<span class="text-muted">Not set</span>' ?></td>
+                            <td data-label="Attendance">
+                                <?php if ($row['attended_at'] !== null) : ?>
+                                    <span class="badge badge--success">Attended</span>
+                                <?php elseif ($row['event_start'] !== null && $row['event_start'] < date('Y-m-d H:i:s')) : ?>
+                                    <span class="badge badge--neutral">Not checked in</span>
+                                <?php else : ?>
+                                    <span class="badge badge--info">Registered</span>
+                                <?php endif; ?>
+                            </td>
                         </tr>
                     <?php endforeach; ?>
                 </tbody>

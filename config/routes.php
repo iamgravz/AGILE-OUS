@@ -249,6 +249,11 @@ return static function (Router $router): void {
         // Event registration (Nov 23, 2026). Members only; EventRegistrationService checks membership and the event.
         $router->post('/events/{id}/register', 'EventRegistrationsController@register', 'events.register');
         $router->post('/events/{id}/cancel', 'EventRegistrationsController@cancel', 'events.cancel');
+        $router->get('/events/attendance', 'EventAttendanceController@index', 'events.attendance')->middleware('perm:event.attendance');
+        $router->get('/events/attendance/{id}', 'EventAttendanceController@show', 'events.attendance.show')->middleware('perm:event.attendance');
+        $router->post('/events/attendance/{id}/check-in', 'EventAttendanceController@checkIn', 'events.attendance.check_in')->middleware('perm:event.attendance');
+        $router->post('/events/attendance/{id}/undo/{registrationId}', 'EventAttendanceController@undo', 'events.attendance.undo')->middleware('perm:event.attendance');
+        $router->get('/events/attendance/{id}/export', 'EventAttendanceController@export', 'events.attendance.export')->middleware('perm:event.attendance');
         // Run for office (Article VI). Members only; CandidacyService checks membership, and the file route its owner.
         $router->get('/elections/candidacy', 'CandidaciesController@form', 'candidacy');
         $router->post('/elections/candidacy', 'CandidaciesController@file');

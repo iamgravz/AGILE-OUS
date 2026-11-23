@@ -82,7 +82,7 @@ final class CmsService
     /**
      * Creates or updates a post in place. The status does not change here, so saving keeps a returned post returned.
      *
-     * @param array{type: string, title: string, slug: string, excerpt: string, body: string, event_start: ?string, event_end: ?string, venue_or_link: ?string} $data
+     * @param array{type: string, title: string, slug: string, excerpt: string, body: string, event_start: ?string, event_end: ?string, venue_or_link: ?string, registration_open?: string, capacity?: string} $data
      * @param array<string, mixed>|null $cover An uploaded file, or null to keep the current one.
      * @throws FileRejectedException
      */
@@ -105,6 +105,9 @@ final class CmsService
             'event_start' => $data['type'] === 'event' ? $data['event_start'] : null,
             'event_end' => $data['type'] === 'event' ? $data['event_end'] : null,
             'venue_or_link' => $data['type'] === 'event' ? $data['venue_or_link'] : null,
+            // Event registration (Nov 23, 2026): on unless turned off; no slot limit when left blank.
+            'registration_open' => $data['type'] !== 'event' || ($data['registration_open'] ?? '1') === '1' ? 1 : 0,
+            'capacity' => $data['type'] === 'event' && ctype_digit((string) ($data['capacity'] ?? '')) && (int) $data['capacity'] > 0 ? (int) $data['capacity'] : null,
         ];
 
         if ($coverPath !== null) {

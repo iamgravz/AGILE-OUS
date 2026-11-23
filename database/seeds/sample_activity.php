@@ -310,6 +310,36 @@ return static function (PDO $db): void {
         }
     }
 
+    // ---------- Event registrations: the next event has registrants; the last past one has attendance ----------
+    // INSERT IGNORE: one row per member and event, so a registration someone already made is left as it is.
+    if ($count("SELECT COUNT(*) FROM content_posts WHERE type = 'event' AND status = 'published'") > 0) {
+        $events = $db->query("SELECT post_id, event_start FROM content_posts WHERE type = 'event' AND status = 'published' AND event_start IS NOT NULL ORDER BY event_start")->fetchAll(PDO::FETCH_ASSOC);
+        $upcoming = array_values(array_filter($events, static fn (array $e): bool => $e['event_start'] > date('Y-m-d H:i:s')))[0] ?? null;
+        $past = array_values(array_filter($events, static fn (array $e): bool => $e['event_start'] <= date('Y-m-d H:i:s')));
+        $past = $past === [] ? null : end($past);
+        $people = ['member@agile.test', 'rosa.garcia@agile.test', 'trisha.olivares@agile.test', 'vince.panganiban@agile.test', 'aaron.quiambao@agile.test', 'bella.rosales@agile.test'];
+        $insert = $db->prepare('INSERT IGNORE INTO event_registrations (post_id, member_id, walk_in, registered_at, attended_at, checked_in_by) VALUES (?, ?, ?, ?, ?, ?)');
+
+        foreach ($people as $index => $email) {
+            $memberId = $memberOf($user($email));
+
+            if ($memberId === 0) {
+                continue;
+            }
+
+            if ($upcoming !== null && $index < 4) {
+                $insert->execute([(int) $upcoming['post_id'], $memberId, 0, $at('-1 day 10:00'), null, null]);
+            }
+
+            if ($past !== null && $mswMember !== 0) {
+                $walkIn = $index === 5;
+                $came = $index !== 4;
+                $insert->execute([(int) $past['post_id'], $memberId, $walkIn ? 1 : 0, $walkIn ? $past['event_start'] : date('Y-m-d H:i:s', strtotime($past['event_start'] . ' -3 days')),
+                    $came ? $past['event_start'] : null, $came ? $mswMember : null]);
+            }
+        }
+    }
+
     // ---------- ID and certificate requests ----------
     if ($count("SELECT COUNT(*) FROM credential_requests WHERE note LIKE '[Sample]%'") === 0) {
         $requests = [

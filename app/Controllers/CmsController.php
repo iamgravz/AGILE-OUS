@@ -227,6 +227,8 @@ final class CmsController
             'event_start' => $request->text('event_start'),
             'event_end' => $request->text('event_end'),
             'venue_or_link' => $request->text('venue_or_link'),
+            'registration_open' => $request->text('registration_open') === '1' ? '1' : '0',
+            'capacity' => $request->text('capacity'),
         ];
     }
 
@@ -243,6 +245,7 @@ final class CmsController
             'excerpt' => ['label' => 'Excerpt', 'rules' => [...$needed, 'max:300']],
             'event_start' => ['label' => 'Event start', 'rules' => $neededForEvent],
             'venue_or_link' => ['label' => 'Venue or online link', 'rules' => [...$neededForEvent, 'max:255']],
+            'capacity' => ['label' => 'Slots', 'rules' => ['regex:/^([1-9][0-9]{0,3})?$/']],
         ];
     }
 

@@ -1008,6 +1008,7 @@ CREATE TABLE IF NOT EXISTS event_registrations (
     post_id INT UNSIGNED NOT NULL,
     member_id INT UNSIGNED NOT NULL,
     status ENUM('registered','cancelled') NOT NULL DEFAULT 'registered',
+    walk_in TINYINT(1) NOT NULL DEFAULT 0,
     registered_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     cancelled_at DATETIME NULL,
     attended_at DATETIME NULL,

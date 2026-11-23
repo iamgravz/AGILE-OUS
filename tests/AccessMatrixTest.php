@@ -73,7 +73,7 @@ final class AccessMatrixTest extends TestCase
         sort($table);
         sort($stored);
 
-        $this->assertCount(34, $table);
+        $this->assertCount(35, $table);
         $this->assertSame($table, $stored);
     }
 

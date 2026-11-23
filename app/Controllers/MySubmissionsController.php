@@ -28,6 +28,7 @@ final class MySubmissionsController
             'cases' => (new WelfareService())->myCases(1)['data'],
             'candidacies' => (new CandidacyService())->mine(),
             'requests' => (new CredentialRequestService())->mine(),
+            'events' => (new \App\Services\EventRegistrationService())->mine(),
             'breadcrumbs' => [['label' => 'Dashboard', 'url' => route('dashboard')], ['label' => 'My Submissions']],
         ], 'layouts/dashboard'), Response::HTTP_OK, ['Cache-Control' => 'no-store']);
     }

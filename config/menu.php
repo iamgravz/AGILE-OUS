@@ -74,6 +74,7 @@ return [
             'heading' => 'Content',
             'items' => [
                 ['label' => 'Content', 'url' => '/cms', 'icon' => 'megaphone', 'permission' => 'content.draft'],
+                ['label' => 'Event attendance', 'url' => '/events/attendance', 'icon' => 'calendar', 'permission' => 'event.attendance'],
             ],
         ],
         [

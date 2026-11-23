@@ -119,6 +119,7 @@ Codes (stored in `permissions.code`; mapped to roles in `role_permissions`; extr
 | `document.verify` / `application.update_status` | | | | ✔ | ✔ | |
 | `evaluation.submit` | | ✔ | | ✔ | ✔ | |
 | `evaluation.view` (review evaluations & approved apps) | | ✔ (read) | | ✔ | ✔ | |
+| `event.attendance` | | ✔ | | ✔ | ✔ | |
 | `interview.manage` | | | | ✔ | ✔ | |
 | `application.decide` (approve/reject; committee heads: own committee only, BR-20) | | ✔ | | | ✔ | |
 | `application.return` (return for revision) | | | | ✔ | ✔ | |

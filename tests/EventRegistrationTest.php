@@ -3,8 +3,11 @@
 declare(strict_types=1);
 
 use App\Core\Database;
+use App\Core\ForbiddenException;
+use App\Models\MemberRepository;
 use App\Models\UserRepository;
 use App\Services\EventRegistrationService;
+use App\Services\MemberVerificationService;
 use App\Services\RbacService;
 use PHPUnit\Framework\TestCase;
 
@@ -77,6 +80,57 @@ final class EventRegistrationTest extends TestCase
             $this->expectException(DomainException::class);
             $this->expectExceptionMessage('Only AGILE members');
             (new EventRegistrationService())->register($postId);
+        });
+    }
+
+    public function testOfficersCheckInByNumberOrIdQrAndWalkInsAreAdded(): void
+    {
+        $this->inRollback(function (): void {
+            $postId = $this->event(null);
+            $this->signIn('member@agile.test');
+            $service = new EventRegistrationService();
+            $service->register($postId);
+            $member = (new MemberRepository())->findByUser($this->userId('member@agile.test'));
+
+            $this->signIn('mswmember@agile.test');
+            $service->checkIn($postId, strtolower((string) $member['member_no']));
+            $rows = $service->registrants($postId);
+            $this->assertCount(1, $rows);
+            $this->assertNotNull($rows[0]['attended_at']);
+            $this->assertSame(0, (int) $rows[0]['walk_in']);
+
+            try {
+                $service->checkIn($postId, (string) $member['member_no']);
+                $this->fail('Checking in twice is refused.');
+            } catch (DomainException $exception) {
+                $this->assertStringContainsString('already checked in', $exception->getMessage());
+            }
+
+            // A walk-in, by scanning the QR on the ID (the verify link).
+            $other = (new MemberRepository())->findByUser($this->userId('mswhead@agile.test'));
+            $service->checkIn($postId, (new MemberVerificationService())->url((int) $other['member_id']));
+            $walkIn = array_values(array_filter($service->registrants($postId), static fn (array $r): bool => (int) $r['member_id'] === (int) $other['member_id']))[0];
+            $this->assertSame(1, (int) $walkIn['walk_in']);
+
+            $csv = $service->csv($postId);
+            $this->assertStringContainsString((string) $member['member_no'], $csv);
+            $this->assertSame(3, substr_count(trim($csv), "\n") + 1, 'Header and two rows.');
+
+            $service->undoCheckIn($postId, (int) $rows[0]['registration_id']);
+            $this->assertNull($service->registrants($postId)[array_search((int) $rows[0]['registration_id'], array_map('intval', array_column($service->registrants($postId), 'registration_id')), true)]['attended_at']);
+
+            $this->expectException(DomainException::class);
+            $service->checkIn($postId, 'AGILE-0000-9999');
+        });
+    }
+
+    public function testOnlyOfficersTakeAttendance(): void
+    {
+        $this->inRollback(function (): void {
+            $postId = $this->event(null);
+            $this->signIn('member@agile.test');
+            $this->expectException(ForbiddenException::class);
+            (new EventRegistrationService())->checkIn($postId, 'x');
         });
     }
 

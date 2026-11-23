@@ -44,6 +44,10 @@ return [
         'description' => 'Review evaluations and approved applications',
         'roles' => ['committee_head', 'msw_member', 'msw_head'],
     ],
+    'event.attendance' => [
+        'description' => 'Check members in at events and export attendance',
+        'roles' => ['committee_head', 'msw_member', 'msw_head'],
+    ],
     'interview.manage' => [
         'description' => 'Schedule and record interviews',
         'roles' => ['msw_member', 'msw_head'],

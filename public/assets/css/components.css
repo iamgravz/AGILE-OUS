@@ -4309,3 +4309,21 @@ form .grid--2 {
     margin: 0;
     font-weight: 600;
 }
+
+/* Event attendance check-in (Content › Event attendance). */
+.attendance-checkin {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: var(--space-3);
+    align-items: end;
+}
+
+.attendance-checkin .field {
+    margin: 0;
+}
+
+@media (max-width: 640px) {
+    .attendance-checkin {
+        grid-template-columns: 1fr;
+    }
+}
