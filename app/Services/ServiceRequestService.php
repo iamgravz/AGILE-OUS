@@ -78,6 +78,12 @@ final class ServiceRequestService
             $id = (int) $db->lastInsertId();
             $this->addMessage($id, $body, false);
             AuditService::log('service_request.created', 'service_request', $id, ['type' => $type]);
+            $payload = ['code' => self::code($id), 'type' => explode(' (', self::TYPES[$type])[0], 'subject' => $subject];
+            $notices = new NotificationService();
+
+            foreach (['msw_member', 'msw_head'] as $role) {
+                $notices->notifyRole($role, 'SERVICE_REQUEST_NEW', $payload, '/requests/' . $id);
+            }
 
             return $id;
         });
@@ -135,10 +141,17 @@ final class ServiceRequestService
 
         $fromStaff = (int) $request['user_id'] !== current_user_id();
 
-        Database::transaction(function () use ($requestId, $body, $fromStaff): void {
+        Database::transaction(function () use ($requestId, $body, $fromStaff, $request): void {
             $this->addMessage($requestId, $body, $fromStaff);
-            Database::connection()->prepare('UPDATE service_requests SET updated_at = NOW() WHERE request_id = ?')->execute([$requestId]);
+            // A staff reply on an open request means someone is on it.
+            $status = $fromStaff && $request['status'] === 'open' ? 'in_progress' : $request['status'];
+            Database::connection()->prepare('UPDATE service_requests SET status = ?, assigned_to = COALESCE(assigned_to, ?), updated_at = NOW() WHERE request_id = ?')
+                ->execute([$status, $fromStaff ? current_user_id() : null, $requestId]);
             AuditService::log('service_request.replied', 'service_request', $requestId, ['from_staff' => $fromStaff]);
+
+            if ($fromStaff) {
+                $this->tellRequester($request, $status);
+            }
         });
     }
 
@@ -157,6 +170,91 @@ final class ServiceRequestService
 
         Database::connection()->prepare("UPDATE service_requests SET status = 'cancelled' WHERE request_id = ?")->execute([$requestId]);
         AuditService::log('service_request.cancelled', 'service_request', $requestId);
+    }
+
+    /**
+     * The MSW queue: requests by status (active ones first, oldest first, so nothing waits too long).
+     *
+     * @return list<array<string, mixed>>
+     */
+    public function queue(string $status): array
+    {
+        authorize('service_request.manage');
+        $where = isset(self::STATUSES[$status]) ? 'WHERE r.status = ?' : "WHERE r.status IN ('open', 'in_progress')";
+        $statement = Database::connection()->prepare(
+            "SELECT r.*, CONCAT(u.first_name, ' ', u.last_name) AS requester_name, CONCAT(a.first_name, ' ', a.last_name) AS assigned_name,
+                    (SELECT COUNT(*) FROM service_request_messages m WHERE m.request_id = r.request_id) AS messages
+             FROM service_requests r JOIN users u ON u.user_id = r.user_id LEFT JOIN users a ON a.user_id = r.assigned_to
+             {$where} ORDER BY r.created_at, r.request_id"
+        );
+        $statement->execute(isset(self::STATUSES[$status]) ? [$status] : []);
+
+        return $statement->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    /** @return array<string, int> status => how many, for the queue's filter. */
+    public function counts(): array
+    {
+        authorize('service_request.manage');
+        $counts = array_fill_keys(array_keys(self::STATUSES), 0);
+
+        foreach (Database::connection()->query('SELECT status, COUNT(*) AS n FROM service_requests GROUP BY status')->fetchAll(PDO::FETCH_ASSOC) as $row) {
+            $counts[$row['status']] = (int) $row['n'];
+        }
+
+        return $counts;
+    }
+
+    /** @return list<array<string, mixed>> MSW staff who can be assigned a request. */
+    public function handlers(): array
+    {
+        return Database::connection()->query(
+            "SELECT u.user_id, u.first_name, u.last_name FROM users u JOIN roles r ON r.role_id = u.role_id
+             WHERE u.status = 'active' AND r.slug IN ('msw_member', 'msw_head') ORDER BY u.last_name, u.first_name"
+        )->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    /**
+     * MSW staff set the status and who handles it. Cancelled is the member's alone.
+     *
+     * @throws DomainException
+     */
+    public function manage(int $requestId, string $status, ?int $assignee): void
+    {
+        authorize('service_request.manage');
+        $request = $this->find($requestId) ?? throw new DomainException('Request not found.');
+
+        if ($request['status'] === 'cancelled') {
+            throw new DomainException('The member cancelled this request.');
+        }
+
+        if (!isset(self::STATUSES[$status]) || $status === 'cancelled') {
+            throw new DomainException('Choose open, in progress, resolved or closed.');
+        }
+
+        if ($assignee !== null && !in_array($assignee, array_map('intval', array_column($this->handlers(), 'user_id')), true)) {
+            throw new DomainException('Assign the request to an MSW Committee member.');
+        }
+
+        $changed = $status !== $request['status'];
+
+        Database::connection()->prepare('UPDATE service_requests SET status = ?, assigned_to = ?, resolved_at = ? WHERE request_id = ?')
+            ->execute([$status, $assignee, $status === 'resolved' ? date('Y-m-d H:i:s') : ($status === 'closed' ? $request['resolved_at'] : null), $requestId]);
+        AuditService::log('service_request.updated', 'service_request', $requestId, ['status' => $status, 'assigned_to' => $assignee]);
+
+        if ($changed) {
+            $this->tellRequester($request, $status);
+        }
+    }
+
+    /** The member always hears about a reply or a new status on their request. */
+    private function tellRequester(array $request, string $status): void
+    {
+        (new NotificationService())->notify((int) $request['user_id'], 'SERVICE_REQUEST_UPDATE', [
+            'code' => self::code((int) $request['request_id']),
+            'subject' => $request['subject'],
+            'status' => self::STATUSES[$status],
+        ], '/requests/' . (int) $request['request_id']);
     }
 
     /** @return array<string, mixed>|null */

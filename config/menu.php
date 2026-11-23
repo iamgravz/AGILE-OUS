@@ -61,6 +61,7 @@ return [
                 ['label' => 'Ask for Help', 'url' => '/welfare/new', 'icon' => 'heart', 'permission' => 'welfare.submit'],
                 ['label' => 'My Welfare Cases', 'url' => '/my-welfare-cases', 'icon' => 'inbox', 'permission' => 'welfare.submit'],
                 ['label' => 'Welfare Queue', 'url' => '/welfare', 'icon' => 'shield', 'permission' => 'welfare.view'],
+                ['label' => 'Service requests', 'url' => '/service-requests', 'icon' => 'mail', 'permission' => 'service_request.manage'],
             ],
         ],
         [

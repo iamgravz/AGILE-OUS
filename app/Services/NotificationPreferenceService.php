@@ -31,7 +31,7 @@ final class NotificationPreferenceService
         'tasks' => [
             'Officer tasks',
             'Something waiting for you to review. It always shows in the bell; you can turn off the email.',
-            ['ACCOUNTS_FOR_APPROVAL', 'CREDENTIALS_FOR_APPROVAL', 'CREDENTIAL_REQUESTED', 'APP_READY_FOR_DECISION', 'CONTENT_FOR_APPROVAL', 'HR_REQUEST_SUBMITTED', 'VACANCY_CLOSED'],
+            ['ACCOUNTS_FOR_APPROVAL', 'CREDENTIALS_FOR_APPROVAL', 'CREDENTIAL_REQUESTED', 'APP_READY_FOR_DECISION', 'CONTENT_FOR_APPROVAL', 'HR_REQUEST_SUBMITTED', 'VACANCY_CLOSED', 'SERVICE_REQUEST_NEW'],
             ['email'],
         ],
     ];

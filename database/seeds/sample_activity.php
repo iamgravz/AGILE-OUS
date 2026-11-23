@@ -340,6 +340,35 @@ return static function (PDO $db): void {
         }
     }
 
+    // ---------- Service requests: one of each status, with a short thread ----------
+    if ($mswMember !== 0 && $count("SELECT COUNT(*) FROM service_requests WHERE subject LIKE '[Sample]%'") === 0) {
+        $requests = [
+            ['member@agile.test', 'record_update', '[Sample] My section is wrong', 'open', 'My record says BSITOUMN 3-1, but I moved to 3-2 this semester.', null],
+            ['rosa.garcia@agile.test', 'document', '[Sample] Endorsement letter for an internship', 'in_progress', 'May I ask for an endorsement letter from AGILE for my internship application?', 'Noted. We will prepare it and send it within the week.'],
+            ['trisha.olivares@agile.test', 'technical', '[Sample] I cannot upload my COR', 'resolved', 'The upload says the file is too large.', 'Please save it as a PDF under 5 MB. It should go through now.'],
+            ['vince.panganiban@agile.test', 'inquiry', '[Sample] When is the General Assembly?', 'closed', 'Is there a date for the General Assembly?', 'It is on the Events page. See you there!'],
+        ];
+        $insertRequest = $db->prepare('INSERT INTO service_requests (user_id, type, subject, status, assigned_to, resolved_at, created_at) VALUES (?, ?, ?, ?, ?, ?, ?)');
+        $insertMessage = $db->prepare('INSERT INTO service_request_messages (request_id, author_id, from_staff, body, created_at) VALUES (?, ?, ?, ?, ?)');
+
+        foreach ($requests as $index => [$email, $type, $subject, $status, $question, $answer]) {
+            $requester = $user($email);
+
+            if ($requester === 0) {
+                continue;
+            }
+
+            $sent = $at('-' . (6 - $index) . ' days 09:30');
+            $insertRequest->execute([$requester, $type, $subject, $status, $answer === null ? null : $mswMember, in_array($status, ['resolved', 'closed'], true) ? $at('-' . (5 - $index) . ' days 15:00') : null, $sent]);
+            $requestId = (int) $db->lastInsertId();
+            $insertMessage->execute([$requestId, $requester, 0, $question, $sent]);
+
+            if ($answer !== null) {
+                $insertMessage->execute([$requestId, $mswMember, 1, $answer, $at('-' . (5 - $index) . ' days 14:00')]);
+            }
+        }
+    }
+
     // ---------- ID and certificate requests ----------
     if ($count("SELECT COUNT(*) FROM credential_requests WHERE note LIKE '[Sample]%'") === 0) {
         $requests = [

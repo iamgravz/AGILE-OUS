@@ -249,6 +249,8 @@ return static function (Router $router): void {
         // Service requests (Nov 23, 2026). The owner or MSW staff; ServiceRequestService checks which.
         $router->get('/requests', 'ServiceRequestsController@index', 'requests')->middleware('perm:service_request.submit');
         $router->post('/requests', 'ServiceRequestsController@store', 'requests.store')->middleware('perm:service_request.submit');
+        $router->get('/service-requests', 'ServiceRequestsController@queue', 'requests.queue')->middleware('perm:service_request.manage');
+        $router->post('/requests/{id}/manage', 'ServiceRequestsController@manage', 'requests.manage')->middleware('perm:service_request.manage');
         $router->get('/requests/{id}', 'ServiceRequestsController@show', 'requests.show');
         $router->post('/requests/{id}/reply', 'ServiceRequestsController@reply', 'requests.reply');
         $router->post('/requests/{id}/cancel', 'ServiceRequestsController@cancel', 'requests.cancel');

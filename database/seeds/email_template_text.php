@@ -205,6 +205,14 @@ return [
         '{subject}',
         '<p>Dear {name},</p><p>Greetings from the AGILE OUS Membership and Student Welfare Committee!</p>{body_html}<p>For assistance, contact <a href="mailto:{contact_email}">{contact_email}</a>.</p>',
     ],
+    'SERVICE_REQUEST_NEW' => [
+        'New service request {code}: {subject}',
+        $body('A member sent the MSW Committee a service request.', ['Request' => '{code}', 'Type' => '{type}', 'Subject' => '{subject}'], ['Open the request']),
+    ],
+    'SERVICE_REQUEST_UPDATE' => [
+        'Update on your request {code}',
+        $body('There is an update on your service request.', ['Request' => '{code}', 'Subject' => '{subject}', 'Status' => '{status}'], ['Open the request']),
+    ],
     'HR_REQUEST_RETURNED' => [
         'Your HR request for {position} was returned',
         $body('Your Human Resource Request was returned. Please update it and submit it again.', ['Position' => '{position}', 'Status' => 'Returned', 'Remarks' => '{remarks}'], ['Update the request']),

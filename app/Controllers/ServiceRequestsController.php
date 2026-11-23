@@ -25,6 +25,32 @@ final class ServiceRequestsController
         ], 'layouts/dashboard'), Response::HTTP_OK, ['Cache-Control' => 'no-store']);
     }
 
+    public function queue(Request $request): Response
+    {
+        $status = $request->queryText('status');
+
+        return Response::html(View::render('requests/queue', [
+            'requests' => $this->requests->queue($status),
+            'counts' => $this->requests->counts(),
+            'status' => isset(ServiceRequestService::STATUSES[$status]) ? $status : '',
+            'breadcrumbs' => [['label' => 'Dashboard', 'url' => route('dashboard')], ['label' => 'Service requests']],
+        ], 'layouts/dashboard'), Response::HTTP_OK, ['Cache-Control' => 'no-store']);
+    }
+
+    public function manage(Request $request, string $id): Response
+    {
+        $assignee = $request->text('assigned_to');
+
+        try {
+            $this->requests->manage((int) $id, $request->text('status'), ctype_digit($assignee) ? (int) $assignee : null);
+            flash('success', 'The request was updated.');
+        } catch (DomainException $exception) {
+            flash('error', $exception->getMessage());
+        }
+
+        return redirect(route('requests.show', ['id' => (int) $id]));
+    }
+
     public function store(Request $request): Response
     {
         $form = ['type' => $request->text('type'), 'subject' => $request->text('subject'), 'body' => $request->text('body')];
@@ -52,10 +78,13 @@ final class ServiceRequestsController
         }
 
         $code = ServiceRequestService::code((int) $id);
+        $isOwner = (int) $thread['request']['user_id'] === current_user_id();
+        $back = $isOwner ? ['label' => 'My Requests', 'url' => route('requests')] : ['label' => 'Service requests', 'url' => route('requests.queue')];
 
         return Response::html(View::render('requests/show', $thread + [
             'code' => $code,
-            'breadcrumbs' => [['label' => 'Dashboard', 'url' => route('dashboard')], ['label' => 'My Requests', 'url' => route('requests')], ['label' => $code]],
+            'handlers' => !$isOwner && can('service_request.manage') ? $this->requests->handlers() : [],
+            'breadcrumbs' => [['label' => 'Dashboard', 'url' => route('dashboard')], $back, ['label' => $code]],
         ], 'layouts/dashboard'), Response::HTTP_OK, ['Cache-Control' => 'no-store']);
     }
 

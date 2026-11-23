@@ -56,4 +56,38 @@ final class ServiceRequestTest extends TestCase
         $db->exec("DELETE FROM service_request_messages WHERE request_id = {$id}");
         $db->exec("DELETE FROM service_requests WHERE request_id = {$id}");
     }
+
+    public function testMswStaffWorkTheQueueAndTheMemberIsTold(): void
+    {
+        $db = TestServer::db();
+        $member = TestServer::loggedIn('member@agile.test');
+        $response = $member->post('/requests', ['type' => 'document', 'subject' => 'Certification of membership', 'body' => 'For my scholarship.']);
+        preg_match('#/requests/(\d+)#', (string) $response['location'], $match);
+        $id = (int) $match[1];
+        $this->assertGreaterThan(0, (int) $db->query("SELECT COUNT(*) FROM notifications n JOIN email_templates t ON t.template_id = n.template_id WHERE t.code = 'SERVICE_REQUEST_NEW' AND n.payload_json LIKE '%REQ-" . sprintf('%06d', $id) . "%'")->fetchColumn(), 'MSW staff hear about it.');
+
+        $this->assertSame(403, $member->get('/service-requests')['status'], 'Members have no queue.');
+        $staff = TestServer::loggedIn('mswmember@agile.test');
+        $this->assertStringContainsString('Certification of membership', $staff->get('/service-requests')['body']);
+        $this->assertStringContainsString('Handle this request', $staff->get("/requests/{$id}")['body']);
+
+        // A staff reply takes an open request in progress and assigns it; resolving tells the member.
+        $staff->follow($staff->post("/requests/{$id}/reply", ['body' => 'We will email it tomorrow.']));
+        $row = $db->query("SELECT status, assigned_to FROM service_requests WHERE request_id = {$id}")->fetch(PDO::FETCH_ASSOC);
+        $this->assertSame('in_progress', $row['status']);
+        $this->assertNotNull($row['assigned_to']);
+
+        $staff->get("/requests/{$id}");
+        $staff->follow($staff->post("/requests/{$id}/manage", ['status' => 'resolved', 'assigned_to' => (string) $row['assigned_to']]));
+        $this->assertSame('resolved', $db->query("SELECT status FROM service_requests WHERE request_id = {$id}")->fetchColumn());
+        $told = (int) $db->query("SELECT COUNT(*) FROM notifications n JOIN email_templates t ON t.template_id = n.template_id JOIN users u ON u.user_id = n.user_id WHERE t.code = 'SERVICE_REQUEST_UPDATE' AND u.email = 'member@agile.test' AND n.payload_json LIKE '%Resolved%'")->fetchColumn();
+        $this->assertGreaterThan(0, $told, 'The member is told it was resolved.');
+
+        $staff->get("/requests/{$id}");
+        $refused = $staff->follow($staff->post("/requests/{$id}/manage", ['status' => 'cancelled', 'assigned_to' => '']))['body'];
+        $this->assertStringContainsString('Choose open, in progress, resolved or closed', $refused);
+
+        $db->exec("DELETE FROM service_request_messages WHERE request_id = {$id}");
+        $db->exec("DELETE FROM service_requests WHERE request_id = {$id}");
+    }
 }

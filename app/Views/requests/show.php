@@ -6,6 +6,7 @@
  * @var array<string, mixed> $request
  * @var list<array<string, mixed>> $messages
  * @var string $code
+ * @var list<array<string, mixed>> $handlers MSW staff, given only to staff who are not the requester
  */
 use App\Services\ServiceRequestService;
 
@@ -27,6 +28,34 @@ $active = in_array($request['status'], ServiceRequestService::ACTIVE, true);
 </p>
 
 <div class="account-sections">
+    <?php if ($handlers !== [] && $request['status'] !== 'cancelled') : ?>
+        <form class="plain-section" method="post" action="<?= e(route('requests.manage', ['id' => (int) $request['request_id']])) ?>">
+            <?= csrf_field() ?>
+            <div class="card__header"><h2 class="card__title">Handle this request</h2></div>
+            <div class="card__body request-manage">
+                <div class="field">
+                    <label class="field__label" for="status">Status</label>
+                    <select class="select" id="status" name="status">
+                        <?php foreach (ServiceRequestService::STATUSES as $key => $label) : ?>
+                            <?php if ($key !== 'cancelled') : ?>
+                                <option value="<?= e($key) ?>"<?= $request['status'] === $key ? ' selected' : '' ?>><?= e($label) ?></option>
+                            <?php endif; ?>
+                        <?php endforeach; ?>
+                    </select>
+                </div>
+                <div class="field">
+                    <label class="field__label" for="assigned_to">Handled by</label>
+                    <select class="select" id="assigned_to" name="assigned_to">
+                        <option value="">Nobody yet</option>
+                        <?php foreach ($handlers as $handler) : ?>
+                            <option value="<?= (int) $handler['user_id'] ?>"<?= (int) ($request['assigned_to'] ?? 0) === (int) $handler['user_id'] ? ' selected' : '' ?>><?= e($handler['first_name'] . ' ' . $handler['last_name']) ?></option>
+                        <?php endforeach; ?>
+                    </select>
+                </div>
+                <button type="submit" class="btn btn--primary">Save</button>
+            </div>
+        </form>
+    <?php endif; ?>
     <section class="plain-section" aria-labelledby="thread-title">
         <div class="card__header"><h2 class="card__title" id="thread-title">Messages</h2></div>
         <div class="card__body">
