@@ -25,6 +25,8 @@ final class MemberCommitteeTest extends TestCase
             $this->signIn('mswhead@agile.test');
             $service = new MemberCommitteeService();
             $member = $this->memberHolding('Academics and Training', 'Committee Member');
+            // The demo seeder may have given this member a second committee already.
+            Database::connection()->prepare('DELETE FROM member_committees WHERE member_id = ?')->execute([$member]);
             $names = array_column($service->options($member), 'name');
 
             $this->assertNotContains('Academics and Training', $names, 'Not their own committee.');

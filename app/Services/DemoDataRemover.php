@@ -109,6 +109,11 @@ final class DemoDataRemover
             }
         }
 
+        // Demo welfare cases from guests have no account to follow, so the seeder's case codes mark them (demo_activity).
+        foreach ($this->column("SELECT case_id FROM welfare_cases WHERE case_code LIKE 'DEMOCASE%'", []) as $value) {
+            $delete['welfare_cases'][(int) $value] = true;
+        }
+
         // Follow every link to a removed row until nothing new is added.
         do {
             $added = false;

@@ -160,6 +160,8 @@ final class ElectedOfficersTest extends TestCase
         $id = (int) $statement->fetchColumn();
         $this->assertGreaterThan(0, $id, "{$title} exists");
         Database::connection()->prepare("UPDATE members SET position_id = NULL, membership_type = 'general', role_status = 'expired' WHERE position_id = ?")->execute([$id]);
+        // The demo seeder records the holders' terms; a vacated seat starts the test with none.
+        Database::connection()->prepare('DELETE FROM officer_terms WHERE position_id = ?')->execute([$id]);
 
         return $id;
     }

@@ -62,6 +62,7 @@ if (config('app.env') !== 'production') {
     $seeders['demo organization'] = 'demo_organization';
     $seeders['demo content posts'] = 'content_posts';
     $seeders['demo open positions'] = 'demo_open_positions';
+    $seeders['demo activity'] = 'demo_activity';
 
     // 100 more sample people (DEMO_BULK=true in .env). Tests keep it off, because they count the smaller set.
     if (filter_var(config('app.demo_bulk'), FILTER_VALIDATE_BOOL)) {
