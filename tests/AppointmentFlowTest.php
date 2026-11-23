@@ -12,51 +12,19 @@ use App\Models\PositionRepository;
 use App\Models\UserRepository;
 use App\Models\VacancyRepository;
 use App\Services\AppointmentService;
-use App\Services\EvaluationService;
 use App\Services\InterviewService;
 use App\Services\MembershipService;
 use App\Services\RbacService;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 
-/** Evaluations, interviews and appointments. Needs the seeded database. Database tests roll back, including PDFs. */
+/** Interviews and appointments. Needs the seeded database. Database tests roll back, including PDFs. */
 final class AppointmentFlowTest extends TestCase
 {
-    private const RUBRIC = [
-        'scale' => ['min' => 1, 'max' => 5],
-        'criteria' => [
-            ['key' => 'a', 'label' => 'A', 'weight' => 75],
-            ['key' => 'b', 'label' => 'B', 'weight' => 25],
-        ],
-    ];
-
     protected function tearDown(): void
     {
         unset($_SESSION['user_id']);
         RbacService::clearCache();
-    }
-
-    public function testScoreIsTheWeightedAverage(): void
-    {
-        $result = EvaluationService::calculate(self::RUBRIC, ['a' => '4', 'b' => '1']);
-
-        $this->assertSame(3.25, $result['score']);
-        $this->assertSame(4, $result['rubric']['criteria'][0]['score']);
-        $this->assertSame('A', $result['rubric']['criteria'][0]['label']);
-    }
-
-    /** @return list<array{array<string, mixed>}> */
-    public static function badScores(): array
-    {
-        return [[['a' => '4']], [['a' => '0', 'b' => '3']], [['a' => '6', 'b' => '3']], [['a' => '2.5', 'b' => '3']], [['a' => ['1'], 'b' => '3']], [['a' => 'x', 'b' => '3']]];
-    }
-
-    /** @param array<string, mixed> $scores */
-    #[DataProvider('badScores')]
-    public function testBadScoresAreRefused(array $scores): void
-    {
-        $this->expectException(DomainException::class);
-        EvaluationService::calculate(self::RUBRIC, $scores);
     }
 
     public function testAppointmentTransitionsMatchSectionEight(): void
@@ -90,48 +58,6 @@ final class AppointmentFlowTest extends TestCase
     public function testRoleMapping(?string $committee, string $title, string $roleType, string $expected): void
     {
         $this->assertSame($expected, MembershipService::roleSlugFor(['committee_name' => $committee, 'title' => $title, 'role_type' => $roleType]));
-    }
-
-    public function testASecondEvaluationUpdatesAndTwoEvaluatorsCount(): void
-    {
-        $this->inRollback(function (): void {
-            $applicationId = $this->application('under_review', $this->vacancy('open', 2));
-            $scores = ['qualifications' => '5', 'skills' => '5', 'communication' => '5', 'commitment' => '5', 'teamwork' => '5'];
-
-            $this->signIn('mswmember@agile.test');
-            (new EvaluationService())->submit($applicationId, $scores, 'recommend', 'First');
-            (new EvaluationService())->submit($applicationId, ['skills' => '1'] + $scores, 'hold', 'Changed');
-
-            $this->signIn('head@agile.test');
-            (new EvaluationService())->submit($applicationId, $scores, 'recommend', 'Mine');
-
-            $panel = (new EvaluationService())->panel(['application_id' => $applicationId, 'status' => 'under_review', 'user_id' => $this->userId('nomember@agile.test'), 'vacancy_id' => 1]);
-            $this->assertCount(2, $panel['evaluations']);
-            $this->assertSame(4.0, (float) $panel['evaluations'][0]['score']);
-            $this->assertSame('Changed', $panel['evaluations'][0]['remarks']);
-            $this->assertSame(4.5, $panel['averageScore']);
-            $this->assertSame(['recommend' => 1, 'hold' => 1, 'not_recommend' => 0], $panel['recommendationCounts']);
-        });
-    }
-
-    public function testEvaluationsLockAfterADecision(): void
-    {
-        $this->inRollback(function (): void {
-            $applicationId = $this->application('approved', $this->vacancy('open', 2));
-            $this->signIn('mswmember@agile.test');
-            $this->expectException(DomainException::class);
-            (new EvaluationService())->submit($applicationId, ['qualifications' => '5', 'skills' => '5', 'communication' => '5', 'commitment' => '5', 'teamwork' => '5'], 'hold', 'Late');
-        });
-    }
-
-    public function testHeadsCannotEvaluateGeneralMembership(): void
-    {
-        $this->inRollback(function (): void {
-            $applicationId = $this->application('under_review', null);
-            $this->signIn('head@agile.test');
-            $this->expectException(ForbiddenException::class);
-            (new EvaluationService())->submit($applicationId, ['qualifications' => '5', 'skills' => '5', 'communication' => '5', 'commitment' => '5', 'teamwork' => '5'], 'hold', 'No');
-        });
     }
 
     public function testReminderSendsOnceAndReschedulingArmsItAgain(): void
@@ -225,8 +151,8 @@ final class AppointmentFlowTest extends TestCase
             $this->signIn('mswhead@agile.test');
 
             try {
-                (new EvaluationService())->submit($applicationId, ['qualifications' => '5', 'skills' => '5', 'communication' => '5', 'commitment' => '5', 'teamwork' => '5'], 'recommend', 'Biased');
-                $this->fail('An interviewer with a conflict cannot score (BR-25).');
+                (new \App\Services\AssessmentService())->save($applicationId, [], [], ['recommendation' => 'recommended', 'strengths' => '', 'development' => '', 'remarks' => '']);
+                $this->fail('An interviewer with a conflict cannot assess (BR-25).');
             } catch (DomainException $exception) {
                 $this->assertStringContainsString('conflict of interest', $exception->getMessage());
             }

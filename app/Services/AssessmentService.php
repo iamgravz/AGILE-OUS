@@ -158,6 +158,15 @@ final class AssessmentService
             throw new DomainException('This application is already decided or closed, so its assessment can no longer change.');
         }
 
+        // BR-25: an interviewer who declared a conflict of interest with this applicant cannot assess them.
+        if ((new \App\Models\InterviewRepository())->hasConflict($applicationId, (int) current_user_id())) {
+            throw new DomainException('You declared a conflict of interest for this applicant, so you cannot assess them (BR-25).');
+        }
+
+        if ((int) ($application['user_id'] ?? 0) === current_user_id()) {
+            throw new DomainException('You cannot assess your own application.');
+        }
+
         if (!$this->hasCompletedInterview($applicationId)) {
             throw new DomainException('Record the interview result (passed or failed) before the assessment.');
         }

@@ -81,7 +81,7 @@ Tests cannot judge these, so go through them once on your real site:
 | BR-02 | One active application per vacancy per person | `AccountsAndDecisionsTest::testBrTwoSeesAcrossAccountsAndApplicants` |
 | BR-03 | Approval needs all required documents verified | `BusinessRulesTest::testBr03ApprovalWaitsForEveryRequiredDocument` |
 | BR-04 | Only the MSW Head creates vacancies, from an approved request, and they close on their own | `RecruitmentTest::testACommitteeHeadCannotCreateAVacancy`, `RecruitmentTest::testAVacancyNeedsAnApprovedRequest`, `RecruitmentTest::testJobClosesPastVacanciesOnceAndNotifiesTheHead`, `RecruitmentTest::testJobMarksFullVacancyFilledAndLeavesOthersAlone` |
-| BR-05 | One evaluation per evaluator, and only the MSW Head approves appointments | `AppointmentFlowTest::testASecondEvaluationUpdatesAndTwoEvaluatorsCount`, `BusinessRulesTest::testBr05OnlyTheMswHeadApprovesAppointments` |
+| BR-05 | One assessment per application by the MSW interviewer after the interview, and only the MSW Head approves appointments | `ApplicantAssessmentTest::testTheAssessmentWaitsForTheInterviewThenSavesAndUpdates`, `BusinessRulesTest::testBr05OnlyTheMswHeadApprovesAppointments` |
 | BR-06 | Welfare only for MSW Head and President, and every view logged | `BusinessRulesTest::testBr06EveryCaseViewIsLoggedAndOthersAreRefused`, `WelfareCaseTest::testEveryOtherRoleIsRefusedInsideTheService` |
 | BR-07 | Only the MSW Head closes, and the 24-hour rule | `WelfareCaseTest::testThePresidentHandlesButCannotAssignCloseOrDispose`, `WelfareCaseTest::testOverdueRule`, `WelfareCaseTest::testRemindersSendOnce` |
 | BR-08 | Screening covers officers only | `EligibilityTest::testScreeningCoversOnlyOfficers` |

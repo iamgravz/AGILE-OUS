@@ -599,4 +599,23 @@ final class RecruitmentService
             'position' => $position['title'],
         ], '/recruitment/hr-requests/' . (int) $request['request_id']);
     }
+
+    /**
+     * My Committee: the head's vacancies with the applications they may read (read-only).
+     *
+     * @return list<array<string, mixed>>
+     */
+    public function committeeVacancies(): array
+    {
+        authorize('evaluation.view');
+
+        $applications = new \App\Models\MembershipApplicationRepository();
+        $vacancies = $this->vacancies->forCommitteesHeadedBy((int) current_user_id());
+
+        foreach ($vacancies as &$vacancy) {
+            $vacancy['applications'] = $applications->reviewableForVacancy((int) $vacancy['vacancy_id']);
+        }
+
+        return $vacancies;
+    }
 }

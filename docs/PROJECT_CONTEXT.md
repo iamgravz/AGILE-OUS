@@ -119,7 +119,6 @@ Codes (stored in `permissions.code`; mapped to roles in `role_permissions`; extr
 | `hr_request.submit` (own committee) | | ✔ | | | ✔ | |
 | `hr_request.approve` / `vacancy.manage` | | | | | ✔ | |
 | `document.verify` / `application.update_status` | | | | ✔ | ✔ | |
-| `evaluation.submit` | | ✔ | | ✔ | ✔ | |
 | `evaluation.view` (review evaluations & approved apps) | | ✔ (read) | | ✔ | ✔ | |
 | `event.attendance` | | ✔ | | ✔ | ✔ | |
 | `interview.manage` | | | | ✔ | ✔ | |

@@ -3,18 +3,12 @@
  * @var \App\Core\View $this
  * @var array<string, array<string, array<string, mixed>>> $groups
  * @var array<string, string> $values
- * @var array<string, mixed> $rubric
  */
 use App\Services\LandingService;
 use App\Services\SettingsService;
-
-$rows = array_values($rubric['criteria'] ?? []);
-$rubricError = field_error('rubric');
-$weightTotal = array_sum(array_column($rows, 'weight'));
 ?>
 <?php $this->start('title') ?>Settings<?php $this->end() ?>
 <?php $this->start('page_title') ?>Settings<?php $this->end() ?>
-<?php $this->start('head') ?><script src="<?= e(asset('js/rubric-total.js')) ?>" defer></script><?php $this->end() ?>
 
 <form class="admin-form" method="post" action="<?= e(route('admin.settings')) ?>" enctype="multipart/form-data">
     <?= csrf_field() ?>
@@ -73,35 +67,5 @@ $weightTotal = array_sum(array_column($rows, 'weight'));
         <?php endforeach; ?>
     <?php endforeach; ?>
 
-    <h2>Evaluation rubric</h2>
-    <p class="text-muted">Weights must add up to 100. Leave a row blank if you do not need it. Evaluations already saved keep their scores.</p>
-    <div class="grid grid--2">
-        <?= $this->partial('partials/form_field', ['name' => 'rubric_min', 'label' => 'Lowest score', 'type' => 'number', 'value' => (string) old('rubric_min', (string) ($rubric['scale']['min'] ?? 1))]) ?>
-        <?= $this->partial('partials/form_field', ['name' => 'rubric_max', 'label' => 'Highest score', 'type' => 'number', 'value' => (string) old('rubric_max', (string) ($rubric['scale']['max'] ?? 5))]) ?>
-    </div>
-    <div class="table-wrap">
-        <table class="table">
-            <caption class="sr-only">Rubric criteria</caption>
-            <thead><tr><th scope="col">Criterion</th><th scope="col" class="num">Weight</th></tr></thead>
-            <tbody>
-                <?php for ($i = 0; $i < SettingsService::RUBRIC_ROWS; $i++) : ?>
-                    <tr>
-                        <td>
-                            <input type="hidden" name="rubric_key[<?= e($i) ?>]" value="<?= e($rows[$i]['key'] ?? '') ?>">
-                            <input class="input" name="rubric_label[<?= e($i) ?>]" maxlength="100" aria-label="Criterion <?= e($i + 1) ?> name" value="<?= e($rows[$i]['label'] ?? '') ?>">
-                        </td>
-                        <td class="num"><input class="input admin-weight" name="rubric_weight[<?= e($i) ?>]" type="number" min="0" max="100" aria-label="Criterion <?= e($i + 1) ?> weight" value="<?= e($rows[$i]['weight'] ?? '') ?>"></td>
-                    </tr>
-                <?php endfor; ?>
-            </tbody>
-            <tfoot>
-                <tr>
-                    <th scope="row">Total <span class="rubric-total__note" data-rubric-note<?= $weightTotal === 100 ? ' hidden' : '' ?>>Must add up to 100.</span></th>
-                    <td class="num"><output data-rubric-total><?= e($weightTotal) ?></output></td>
-                </tr>
-            </tfoot>
-        </table>
-    </div>
-    <?php if ($rubricError !== null) : ?><p class="field__error"><?= icon('alert') ?> <?= e($rubricError) ?></p><?php endif; ?>
     <p class="admin-actions"><button type="submit" class="btn btn--primary">Save settings</button></p>
 </form>

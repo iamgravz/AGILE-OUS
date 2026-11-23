@@ -289,20 +289,6 @@ final class DashboardRepository
         return (int) $this->pdo()->query("SELECT COUNT(*) FROM users WHERE status = 'pending'")->fetchColumn();
     }
 
-    public function applicationsAwaitingEvaluationBy(int $userId): array
-    {
-        return $this->rows(
-            "SELECT a.application_id, a.status, a.submitted_at, v.title AS vacancy_title, CONCAT(u.first_name, ' ', u.last_name) AS applicant_name
-             FROM membership_applications a
-             JOIN vacancies v ON v.vacancy_id = a.vacancy_id
-             JOIN users u ON u.user_id = a.user_id
-             WHERE a.status IN ('submitted', 'under_review', 'for_revision') AND a.user_id <> ?
-               AND NOT EXISTS (SELECT 1 FROM evaluations e WHERE e.application_id = a.application_id AND e.evaluator_id = ?)
-             ORDER BY a.submitted_at, a.application_id",
-            [$userId, $userId]
-        );
-    }
-
     /** @return list<array<string, mixed>> Status only, with no text. */
     public function welfareStatusFor(int $userId, int $limit = 5): array
     {

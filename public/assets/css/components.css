@@ -3149,12 +3149,6 @@ kbd {
     border-top: 1px solid var(--color-border);
 }
 
-.admin-weight {
-    max-width: 6rem;
-    margin-left: auto;
-    text-align: right;
-}
-
 .admin-permissions {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(15rem, 1fr));
@@ -3206,7 +3200,7 @@ kbd {
     margin-bottom: var(--space-5);
 }
 
-.admin-form input[type="number"]:not(.admin-weight) {
+.admin-form input[type="number"] {
     max-width: 10rem;
 }
 
@@ -3259,12 +3253,6 @@ kbd {
 .permission-group__text {
     display: block;
     color: var(--color-text-muted);
-    font-size: 0.875rem;
-}
-
-.rubric-total__note {
-    margin-left: var(--space-2);
-    color: var(--danger-fg);
     font-size: 0.875rem;
 }
 

@@ -10,7 +10,6 @@ use App\Models\SettingRepository;
 /** Every setting, for admin.settings. Values are checked by type before anything is saved. */
 final class SettingsService
 {
-    public const RUBRIC_ROWS = 8;
 
     // key => label, type, help, and the allowed range for numbers.
     public const FIELDS = [
@@ -49,7 +48,7 @@ final class SettingsService
     ) {
     }
 
-    /** @return array{values: array<string, string>, rubric: array<string, mixed>} */
+    /** @return array{values: array<string, string>} */
     public function current(): array
     {
         authorize('admin.settings');
@@ -66,7 +65,7 @@ final class SettingsService
         $values['landing.show_sections'] = json_encode($landing->shownSections(), JSON_THROW_ON_ERROR);
         $values['landing.join_steps'] = $landing->joinStepsText();
 
-        return ['values' => $values, 'rubric' => json_decode((string) $this->settings->value('evaluation.rubric', '{}'), true) ?: []];
+        return ['values' => $values];
     }
 
     /**
@@ -108,12 +107,6 @@ final class SettingsService
             }
         }
 
-        [$rubric, $rubricError] = $this->rubricFrom($input);
-
-        if ($rubricError !== null) {
-            $errors['rubric'] = $rubricError;
-        }
-
         $imageField = self::fieldName('landing.hero_image');
 
         if ($heroImage !== null) {
@@ -135,8 +128,6 @@ final class SettingsService
         } elseif (($input[$imageField . '_remove'] ?? '') === '1') {
             $clean['landing.hero_image'] = '';
         }
-
-        $clean['evaluation.rubric'] = json_encode($rubric, JSON_THROW_ON_ERROR | JSON_UNESCAPED_UNICODE);
 
         Database::transaction(function () use ($clean): void {
             $changed = [];
@@ -204,55 +195,5 @@ final class SettingsService
         $chosen = is_array($value) ? $value : [];
 
         return json_encode(array_values(array_intersect(array_keys(LandingService::SECTIONS), $chosen)), JSON_THROW_ON_ERROR);
-    }
-
-    /**
-     * Weights must add up to 100. A row keeps its key, because saved evaluations refer to it.
-     *
-     * @param array<string, mixed> $input
-     * @return array{0: array<string, mixed>, 1: ?string}
-     */
-    private function rubricFrom(array $input): array
-    {
-        $min = is_string($input['rubric_min'] ?? null) ? trim($input['rubric_min']) : '';
-        $max = is_string($input['rubric_max'] ?? null) ? trim($input['rubric_max']) : '';
-        $labels = is_array($input['rubric_label'] ?? null) ? $input['rubric_label'] : [];
-        $weights = is_array($input['rubric_weight'] ?? null) ? $input['rubric_weight'] : [];
-        $keys = is_array($input['rubric_key'] ?? null) ? $input['rubric_key'] : [];
-        $criteria = [];
-
-        foreach ($labels as $index => $label) {
-            $label = is_string($label) ? trim($label) : '';
-            $weight = is_string($weights[$index] ?? null) ? trim($weights[$index]) : '';
-
-            if ($label === '' && $weight === '') {
-                continue;
-            }
-
-            if ($label === '' || !ctype_digit($weight) || (int) $weight < 1) {
-                return [[], 'Each criterion needs a name and a whole number weight.'];
-            }
-
-            $key = is_string($keys[$index] ?? null) && $keys[$index] !== '' ? $keys[$index] : trim((string) preg_replace('/[^a-z0-9]+/', '_', strtolower($label)), '_');
-            $criteria[] = ['key' => $key, 'label' => $label, 'weight' => (int) $weight];
-        }
-
-        if ($criteria === []) {
-            return [[], 'Add at least one criterion.'];
-        }
-
-        if (count(array_unique(array_column($criteria, 'key'))) !== count($criteria)) {
-            return [[], 'Each criterion needs a different name.'];
-        }
-
-        if (array_sum(array_column($criteria, 'weight')) !== 100) {
-            return [[], 'The weights must add up to 100.'];
-        }
-
-        if (!ctype_digit($min) || !ctype_digit($max) || (int) $min >= (int) $max) {
-            return [[], 'The lowest score must be a whole number below the highest score.'];
-        }
-
-        return [['scale' => ['min' => (int) $min, 'max' => (int) $max], 'criteria' => $criteria], null];
     }
 }

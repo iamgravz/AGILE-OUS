@@ -222,8 +222,14 @@ module list in `README.md`.
 
 ## I. Modified files
 
-None during the inspection. This report (`docs/technical-audit.md`) is the only new file. Files changed by the
-remediation will be listed here as each item is done.
+None during the inspection. Changes made afterward, one item at a time, each followed by the full test suite:
+
+| Item | Files | Why |
+|---|---|---|
+| C-1 | `.gitignore`; `attendance/`, `banner/`, `zoom-background/` untracked (files kept on disk) | Not part of the system. The owner confirmed the sheet holds no personal data, so history was not rewritten. |
+| H-1 | Removed `EvaluationService.php`, `EvaluationRepository.php`, `EvaluationsController.php`, `public/assets/js/rubric-total.js`, the rubric part of `admin/settings.php` and `SettingsService.php`, the rubric seed, `DashboardRepository::applicationsAwaitingEvaluationBy()` (no caller), permission `evaluation.submit` (migration `2026_11_23_retire_rubric`), and their CSS. Added `MyCommitteeController` and `RecruitmentService::committeeVacancies()` (moved, unchanged). | The removed feature no longer had a screen that pretends to work. |
+| H-1 (rule kept) | `AssessmentService::save()` | BR-25 (an interviewer who declared a conflict cannot score) and "no one assesses their own application" lived only in the removed rubric code. Both now guard the assessment; `AppointmentFlowTest::testAConflictBlocksTheResultAndTheScoreUntilRescheduled` checks it. |
+| H-1 (tests) | `AppointmentFlowTest`, `AdministrationTest`, `LandingPageTest`, `AccessMatrixTest`, `docs/test-cases.md` (BR-05) | Tests of the removed code were removed (414 → 404); BR-05 now points to the assessment test. |
 
 ---
 

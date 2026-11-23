@@ -44,10 +44,6 @@ return [
         'description' => 'Update application status',
         'roles' => ['msw_member', 'msw_head'],
     ],
-    'evaluation.submit' => [
-        'description' => 'Submit an applicant evaluation',
-        'roles' => ['committee_head', 'msw_member', 'msw_head'],
-    ],
     'evaluation.view' => [
         'description' => 'Review evaluations and approved applications',
         'roles' => ['committee_head', 'msw_member', 'msw_head'],

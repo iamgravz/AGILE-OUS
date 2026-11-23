@@ -537,7 +537,7 @@ final class MembershipService
         }
 
         // A committee head may read approved or already evaluated applications, and position applications they can evaluate.
-        $canEvaluate = $application['vacancy_id'] !== null && in_array($application['status'], EvaluationService::OPEN_STATUSES, true);
+        $canEvaluate = $application['vacancy_id'] !== null && in_array($application['status'], ['submitted', 'under_review', 'for_revision'], true);
 
         if (!can('application.update_status') && $application['status'] !== 'approved' && !$canEvaluate && !$this->isOwnCommitteeHead($application) && !$this->applications->hasEvaluation($id)) {
             throw new ForbiddenException('application.review_scope');

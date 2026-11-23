@@ -182,16 +182,10 @@ final class LandingPageTest extends TestCase
     private function validSettings(SettingsService $service): array
     {
         $current = $service->current();
-        $input = ['rubric_min' => (string) $current['rubric']['scale']['min'], 'rubric_max' => (string) $current['rubric']['scale']['max']];
+        $input = [];
 
         foreach ($current['values'] as $key => $value) {
             $input[SettingsService::fieldName($key)] = $value;
-        }
-
-        foreach ($current['rubric']['criteria'] as $i => $row) {
-            $input['rubric_key'][$i] = $row['key'];
-            $input['rubric_label'][$i] = $row['label'];
-            $input['rubric_weight'][$i] = (string) $row['weight'];
         }
 
         return $input;

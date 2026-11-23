@@ -3,17 +3,6 @@
 declare(strict_types=1);
 
 return static function (PDO $db): void {
-    $rubric = [
-        'scale' => ['min' => 1, 'max' => 5],
-        'criteria' => [
-            ['key' => 'qualifications', 'label' => 'Qualifications and experience', 'weight' => 25],
-            ['key' => 'skills', 'label' => 'Skills relevant to the position', 'weight' => 25],
-            ['key' => 'communication', 'label' => 'Communication', 'weight' => 20],
-            ['key' => 'commitment', 'label' => 'Commitment and availability', 'weight' => 20],
-            ['key' => 'teamwork', 'label' => 'Teamwork and attitude', 'weight' => 10],
-        ],
-    ];
-
     $settings = [
         'upload.max_mb' => '5',
         'eligibility.grace_days' => '7',
@@ -37,7 +26,6 @@ return static function (PDO $db): void {
             . "To conduct IT-focused workshops, study sessions, and industry networking events.\n"
             . "To promote ethical practices, open-source collaboration, and digital innovation.\n"
             . 'To represent and advocate for the general welfare and academic interests of the BSIT distance-learning community.',
-        'evaluation.rubric' => json_encode($rubric, JSON_THROW_ON_ERROR),
     ];
 
     foreach ($settings as $key => $value) {
