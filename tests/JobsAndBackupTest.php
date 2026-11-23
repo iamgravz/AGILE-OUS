@@ -135,7 +135,7 @@ final class JobsAndBackupTest extends TestCase
     {
         $this->inRollback(function (): void {
             $db = Database::connection();
-            $id = (int) $db->query("SELECT application_id FROM membership_applications WHERE tracking_code = 'DEMAPPREV2SE'")->fetchColumn();
+            $id = (int) $db->query("SELECT application_id FROM membership_applications WHERE tracking_code = 'FTAVJNRA69R4'")->fetchColumn();
             $db->prepare('DELETE FROM application_access_links WHERE application_id = ?')->execute([$id]);
             $service = new \App\Services\ApplicationReminderService();
             $log = static function (): void {

@@ -110,9 +110,13 @@ final class SampleDataRemover
             }
         }
 
-        // Sample welfare cases from guests have no account to follow, so the seeder's case codes mark them (sample_activity).
-        foreach ($this->column("SELECT case_id FROM welfare_cases WHERE case_code LIKE 'SMPLCASE%'", []) as $value) {
-            $delete['welfare_cases'][(int) $value] = true;
+        // Guest welfare cases have no account to follow; a sample one was filed with an @agile.test email, stored encrypted.
+        $encryption = new EncryptionService();
+
+        foreach ($this->db->query('SELECT case_id, guest_email FROM welfare_cases WHERE user_id IS NULL AND guest_email IS NOT NULL')->fetchAll(PDO::FETCH_ASSOC) as $case) {
+            if (str_ends_with(strtolower($encryption->decrypt((string) $case['guest_email'])), self::SAMPLE_DOMAIN)) {
+                $delete['welfare_cases'][(int) $case['case_id']] = true;
+            }
         }
 
         // Follow every link to a removed row until nothing new is added.

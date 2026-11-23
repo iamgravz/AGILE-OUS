@@ -30,12 +30,12 @@ return static function (PDO $db): void {
 
     // [email, first name, last name, student no, contact no, tracking code, status, document status, remarks]
     $people = [
-        ['andrea.santos@agile.test', 'Andrea', 'Santos', '2024-00111-OU-0', '09170001111', 'DEMAPPSUBMT2', 'submitted', 'pending', null],
-        ['jose.delacruz@agile.test', 'Jose', 'Dela Cruz', '2024-00112-OU-0', '09170001112', 'DEMAPPREV2SE', 'for_revision', 'needs_correction', 'The COR photo is too dark to read. Please upload a clearer copy.'],
-        ['maria.lim@agile.test', 'Maria', 'Lim', '2024-00113-OU-0', '09170001113', 'DEMAPPREVWD3', 'under_review', 'verified', null],
-        ['lito.ramos@agile.test', 'Lito', 'Ramos', '2024-00114-OU-0', '09170001114', 'DEMAPPAPPRV4', 'approved', 'verified', 'Welcome to AGILE.'],
-        ['rosa.garcia@agile.test', 'Rosa', 'Garcia', '2024-00115-OU-0', '09170001115', 'DEMAPPAPPRV5', 'approved', 'verified', 'Welcome to AGILE.'],
-        ['ana.villanueva@agile.test', 'Ana', 'Villanueva', '2024-00116-OU-0', '09170001116', 'DEMAPPWAIT06', 'waitlisted', 'verified', 'Qualified, but no slot is open yet.'],
+        ['andrea.santos@agile.test', 'Andrea', 'Santos', '2024-00111-OU-0', '09170001111', 'FJKBRQJTPMC5', 'submitted', 'pending', null],
+        ['jose.delacruz@agile.test', 'Jose', 'Dela Cruz', '2024-00112-OU-0', '09170001112', 'FTAVJNRA69R4', 'for_revision', 'needs_correction', 'The COR photo is too dark to read. Please upload a clearer copy.'],
+        ['maria.lim@agile.test', 'Maria', 'Lim', '2024-00113-OU-0', '09170001113', '6M3DRHUUHT49', 'under_review', 'verified', null],
+        ['lito.ramos@agile.test', 'Lito', 'Ramos', '2024-00114-OU-0', '09170001114', 'GJMK2Q7UT6A7', 'approved', 'verified', 'Welcome to AGILE.'],
+        ['rosa.garcia@agile.test', 'Rosa', 'Garcia', '2024-00115-OU-0', '09170001115', 'DDVMBQCGKZSN', 'approved', 'verified', 'Welcome to AGILE.'],
+        ['ana.villanueva@agile.test', 'Ana', 'Villanueva', '2024-00116-OU-0', '09170001116', 'CHZE8VH86R3C', 'waitlisted', 'verified', 'Qualified, but no slot is open yet.'],
     ];
 
     $answers = [
@@ -99,13 +99,13 @@ return static function (PDO $db): void {
 
         if ($status === 'approved') {
             $memberId = seed_row($db, 'members', 'member_id', ['applicant_id' => $applicantId], [
-                'member_no' => sprintf('AGILE-%s-%04d', date('Y'), $code === 'DEMAPPAPPRV4' ? 100 : 101),
+                'member_no' => sprintf('AGILE-%s-%04d', date('Y'), $code === 'GJMK2Q7UT6A7' ? 100 : 101),
                 'membership_type' => 'general',
                 'joined_at' => date('Y-m-d'),
             ]);
 
             // Rosa has registered, so her account waits for the MSW Committee Head (BR-21).
-            if ($code === 'DEMAPPAPPRV5') {
+            if ($code === 'DDVMBQCGKZSN') {
                 $role = $db->query("SELECT role_id FROM roles WHERE slug = 'general_member'")->fetchColumn();
                 $userId = seed_row($db, 'users', 'user_id', ['email' => $email], [
                     'role_id' => $role,
@@ -126,7 +126,7 @@ return static function (PDO $db): void {
     // A member's application to a committee position, ready for that committee's head to decide (BR-20).
     $position = $db->query("SELECT p.position_id, p.committee_id, c.head_user_id FROM positions p JOIN committees c ON c.committee_id = p.committee_id WHERE c.name = 'Academics and Training' AND p.title = 'Committee Member' LIMIT 1")->fetch();
     $memberUser = $db->query("SELECT user_id FROM users WHERE email = 'member@agile.test'")->fetchColumn();
-    $exists = $db->query("SELECT COUNT(*) FROM membership_applications WHERE tracking_code = 'DEMVACANCY01'")->fetchColumn();
+    $exists = $db->query("SELECT COUNT(*) FROM membership_applications WHERE tracking_code = '9NARD7QDRQ59'")->fetchColumn();
 
     if ($position !== false && $position['head_user_id'] !== null && $memberUser !== false && (int) $exists === 0) {
         $requestId = seed_row($db, 'hr_requests', 'request_id', ['committee_id' => $position['committee_id'], 'position_id' => $position['position_id'], 'justification' => 'Tutors for the coming term.'], [
@@ -145,7 +145,7 @@ return static function (PDO $db): void {
             'closes_at' => date('Y-m-d H:i:s', time() + 86400 * 30),
             'status' => 'open',
         ]);
-        $applicationId = seed_row($db, 'membership_applications', 'application_id', ['tracking_code' => 'DEMVACANCY01'], [
+        $applicationId = seed_row($db, 'membership_applications', 'application_id', ['tracking_code' => '9NARD7QDRQ59'], [
             'user_id' => $memberUser,
             'vacancy_id' => $vacancyId,
             'status' => 'under_review',

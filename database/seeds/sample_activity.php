@@ -67,7 +67,7 @@ return static function (PDO $db): void {
     }
 
     // ---------- Welfare cases ----------
-    if ($count("SELECT COUNT(*) FROM welfare_cases WHERE case_code LIKE 'SMPLCASE%'") === 0) {
+    if ($count('SELECT COUNT(*) FROM welfare_cases WHERE case_code = ?', [seed_code('case:1')]) === 0) {
         $categories = $db->query('SELECT category_id FROM welfare_categories ORDER BY category_id')->fetchAll(PDO::FETCH_COLUMN);
         $cases = [
             // [owner email or guest name, category index, status, priority, urgent, days ago, subject, description, year, section, contact]
@@ -101,7 +101,7 @@ return static function (PDO $db): void {
             $submitted = $at("-{$daysAgo} days");
             $closed = in_array($status, ['closed'], true) ? $at('-' . max(0, $daysAgo - 5) . ' days') : null;
             $insert->execute([
-                sprintf('SMPLCASE%04d', $index + 1), $isGuest ? null : $ownerId,
+                seed_code('case:' . ($index + 1)), $isGuest ? null : $ownerId,
                 $isGuest ? $encryption->encrypt($guestName) : null, $isGuest ? $encryption->encrypt($guestEmail) : null, $isGuest ? $encryption->blindIndex($guestEmail) : null,
                 (int) ($categories[$category % max(1, count($categories))] ?? 1), $priority, $urgent ? 1 : 0,
                 $encryption->encrypt($subject), $encryption->encrypt($description),

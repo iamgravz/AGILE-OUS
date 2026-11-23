@@ -206,7 +206,7 @@ return static function (PDO $db): void {
     foreach ($stages as [$status, $count, $remarks]) {
         for ($n = 0; $n < $count; $n++) {
             $p = $person($i++);
-            $code = sprintf('DEMBLK%06d', $i);
+            $code = seed_code('bulk:' . $i);
             $exists = $db->prepare('SELECT COUNT(*) FROM membership_applications WHERE tracking_code = ?');
             $exists->execute([$code]);
 

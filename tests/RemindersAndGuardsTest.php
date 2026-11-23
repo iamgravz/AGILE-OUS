@@ -99,7 +99,7 @@ final class RemindersAndGuardsTest extends TestCase
     {
         $this->inRollback(function (): void {
             $db = Database::connection();
-            $id = (int) $db->query("SELECT application_id FROM membership_applications WHERE tracking_code = 'DEMAPPREV2SE'")->fetchColumn();
+            $id = (int) $db->query("SELECT application_id FROM membership_applications WHERE tracking_code = 'FTAVJNRA69R4'")->fetchColumn();
             $db->prepare('DELETE FROM application_access_links WHERE application_id = ?')->execute([$id]);
             $db->prepare("INSERT INTO application_status_history (application_id, old_status, new_status, remarks, changed_at) VALUES (?, 'under_review', 'for_revision', 'Please upload a clearer ID', NOW())")->execute([$id]);
             $service = new \App\Services\ApplicationReminderService();
@@ -125,7 +125,7 @@ final class RemindersAndGuardsTest extends TestCase
     {
         $this->inRollback(function (): void {
             $db = Database::connection();
-            $id = (int) $db->query("SELECT application_id FROM membership_applications WHERE tracking_code = 'DEMAPPREV2SE'")->fetchColumn();
+            $id = (int) $db->query("SELECT application_id FROM membership_applications WHERE tracking_code = 'FTAVJNRA69R4'")->fetchColumn();
             (new ApplicantAccessService())->newRevisionLink($id);
             $service = new \App\Services\ApplicationReminderService();
 

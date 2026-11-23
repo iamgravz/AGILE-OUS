@@ -374,7 +374,7 @@ final class BusinessRulesTest extends TestCase
 
     private function forRevisionApplication(): int
     {
-        return (int) Database::connection()->query("SELECT application_id FROM membership_applications WHERE tracking_code = 'DEMAPPREV2SE'")->fetchColumn();
+        return (int) Database::connection()->query("SELECT application_id FROM membership_applications WHERE tracking_code = 'FTAVJNRA69R4'")->fetchColumn();
     }
 
     private function tokenFrom(string $path): string

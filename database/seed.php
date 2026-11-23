@@ -46,6 +46,23 @@ function seed_row(PDO $db, string $table, string $idColumn, array $match, array 
     return (int) $db->lastInsertId();
 }
 
+/**
+ * A fixed 12-character code in the format MembershipService::generateTrackingCode() uses, so made-up applications and
+ * welfare cases look like real ones and running the seeder again finds the same rows. $key names the row.
+ */
+function seed_code(string $key): string
+{
+    $alphabet = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789';
+    $hash = hash('sha256', 'agile-seed:' . $key, true);
+    $code = '';
+
+    for ($i = 0; $i < 12; $i++) {
+        $code .= $alphabet[ord($hash[$i]) % strlen($alphabet)];
+    }
+
+    return $code;
+}
+
 $seeders = [
     'roles and permissions' => 'roles_permissions',
     'welfare categories' => 'welfare_categories',

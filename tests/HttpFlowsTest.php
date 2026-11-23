@@ -41,12 +41,12 @@ final class HttpFlowsTest extends TestCase
         $browser = new TestServer();
         $browser->get('/track');
 
-        $response = $browser->post('/track', ['code' => 'DEMAPPSUBMT2', 'email' => 'andrea.santos@agile.test']);
+        $response = $browser->post('/track', ['code' => 'FJKBRQJTPMC5', 'email' => 'andrea.santos@agile.test']);
         $this->assertSame(200, $response['status']);
         $this->assertStringContainsString('Submitted', $response['body']);
 
         $message = 'We could not find a match for that code and email.';
-        $wrongEmail = $browser->post('/track', ['code' => 'DEMAPPSUBMT2', 'email' => 'someone.else@example.test']);
+        $wrongEmail = $browser->post('/track', ['code' => 'FJKBRQJTPMC5', 'email' => 'someone.else@example.test']);
         $unknownCode = $browser->post('/track', ['code' => 'NOSUCHCODE12', 'email' => 'andrea.santos@agile.test']);
         $this->assertStringContainsString($message, $wrongEmail['body']);
         $this->assertStringContainsString($message, $unknownCode['body'], 'Both failures read the same.');
@@ -84,7 +84,7 @@ final class HttpFlowsTest extends TestCase
     public function testTc06AnMswMemberCannotApproveByDirectPost(): void
     {
         $browser = TestServer::loggedIn('mswmember@agile.test');
-        $id = (int) TestServer::db()->query("SELECT application_id FROM membership_applications WHERE tracking_code = 'DEMAPPREVWD3'")->fetchColumn();
+        $id = (int) TestServer::db()->query("SELECT application_id FROM membership_applications WHERE tracking_code = '6M3DRHUUHT49'")->fetchColumn();
 
         $page = $browser->get("/applications/{$id}");
         $this->assertSame(200, $page['status']);
