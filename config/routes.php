@@ -119,6 +119,7 @@ return static function (Router $router): void {
     $router->post('/applications/{id}/interviews', 'InterviewsController@schedule', 'applications.interviews')->middleware('perm:interview.manage');
     $router->post('/applications/{id}/interviews/{interviewId}/reschedule', 'InterviewsController@reschedule', 'applications.interviews.reschedule')->middleware('perm:interview.manage');
     $router->post('/applications/{id}/interviews/{interviewId}/result', 'InterviewsController@recordResult', 'applications.interviews.result')->middleware('perm:interview.manage');
+    $router->post('/applications/{id}/assessment', 'InterviewsController@assess', 'applications.assessment')->middleware('perm:interview.manage');
     $router->post('/applications/{id}/interviews/{interviewId}/checklist', 'InterviewsController@checklist', 'applications.interviews.checklist')->middleware('perm:interview.manage');
     $router->get('/recruitment/committee', 'EvaluationsController@committee', 'committee_recruitment')->middleware('perm:hr_request.submit');
     $router->get('/recruitment/interviews', 'InterviewsController@index', 'interviews')->middleware('perm:interview.manage');

@@ -39,7 +39,7 @@ final class MembershipApplicationRepository extends BaseRepository
         // The position and its committee come from the vacancy, or from the open position chosen on the first apply page.
         $statement = $this->pdo()->prepare(
             'SELECT a.*, ' . self::APPLIED_FOR . ' AS vacancy_title, v.status AS vacancy_status, v.closes_at AS vacancy_closes_at,
-                    COALESCE(p.role_type, cp.role_type) AS role_type,
+                    COALESCE(p.role_type, cp.role_type) AS role_type, COALESCE(p.title, cp.title) AS position_title,
                     COALESCE(a.user_id, ap.user_id) AS owner_user_id, c.name AS committee_name,
                     IF(hu.status = \'active\', c.head_user_id, NULL) AS committee_head_id,
                     CONCAT(hu.first_name, \' \', hu.last_name) AS committee_head_name

@@ -89,6 +89,8 @@ final class HttpFlowsTest extends TestCase
         $page = $browser->get("/applications/{$id}");
         $this->assertSame(200, $page['status']);
         $this->assertStringNotContainsString("/applications/{$id}/approve", $page['body'], 'The button is hidden.');
+        $this->assertStringContainsString('Interview questions (8)', $page['body'], 'The Interviews tab lists the core and general questions of the bank.');
+        $this->assertStringContainsString('Please introduce yourself', $page['body']);
 
         $response = $browser->post("/applications/{$id}/approve", ['remarks' => 'Forced']);
         $this->assertSame(403, $response['status']);

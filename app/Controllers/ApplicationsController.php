@@ -10,6 +10,7 @@ use App\Core\Validator;
 use App\Core\View;
 use App\Services\ApplicationStatus;
 use App\Services\AppointmentService;
+use App\Services\AssessmentService;
 use App\Services\InterviewService;
 use App\Services\MembershipService;
 use DomainException;
@@ -64,7 +65,9 @@ final class ApplicationsController
             return Response::error(Response::HTTP_NOT_FOUND);
         }
 
-        $interviewPanel = can('interview.manage') || $this->membership->isOwnCommitteeHead($application) ? (new InterviewService())->panel($application) : [];
+        $interviewPanel = can('interview.manage') || $this->membership->isOwnCommitteeHead($application)
+            ? (new InterviewService())->panel($application) + (new AssessmentService())->panel($application)
+            : [];
         $appointments = can('appointment.prepare') ? new AppointmentService() : null;
 
         return Response::html(View::render('applications/show', [

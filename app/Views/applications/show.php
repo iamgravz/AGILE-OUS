@@ -266,6 +266,12 @@ $actionLabels = [
                 'interviewers' => $interviewers,
                 'canSchedule' => $canSchedule,
             ]) ?>
+            <?= $this->partial('applications/_assessment_form', [
+                'application' => $application,
+                'assessment' => $assessment,
+                'questionBank' => $questionBank,
+                'canAssess' => $canAssess,
+            ]) ?>
         </div>
     <?php endif; ?>
 

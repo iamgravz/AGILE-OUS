@@ -8,6 +8,7 @@ use App\Core\Request;
 use App\Core\Response;
 use App\Core\Validator;
 use App\Core\View;
+use App\Services\AssessmentService;
 use App\Services\InterviewService;
 use DateTimeImmutable;
 use DomainException;
@@ -76,6 +77,28 @@ final class InterviewsController
             flash('success', 'The interview result was saved.');
         } catch (DomainException $exception) {
             flash('error', $exception->getMessage());
+        }
+
+        return redirect($this->back($id));
+    }
+
+    /** The MSW interviewer's assessment, after the interview (AGILE's Applicant Evaluation sheet). */
+    public function assess(Request $request, string $id): Response
+    {
+        $ratings = $request->input('rating', []);
+        $remarks = $request->input('remark', []);
+
+        try {
+            (new AssessmentService())->save((int) $id, is_array($ratings) ? $ratings : [], is_array($remarks) ? $remarks : [], [
+                'recommendation' => $request->text('recommendation'),
+                'strengths' => $request->text('strengths'),
+                'development' => $request->text('development'),
+                'remarks' => $request->text('assessment_remarks'),
+            ]);
+            flash('success', 'The assessment was saved. The Committee Head reads it on the Applicant profile tab.');
+        } catch (DomainException $exception) {
+            flash('error', $exception->getMessage());
+            flash('_old_input', $request->all());
         }
 
         return redirect($this->back($id));
