@@ -59,18 +59,20 @@ $accept = implode(',', array_map(static fn (string $type): string => '.' . $type
                         </td>
                         <td data-label="Action">
                             <?php if ($row['status'] === 'requested') : ?>
-                                <form method="post" action="<?= e(route('credentials.requests.upload', ['id' => $id])) ?>" enctype="multipart/form-data">
-                                    <?= csrf_field() ?>
-                                    <label class="field__label" for="file-<?= e($id) ?>">File from the template</label>
-                                    <input class="input" id="file-<?= e($id) ?>" type="file" name="file" accept="<?= e($accept) ?>" required>
-                                    <button type="submit" class="btn btn--primary btn--sm">Upload</button>
-                                </form>
-                                <form class="cluster" method="post" action="<?= e(route('credentials.requests.decline', ['id' => $id])) ?>">
-                                    <?= csrf_field() ?>
-                                    <label class="sr-only" for="remarks-<?= e($id) ?>">Reason for declining</label>
-                                    <input class="input" id="remarks-<?= e($id) ?>" name="remarks" maxlength="255" required placeholder="Reason, to decline">
-                                    <button type="submit" class="btn btn--ghost btn--sm">Decline</button>
-                                </form>
+                                <div class="request-actions">
+                                    <form class="request-actions__form" method="post" action="<?= e(route('credentials.requests.upload', ['id' => $id])) ?>" enctype="multipart/form-data">
+                                        <?= csrf_field() ?>
+                                        <label class="field__label" for="file-<?= e($id) ?>">File from the template</label>
+                                        <input class="input" id="file-<?= e($id) ?>" type="file" name="file" accept="<?= e($accept) ?>" required>
+                                        <button type="submit" class="btn btn--primary btn--sm">Upload</button>
+                                    </form>
+                                    <form class="request-actions__form request-actions__form--decline" method="post" action="<?= e(route('credentials.requests.decline', ['id' => $id])) ?>">
+                                        <?= csrf_field() ?>
+                                        <label class="field__label" for="remarks-<?= e($id) ?>">Or decline, with the reason</label>
+                                        <input class="input" id="remarks-<?= e($id) ?>" name="remarks" maxlength="255" required placeholder="For example, the picture is not half-body">
+                                        <button type="submit" class="btn btn--secondary btn--sm">Decline</button>
+                                    </form>
+                                </div>
                             <?php elseif ($row['credential_id'] !== null) : ?>
                                 <a class="btn btn--secondary btn--sm" href="<?= e(route('files.show', ['type' => 'credential', 'id' => (int) $row['credential_id']])) ?>?inline=1" target="_blank" rel="noopener">View upload</a>
                             <?php endif; ?>

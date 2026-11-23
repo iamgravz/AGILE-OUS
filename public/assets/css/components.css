@@ -4147,3 +4147,29 @@ form .grid--2 {
         animation: none;
     }
 }
+
+/* ID and certificate requests: Upload and Decline, each with room to breathe and a line between them. */
+.request-actions {
+    display: grid;
+    gap: var(--space-4);
+    min-width: 16rem;
+}
+
+.request-actions__form {
+    display: grid;
+    gap: var(--space-2);
+    justify-items: start;
+}
+
+.request-actions__form .input {
+    width: 100%;
+}
+
+.request-actions__form .field__label {
+    margin: 0;
+}
+
+.request-actions__form--decline {
+    padding-top: var(--space-4);
+    border-top: 1px dashed var(--color-border);
+}
