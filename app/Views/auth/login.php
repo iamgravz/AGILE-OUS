@@ -3,7 +3,6 @@
  * The login page, in the site's own layout (header, footer, glass stage) like Track Status. Iskobot stays above the form.
  *
  * @var \App\Core\View $this
- * @var list<array<string, mixed>> $devUsers filled only when APP_ENV=local
  */
 ?>
 <?php $this->start('title') ?>Log in<?php $this->end() ?>
@@ -37,23 +36,6 @@
                     </div>
                 </form>
 
-                <?php if ($devUsers !== []) : ?>
-                    <details class="card login-dev">
-                        <summary class="login-dev__summary">Log in as a demo account (local only)</summary>
-                        <form method="post" action="<?= e(route('dev.login')) ?>">
-                            <?= csrf_field() ?>
-                            <ul class="dev-switcher__list login-dev__list">
-                                <?php foreach ($devUsers as $user) : ?>
-                                    <li>
-                                        <button type="submit" class="btn btn--secondary btn--sm btn--block" name="email" value="<?= e($user['email']) ?>">
-                                            <?= e($user['role_name']) ?>: <?= e($user['first_name'] . ' ' . $user['last_name']) ?>
-                                        </button>
-                                    </li>
-                                <?php endforeach; ?>
-                            </ul>
-                        </form>
-                    </details>
-                <?php endif; ?>
             </div>
         </div>
     </div>

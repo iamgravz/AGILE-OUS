@@ -278,14 +278,13 @@ return static function (Router $router): void {
         $router->get('/my-submissions', 'MySubmissionsController@index', 'my_submissions');
     });
 
-    // Must not exist outside local development: styleguide pages and passwordless demo login.
+    // Must not exist outside local development: the styleguide pages. (The passwordless demo login was removed, Nov 23, 2026.)
     if (config('app.env') === 'local') {
         $router->get('/styleguide', 'StyleguideController@public', 'styleguide');
         $router->get('/styleguide/dashboard', 'StyleguideController@dashboard', 'styleguide.dashboard');
         $router->get('/styleguide/auth', 'StyleguideController@auth', 'styleguide.auth');
         $router->get('/styleguide/upload', 'StyleguideController@showUpload', 'styleguide.upload');
         $router->post('/styleguide/upload', 'StyleguideController@upload');
-        $router->post('/dev/login-as', 'AuthController@devLogin', 'dev.login')->middleware(GuestMiddleware::class);
     }
 
     // Temporary pages for sidebar items not built yet. They stay last because the first matching route wins,

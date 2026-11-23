@@ -254,25 +254,6 @@ final class AuthService
         return self::LOGIN_OK;
     }
 
-    /** Local development only: logs in as a seeded demo account without a password. */
-    public function loginAsDemoUser(string $email): bool
-    {
-        if (!dev_tools_allowed() || !str_ends_with($email, '@agile.test')) {
-            return false;
-        }
-
-        $user = $this->users->findByEmail($email);
-
-        if ($user === null || $user['status'] !== 'active') {
-            return false;
-        }
-
-        $this->startSession($user);
-        AuditService::log('login.dev_switch', 'user', (int) $user['user_id']);
-
-        return true;
-    }
-
     /** @param array<string, mixed> $user */
     private function startSession(array $user): void
     {

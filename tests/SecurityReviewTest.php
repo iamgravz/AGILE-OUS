@@ -80,14 +80,17 @@ final class SecurityReviewTest extends TestCase
         });
     }
 
-    public function testDemoLoginWorksOnlyFromThisComputer(): void
+    public function testThereIsNoPasswordlessDemoLogin(): void
     {
+        // Removed for go-live (Nov 23, 2026): every account signs in with its password, even on this computer.
+        $this->assertFalse(method_exists(AuthService::class, 'loginAsDemoUser'));
+
+        foreach (\Tests\Support\RouteList::routes() as $route) {
+            $this->assertStringNotContainsString('/dev/', $route['path']);
+        }
+
         $_SERVER['REMOTE_ADDR'] = '203.0.113.9';
         $this->assertFalse(dev_tools_allowed());
-        $this->assertFalse((new AuthService())->loginAsDemoUser('member@agile.test'));
-
-        $_SERVER['REMOTE_ADDR'] = '127.0.0.1';
-        $this->assertSame(config('app.env') === 'local', dev_tools_allowed());
     }
 
     public function testReferralNamesAreStoredEncryptedAndReadBack(): void

@@ -39,22 +39,6 @@ final class UserRepository extends BaseRepository
         return $statement->fetch() ?: null;
     }
 
-    /**
-     * Active seeded demo accounts, for the local login switcher.
-     *
-     * @return list<array<string, mixed>>
-     */
-    public function activeDemoUsers(): array
-    {
-        return $this->pdo()->query(
-            "SELECT u.email, u.first_name, u.last_name, r.role_name
-             FROM users u
-             JOIN roles r ON r.role_id = u.role_id
-             WHERE u.email LIKE '%@agile.test' AND u.status = 'active'
-             ORDER BY u.user_id"
-        )->fetchAll();
-    }
-
     /** Serializes one user's submissions, so two requests cannot both pass the BR-02 check. */
     public function lockRow(int $userId): void
     {

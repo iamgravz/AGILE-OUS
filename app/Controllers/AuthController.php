@@ -9,7 +9,6 @@ use App\Core\Response;
 use App\Core\Session;
 use App\Core\Validator;
 use App\Core\View;
-use App\Models\UserRepository;
 use App\Services\AuthService;
 use App\Services\MemberRegistrationService;
 use DomainException;
@@ -161,22 +160,8 @@ final class AuthController
 
     public function showLogin(Request $request): Response
     {
-        $devUsers = dev_tools_allowed() ? (new UserRepository())->activeDemoUsers() : [];
-
         // The site's own layout, so login looks like the other public pages. The registration steps keep layouts/auth.
-        return Response::html(View::render('auth/login', ['devUsers' => $devUsers], 'layouts/public'));
-    }
-
-    /** The route exists only when APP_ENV=local, and the service refuses it otherwise too. */
-    public function devLogin(Request $request): Response
-    {
-        if ($this->auth->loginAsDemoUser($request->text('email'))) {
-            return redirect(route('dashboard'));
-        }
-
-        flash('error', 'That demo account is not available.');
-
-        return redirect(route('login'));
+        return Response::html(View::render('auth/login', [], 'layouts/public'));
     }
 
     public function login(Request $request): Response

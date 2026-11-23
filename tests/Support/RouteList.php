@@ -21,7 +21,7 @@ final class RouteList
         'GET /apply', 'POST /apply/code', 'POST /apply/resend', 'POST /apply/verify', 'POST /apply/restart', 'GET /apply/continue', 'POST /apply/continue', 'GET /apply/withdraw', 'POST /apply/withdraw',
         'GET /apply/new', 'POST /apply/new', 'GET /apply/{id}/step/{step}', 'POST /apply/{id}/step/{step}', 'POST /apply/{id}/documents/{type}', 'POST /apply/{id}/documents/{documentId}/remove',
         'GET /apply/files/{id}', 'POST /apply/{id}/submit', 'GET /apply/{id}/submitted',
-        'GET /styleguide', 'GET /styleguide/dashboard', 'GET /styleguide/auth', 'GET /styleguide/upload', 'POST /styleguide/upload', 'POST /dev/login-as',
+        'GET /styleguide', 'GET /styleguide/dashboard', 'GET /styleguide/auth', 'GET /styleguide/upload', 'POST /styleguide/upload',
     ];
 
     /** @return list<array{method: string, path: string, middleware: list<string>}> The first declaration of each, because the first match wins. */
