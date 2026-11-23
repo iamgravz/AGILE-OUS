@@ -35,11 +35,11 @@ final class AuthController
         $state = Session::get(self::REGISTER_KEY);
 
         if ($state === null) {
-            return $this->page('auth/register');
+            return $this->robotPage('auth/register');
         }
 
         if ($state['member_id'] === null) {
-            return $this->page('auth/register_verify');
+            return $this->robotPage('auth/register_verify');
         }
 
         if ($state['verified_at'] + self::REGISTER_MINUTES * 60 < time()) {
@@ -49,7 +49,7 @@ final class AuthController
             return redirect(route('register'));
         }
 
-        return $this->page('auth/register_password');
+        return $this->robotPage('auth/register_password');
     }
 
     /** One reply for every student number, so this page cannot be used to test them. */
@@ -328,11 +328,6 @@ final class AuthController
     }
 
     /** @param array<string, mixed> $data */
-    private function page(string $view, array $data = []): Response
-    {
-        return Response::html(View::render($view, $data, 'layouts/auth'));
-    }
-
     /** The password pages, in the site layout like the login page, with Iskobot on the card. */
     private function robotPage(string $view, array $data = []): Response
     {

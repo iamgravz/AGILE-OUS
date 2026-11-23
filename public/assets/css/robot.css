@@ -301,3 +301,10 @@
     border-radius: var(--radius-md, 8px);
     box-shadow: var(--shadow-md, 0 4px 12px rgb(0 0 0 / 0.2));
 }
+
+
+/* Create your account: the short list of what an account gives, inside the info note. */
+.register-perks {
+    margin: var(--space-1) 0 0;
+    padding-left: 1.1rem;
+}
